@@ -12,6 +12,7 @@
     "vite": "^5.2.0"
   },
   "dependencies": {
+    "@noble/curves": "^1.4.0",
     "js-untar": "^2.0.0",
     "sjcl": "^1.0.8"
   }

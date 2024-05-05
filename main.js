@@ -7,11 +7,12 @@ import { checkSignature, checkIndividualProofs } from "./core.js";
 let state = { files: [], }
 
 function main(files) {
-  console.log(files);
+  //console.log(files);
   document.getElementById("content").innerHTML = "";
 
   state.files = files.map(readFile).filter((e)=>e);
   log(`Checked ${state.files.length} files`);
+  //console.log(state.files);
 
   // Check the chain of events
   let parent = undefined;
@@ -31,6 +32,8 @@ function main(files) {
 
   // TODO: Recalculer election_hash ?
 
+  console.log(state.ballots);
+
   for (let i = 0; i < state.ballots.length; i++) {
     log(`Ballot ${i}`);
 
@@ -42,14 +45,14 @@ function main(files) {
     checkIndividualProofs(state.ballots[i]);
 
     // TODO: Check election_hash ?
-    console.log(state.ballots[i]);
+    //console.log(state.ballots[i]);
     let answers = state.ballots[i].payload.answers;
     for (let j = 0; j < answers.length; j++) {
       let answer = answers[j];
       let choices = answer.choices;
       let individual_proofs = answer.individual_proofs;
-      console.log(choices)
-      console.log(individual_proofs);
+      //console.log(choices)
+      //console.log(individual_proofs);
     }
   }
 }
