@@ -17,6 +17,15 @@ export function readTar(filename, then) {
     })
 }
 
+export function readTarFromFileInput(input, then) {
+  const reader = new FileReader();
+  reader.onload = function() {
+    untar(reader.result).then(then)
+  }
+  reader.readAsArrayBuffer(input.files[0]);
+  reader.readAsArrayBuffer(filename);
+}
+
 export function readFile(file) {
   if (file.name === "BELENIOS") {
     return [null, "BELENIOS", JSON.parse(file.readAsString())];

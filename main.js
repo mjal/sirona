@@ -1,6 +1,7 @@
 // import sjcl from "sjcl";
 import { assert, readTar, readFile, findEvent, findData, log,
   loadElection, loadBallots, } from "./utils.js";
+import untar from "js-untar";
 
 import { checkSignature, checkIndividualProofs } from "./core.js";
 
@@ -57,12 +58,10 @@ function main(files) {
   }
 }
 
-document.getElementById("verify")
-  .addEventListener("click", function() {
-    let uuid = document.getElementById("uuid").value;
-    readTar(`/${uuid}.bel`, function(files) {
-      main(files);
-    });
-  });
-
-document.getElementById("verify").click();
+document.getElementById("file").addEventListener("change", function() {
+  const reader = new FileReader();
+  reader.onload = function() {
+    untar(reader.result).then(main);
+  }
+  reader.readAsArrayBuffer(this.files[0]);
+})
