@@ -18,6 +18,16 @@ let rev = (hexStr) => {
   return hexStr.match(/.{1,2}/g).reverse().join('')
 }
 
+let erem = (a, b) => {
+  let remainder = a % b;
+  
+  if (remainder < 0) {
+      remainder += b;
+  }
+  
+  return remainder;
+}
+
 export function checkSignature(ballot) {
   console.log("checkSignature");
 
@@ -36,32 +46,20 @@ export function checkSignature(ballot) {
 
   const g_response = g.multiply(response);
   const credential_challenge = credential.multiply(challenge);
-  console.log("gChallenge:", g_response.toHex());
-  console.log("credentialResponse:", credential_challenge.toHex());
 
   const A = g_response.add(credential_challenge);
-  console.log("A:", A.toHex()); // Output the result as hex
 
   let H = ballot.payload.signature.hash;
-
-  console.log("message:", `sig|${H}|${A.toHex()}`);
-
-  console.log("Hash of hardcoded str:");
-  console.log(sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash("sig|BiwgwZSI8rwjmodNJE12B9eFht3XVo2Sq5kTV5eC2hw|6da112273a5d288dfa93561265c59576caaa8d0581981b25a8f119e22d1564bd")));
 
   let verificationHash = sjcl.codec.hex.fromBits(
     sjcl.hash.sha256.hash(`sig|${H}|${rev(A.toHex())}`));
 
   const q = 2n ** 255n - 19n;
-  const hexVerificationHashMod = (BigInt('0x' + verificationHash) % q).toString(16);
+  const l = BigInt("0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed");
 
-  const hexChallengeMod = (challenge % q).toString(16);
+  const hexReducedVerificationHash = erem(BigInt('0x'+verificationHash), l).toString(16);
 
-  console.log("verificationHash:", verificationHash);
-  console.log("hexVerificationHashMod:", hexVerificationHashMod);
-  console.log("hexChallengeMod:", hexChallengeMod);
-
-  assert(hexChallengeMod == hexVerificationHashMod); // mod q
+  assert(challenge.toString(16) == hexReducedVerificationHash);
 }
 
 export function checkIndividualProofs(ballot) {
