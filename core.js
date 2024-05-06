@@ -60,6 +60,7 @@ export function checkSignature(ballot) {
   const hexReducedVerificationHash = erem(BigInt('0x'+verificationHash), l).toString(16);
 
   assert(challenge.toString(16) == hexReducedVerificationHash);
+  log("Valid signature");
 }
 
 export function checkIndividualProofs(ballot) {
