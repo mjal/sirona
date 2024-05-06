@@ -44,16 +44,24 @@ export function checkSignature(ballot) {
 
   let H = ballot.payload.signature.hash;
 
-  // FIX:
-  // TODO: Use A.toHex() ? and check against the string used by belenios
-  // TODO: Do the modulo
-  let verificationHash = sjcl.codec.base64.fromBits(
-    sjcl.hash.sha256.hash(`sig|${H}|${A}`));
+  console.log("message:", `sig|${H}|${A.toHex()}`);
 
-  console.log(verificationHash);
+  console.log("Hash of hardcoded str:");
+  console.log(sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash("sig|BiwgwZSI8rwjmodNJE12B9eFht3XVo2Sq5kTV5eC2hw|6da112273a5d288dfa93561265c59576caaa8d0581981b25a8f119e22d1564bd")));
 
-  // FIX:
-  assert(challenge == verificationHash); // mod q
+  let verificationHash = sjcl.codec.hex.fromBits(
+    sjcl.hash.sha256.hash(`sig|${H}|${rev(A.toHex())}`));
+
+  const q = 2n ** 255n - 19n;
+  const hexVerificationHashMod = (BigInt('0x' + verificationHash) % q).toString(16);
+
+  const hexChallengeMod = (challenge % q).toString(16);
+
+  console.log("verificationHash:", verificationHash);
+  console.log("hexVerificationHashMod:", hexVerificationHashMod);
+  console.log("hexChallengeMod:", hexChallengeMod);
+
+  assert(hexChallengeMod == hexVerificationHashMod); // mod q
 }
 
 export function checkIndividualProofs(ballot) {
