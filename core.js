@@ -2,7 +2,7 @@
 // TODO: File input to import .bel
 import sjcl from "sjcl";
 import { ed25519 } from '@noble/curves/ed25519';
-import { assert, readTar, readFile, findEvent, findData, log,
+import { assert, readFile, findEvent, findData, log,
   loadElection, loadBallots, } from "./utils.js";
 
 function hashWithoutSignature(ballot) {

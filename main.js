@@ -1,13 +1,12 @@
 // import sjcl from "sjcl";
-import { assert, readTar, readFile, findEvent, findData, log,
+import { assert, readFile, findEvent, findData, log,
   loadElection, loadBallots, } from "./utils.js";
-import untar from "js-untar";
 
 import { checkSignature, checkIndividualProofs } from "./core.js";
 
 let state = { files: [], }
 
-function main(files) {
+export const main = (files) => {
   //console.log(files);
   document.getElementById("content").innerHTML = "";
 
@@ -57,11 +56,3 @@ function main(files) {
     }
   }
 }
-
-document.getElementById("file").addEventListener("change", function() {
-  const reader = new FileReader();
-  reader.onload = function() {
-    untar(reader.result).then(main);
-  }
-  reader.readAsArrayBuffer(this.files[0]);
-})
