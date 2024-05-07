@@ -57,6 +57,8 @@ export function log(message) {
 export function loadElection(files) {
   let election = findEvent(files, "Setup");
   election.payload = findData(files, election.payload);
+  election.fingerprint = sjcl.codec.base64.fromBits(
+      sjcl.codec.hex.toBits(election.payload.election)).replace(/=+$/, '');
   election.payload.credentials = findData(files, election.payload.credentials);
   election.payload.election = findData(files, election.payload.election);
   election.payload.trustees = findData(files, election.payload.trustees);
