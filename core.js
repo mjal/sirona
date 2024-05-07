@@ -60,6 +60,68 @@ export function checkSignature(ballot) {
   log("Valid signature");
 }
 
-export function checkIndividualProofs(ballot) {
+export function checkIndividualProofs(state, ballot) {
   console.log("checkIndividualProofs");
+  console.log(state.election);
+  console.log(ballot);
+
+  findEvent(state.files, ballot.payload.election_uuid);
+
+  const g = ed25519.ExtendedPoint.BASE;
+
+  let y = state.election.payload.election.public_key;
+  y = ed25519.ExtendedPoint.fromHex(rev(y));
+  console.log(y);
+
+  let answers = ballot.payload.answers;
+  console.log("answers", answers);
+  for (let i = 0; i < answers.length; i++) {
+    let answer = answers[i];
+    let choices = answer.choices;
+    let individual_proofs = answer.individual_proofs;
+
+    for (let j = 0; j < individual_proofs.length; j++) {
+      //console.log("individual_proofs", individual_proofs);
+      //console.log("individual_proofs[j]", individual_proofs[j]);
+      //console.log("choices[j]", choices[j]);
+      let alpha = ed25519.ExtendedPoint.fromHex(rev(choices[j].alpha));
+      let beta  = ed25519.ExtendedPoint.fromHex(rev(choices[j].beta));
+      let A = [];
+      let B = [];
+      for (let k = 0; k < individual_proofs[j].length; k++) {
+
+        const challenge = BigInt(individual_proofs[j][k].challenge);
+        const response = BigInt(individual_proofs[j][k].response);
+
+        const g_response = g.multiply(response);
+        const alpha_challenge = alpha.multiply(challenge);
+
+        const a = g_response.add(alpha_challenge);
+        A.push(a);
+
+        const y_response = y.multiply(response);
+
+        let g_k;
+        if (k == 0) {
+          g_k = ed25519.ExtendedPoint.ZERO; // TODO: CHECK
+        } else {
+          g_k = g.multiply(BigInt(k));
+        }
+        const b_div_g_k_challenge = beta.add(g_k.negate()).multiply(challenge);
+
+        const b = g_response.add(y_response).add(b_div_g_k_challenge)
+        B.push(b);
+
+        //console.log("individual_proofs[j][k]", individual_proofs[j][k]);
+        //console.log(g, alpha, beta);
+      }
+
+      let hashedStr = `prove|S|${choices[j].alpha},${choices[j].beta}|`;
+
+      for (let k = 0; k < individual_proofs[j].length; k++) {
+        hashedStr += `${k==0?"":","}${rev(A[k].toHex())},${rev(B[k].toHex())}`;
+      }
+      console.log(hashedStr);
+    }
+  }
 }

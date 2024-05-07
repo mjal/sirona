@@ -30,9 +30,10 @@ export const main = (files) => {
   state.election = loadElection(state.files);
   state.ballots  = loadBallots(state.files);
 
-  // TODO: Recalculer election_hash ?
+  console.log(state.election); 
+  console.log(state.files); 
 
-  console.log(state.ballots);
+  // TODO: Recalculer election_hash ?
 
   for (let i = 0; i < state.ballots.length; i++) {
     log(`Ballot ${i}`);
@@ -42,7 +43,7 @@ export const main = (files) => {
       === state.ballots[i].payload.election_uuid);
 
     checkSignature(state.ballots[i]);
-    checkIndividualProofs(state.ballots[i]);
+    checkIndividualProofs(state, state.ballots[i]);
 
     // TODO: Check election_hash ?
     //console.log(state.ballots[i]);
