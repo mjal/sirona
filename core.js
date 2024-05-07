@@ -118,7 +118,8 @@ export function checkIndividualProofs(state, ballot) {
         //console.log(g, alpha, beta);
       }
 
-      let hashedStr = `prove|S|${choices[j].alpha},${choices[j].beta}|`;
+      let S = `${state.election.fingerprint}|${ballot.payload.credential}`;
+      let hashedStr = `prove|${S}|${choices[j].alpha},${choices[j].beta}|`;
 
       for (let k = 0; k < individual_proofs[j].length; k++) {
         hashedStr += `${k==0?"":","}${rev(A[k].toHex())},${rev(B[k].toHex())}`;
