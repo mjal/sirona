@@ -29,14 +29,11 @@ let erem = (a, b) => {
 }
 
 export function checkSignature(ballot) {
-  console.log("checkSignature");
-
   assert(ballot.payload.signature.hash
     == hashWithoutSignature(ballot));
   log("Hashes are equal");
 
   const credential = ed25519.ExtendedPoint.fromHex(rev(ballot.payload.credential));
-  console.log("credential", credential.toHex());
 
   let signature = ballot.payload.signature;
 
