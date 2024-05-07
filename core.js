@@ -86,6 +86,8 @@ export function checkIndividualProofs(state, ballot) {
       //console.log("choices[j]", choices[j]);
       let alpha = ed25519.ExtendedPoint.fromHex(rev(choices[j].alpha));
       let beta  = ed25519.ExtendedPoint.fromHex(rev(choices[j].beta));
+      // TODO: Check alpha, beta
+
       let A = [];
       let B = [];
       for (let k = 0; k < individual_proofs[j].length; k++) {
