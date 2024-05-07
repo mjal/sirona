@@ -44,16 +44,5 @@ export const main = (files) => {
 
     checkSignature(state.ballots[i]);
     checkIndividualProofs(state, state.ballots[i]);
-
-    // TODO: Check election_hash ?
-    //console.log(state.ballots[i]);
-    let answers = state.ballots[i].payload.answers;
-    for (let j = 0; j < answers.length; j++) {
-      let answer = answers[j];
-      let choices = answer.choices;
-      let individual_proofs = answer.individual_proofs;
-      //console.log(choices)
-      //console.log(individual_proofs);
-    }
   }
 }
