@@ -96,7 +96,7 @@ export function checkSignature(ballot) {
 }
 
 export function checkIndividualProofs(state, ballot) {
-  let y = state.election.payload.election.public_key;
+  let y = state.setup.payload.election.public_key;
   y = ed25519.ExtendedPoint.fromHex(rev(y));
 
   let answers = ballot.payload.answers;
@@ -105,7 +105,7 @@ export function checkIndividualProofs(state, ballot) {
     let choices = answer.choices;
     let individual_proofs = answer.individual_proofs;
 
-    assert(individual_proofs.length == state.election.payload.election.questions[i].answers.length);
+    assert(individual_proofs.length == state.setup.payload.election.questions[i].answers.length);
     for (let j = 0; j < individual_proofs.length; j++) {
       let alpha = ed25519.ExtendedPoint.fromHex(rev(choices[j].alpha));
       let beta  = ed25519.ExtendedPoint.fromHex(rev(choices[j].beta));
@@ -125,7 +125,7 @@ export function checkIndividualProofs(state, ballot) {
         sum_challenges = erem(sum_challenges + challenge, l);
       }
 
-      let S = `${state.election.fingerprint}|${ballot.payload.credential}`;
+      let S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
       let hashedStr = `prove|${S}|${choices[j].alpha},${choices[j].beta}|`;
       for (let k = 0; k < individual_proofs[j].length; k++) {
         hashedStr += `${k==0?"":","}${rev(A[k].toHex())},${rev(B[k].toHex())}`;
@@ -144,7 +144,7 @@ export function checkIndividualProofs(state, ballot) {
 }
 
 export function checkOverallProof(state, ballot) {
-  let y = state.election.payload.election.public_key;
+  let y = state.setup.payload.election.public_key;
   y = ed25519.ExtendedPoint.fromHex(rev(y));
 
   for (let i = 0; i < ballot.payload.answers.length; i++) {
@@ -220,7 +220,7 @@ export function checkOverallProof(state, ballot) {
     }
     */
 
-    let S = `${state.election.fingerprint}|${ballot.payload.credential}|`;
+    let S = `${state.setup.fingerprint}|${ballot.payload.credential}|`;
     let alphas_betas = [];
     for (let j = 0; j < answer.choices.length; j++) {
       alphas_betas.push(`${answer.choices[j].alpha},${answer.choices[j].beta}`);

@@ -18,7 +18,7 @@ export const main = (files) => {
 
   checkEventChain(state.files);
 
-  state.election = loadElection(state.files);
+  state.setup    = loadElection(state.files);
   state.ballots  = loadBallots(state.files);
 
   console.log(state.election); 
@@ -32,7 +32,7 @@ export const main = (files) => {
     log(`Ballot ${i}`);
 
     // NOTE: Check ballot's infos
-    assert(state.election.payload.election.uuid
+    assert(state.setup.payload.election.uuid
       === state.ballots[i].payload.election_uuid);
 
     checkSignature(state.ballots[i]);
