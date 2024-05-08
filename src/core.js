@@ -126,3 +126,6 @@ export function checkIndividualProofs(state, ballot) {
     }
   }
 }
+
+export function checkOverallProof(state, ballot) {
+}
