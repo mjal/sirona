@@ -1,31 +1,22 @@
-// import sjcl from "sjcl";
-import { assert, readFile, findEvent, findData, log,
+import { assert, readFile, log,
   loadElection, loadBallots, } from "./utils.js";
 
-import { checkSignature, checkIndividualProofs } from "./core.js";
+import {
+  checkEventChain,
+  checkSignature,
+  checkIndividualProofs,
+  checkOverallProof
+} from "./core.js";
 
 let state = { files: [], }
 
 export const main = (files) => {
-  //console.log(files);
   document.getElementById("content").innerHTML = "";
 
   state.files = files.map(readFile).filter((e)=>e);
   log(`Checked ${state.files.length} files`);
-  //console.log(state.files);
 
-  // Check the chain of events
-  let parent = undefined;
-  let nEvent = 0;
-  for (let i = 0; i < state.files.length; i++) {
-    let [entryHash, type, content] = state.files[i];
-    if (type === "event") {
-      assert(content.parent == parent);
-      parent = entryHash;
-      nEvent++;
-    }
-  }
-  log(`Checked ${nEvent} events`);
+  checkEventChain(state.files);
 
   state.election = loadElection(state.files);
   state.ballots  = loadBallots(state.files);

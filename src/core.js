@@ -31,6 +31,21 @@ let erem = (a, b) => {
   return remainder;
 }
 
+export function checkEventChain(files) {
+  // Check the chain of events
+  let parent = undefined;
+  let nEvent = 0;
+  for (let i = 0; i < files.length; i++) {
+    let [entryHash, type, content] = files[i];
+    if (type === "event") {
+      assert(content.parent == parent);
+      parent = entryHash;
+      nEvent++;
+    }
+  }
+  log(`Checked ${nEvent} events`);
+}
+
 export function checkSignature(ballot) {
   assert(ballot.payload.signature.hash
     == hashWithoutSignature(ballot));
