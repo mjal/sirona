@@ -24,16 +24,19 @@ export const main = (files) => {
   console.log(state.election); 
   console.log(state.files); 
 
-  // TODO: Recalculer election_hash ?
+  // Recalculer election_hash ?
+  // TODO: Check election
+  // TODO: Check trustees
 
   for (let i = 0; i < state.ballots.length; i++) {
     log(`Ballot ${i}`);
 
-    // NOTE: Check election_uuid
+    // NOTE: Check ballot's infos
     assert(state.election.payload.election.uuid
       === state.ballots[i].payload.election_uuid);
 
     checkSignature(state.ballots[i]);
     checkIndividualProofs(state, state.ballots[i]);
+    checkOverallProof(state, state.ballots[i]);
   }
 }
