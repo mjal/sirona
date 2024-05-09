@@ -32,24 +32,28 @@ let erem = (a, b) => {
   return remainder;
 }
 
-// TODO: isolate formula1 (signature)
+function values_for_proof_of_interval_membership(y, alpha, beta, transcripts, ms) {
+  let values = [];  
 
-let formula2 = (y, alpha, beta, challenge, response, k) => {
-  const g_response = g.multiply(response);
-  const alpha_challenge = alpha.multiply(challenge);
-  const a = g_response.add(alpha_challenge);
+  for (let i = 0; i < transcripts.length; i++) {
+    const m = ms[i];
 
-  let g_k;
-  const y_response = y.multiply(response);
-  if (k == 0) {
-    g_k = ed25519.ExtendedPoint.ZERO;
-  } else {
-    g_k = g.multiply(BigInt(k));
+    const challenge = BigInt(transcripts[i].challenge);
+    const response = BigInt(transcripts[i].response);
+
+    const g_response = g.multiply(response);
+    const alpha_challenge = alpha.multiply(challenge);
+    const a = g_response.add(alpha_challenge);
+    const y_response = y.multiply(response);
+    const g_m = (m == 0) ? ed25519.ExtendedPoint.ZERO : g.multiply(BigInt(m));
+    const b_div_g_m_challenge = beta.add(g_m.negate()).multiply(challenge);
+    const b = y_response.add(b_div_g_m_challenge)
+
+    values.push(a);
+    values.push(b);
   }
-  const b_div_g_k_challenge = beta.add(g_k.negate()).multiply(challenge);
-  const b = y_response.add(b_div_g_k_challenge)
 
-  return [a, b];
+  return values;
 }
 
 export function checkEventChain(files) {
@@ -111,27 +115,17 @@ export function checkIndividualProofs(state, ballot) {
       let beta  = ed25519.ExtendedPoint.fromHex(rev(choices[j].beta));
       // TODO: Check alpha, beta are on the curve
 
-      let A = [];
-      let B = [];
       let sum_challenges = 0n;
       for (let k = 0; k < individual_proofs[j].length; k++) {
         const challenge = BigInt(individual_proofs[j][k].challenge);
-        const response = BigInt(individual_proofs[j][k].response);
-
-        let [a, b] = formula2(y, alpha, beta, challenge, response, k);
-        A.push(a);
-        B.push(b);
-
         sum_challenges = erem(sum_challenges + challenge, l);
       }
 
+      const values = values_for_proof_of_interval_membership(y, alpha, beta, individual_proofs[j], [0, 1]);
+
       let S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
       let hashedStr = `prove|${S}|${choices[j].alpha},${choices[j].beta}|`;
-      for (let k = 0; k < individual_proofs[j].length; k++) {
-        hashedStr += `${k==0?"":","}${rev(A[k].toHex())},${rev(B[k].toHex())}`;
-      }
-
-      console.log(hashedStr);
+      hashedStr += values.map((v) => rev(v.toHex())).join(',');
 
       let verificationHash = sjcl.codec.hex.fromBits(
         sjcl.hash.sha256.hash(hashedStr));
@@ -162,76 +156,21 @@ export function checkOverallProof(state, ballot) {
       sumc.beta = sumc.beta.add(ed25519.ExtendedPoint.fromHex(rev(answer.choices[j].beta)));
     }
 
-    let A = [];
-    let B = [];
-
-    let alpha, beta;
-    let a, b;
-    let challenge, response;
-
-    /*
-    alpha = ed25519.ExtendedPoint.fromHex(rev(answer.choices[0].alpha));
-    beta  = ed25519.ExtendedPoint.fromHex(rev(answer.choices[0].beta));
-    challenge = BigInt(answer.individual_proofs[0][0].challenge);
-    response  = BigInt(answer.individual_proofs[0][0].response);
-    [a, b] = formula2(y, alpha, beta, challenge, response, 0);
-    A.push(alpha);
-    B.push(beta);
-    */
-
-    alpha = sumc.alpha;
-    beta  = sumc.beta;
-    challenge = BigInt(answer.overall_proof[0].challenge);
-    response  = BigInt(answer.overall_proof[0].response);
-    [a, b] = formula2(y, alpha, beta, challenge, response, 0);
-    A.push(a);
-    B.push(b);
-
-    /*
-    for (let j = 0; j < answer.choices.length; j++) {
-      let alpha, beta;
-      if (j == 0) {
-        alpha = ed25519.ExtendedPoint.fromHex(rev(answer.choices[0].alpha));
-        beta  = ed25519.ExtendedPoint.fromHex(rev(answer.choices[0].beta));
-      } else {
-        alpha = sumc.alpha;
-        beta  = sumc.beta;
-      }
-
-      alpha = sumc.alpha;
-      beta  = sumc.beta;
-
-      const challenge = BigInt(answer.individual_proofs[j][0].challenge);
-      const response = BigInt(answer.individual_proofs[j][0].response);
-
-      let [a, b] = formula2(y, alpha, beta, challenge, response, 0);
-      A.push(alpha);
-      B.push(beta);
-
-      //for (let k = 0; k < answer.individual_proofs[j].length; k++) {
-      //  const challenge = BigInt(answer.individual_proofs[j][k].challenge);
-      //  const response = BigInt(answer.individual_proofs[j][k].response);
-
-      //  let [a, b] = formula2(y, alpha, beta, challenge, response, k);
-
-      //  A.push(alpha);
-      //  B.push(beta);
-      //}
-    }
-    */
-
-    let S = `${state.setup.fingerprint}|${ballot.payload.credential}|`;
+    let challengeStr = `prove|`;
+    challengeStr += `${state.setup.fingerprint}|${ballot.payload.credential}|`;
     let alphas_betas = [];
     for (let j = 0; j < answer.choices.length; j++) {
       alphas_betas.push(`${answer.choices[j].alpha},${answer.choices[j].beta}`);
     }
-    S += alphas_betas.join(',');
+    challengeStr += alphas_betas.join(',');
+    challengeStr += `|${rev(sumc.alpha.toHex())},${rev(sumc.beta.toHex())}|`;
 
-    let hashedStr = `prove|${S}|`
-    hashedStr += `${rev(sumc.alpha.toHex())},${rev(sumc.beta.toHex())}|`;
-    //for (let k = 0; k < A.length; k++) {
-    //  hashedStr += `${k==0?"":","}${rev(A[k].toHex())},${rev(B[k].toHex())}`;
-    //}
-    console.log(hashedStr);
+    const values = values_for_proof_of_interval_membership(y,
+      sumc.alpha, sumc.beta, answer.overall_proof, [1]);
+    challengeStr += values.map((v) => rev(v.toHex())).join(',');
+
+    console.log(state.setup.election);
+    console.log(challengeStr);
   }
 }
+
