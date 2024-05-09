@@ -138,8 +138,14 @@ export function checkOverallProof(state, ballot) {
       sum_challenges = erem(sum_challenges + challenge, l);
     }
 
+    let min = state.setup.payload.election.questions[i].min;
+    let max = state.setup.payload.election.questions[i].max;
+    let ms = [];
+    for (let j = min; j <= max; j++) {
+      ms.push(j);
+    }
     const values = values_for_proof_of_interval_membership(y,
-      sumc.alpha, sumc.beta, answer.overall_proof, [1]);
+      sumc.alpha, sumc.beta, answer.overall_proof, ms);
 
     let challengeStr = `prove|`;
     challengeStr += `${state.setup.fingerprint}|${ballot.payload.credential}|`;
