@@ -7,6 +7,7 @@ export default function(files) {
   state.files = files;
 
   state.setup = findEvent(files, "Setup");
+  state.setup.payloadHash = state.setup.payload;
   state.setup.payload = findData(files, state.setup.payload);
   state.setup.fingerprint = sjcl.codec.base64.fromBits(
       sjcl.codec.hex.toBits(state.setup.payload.election)).replace(/=+$/, '');
@@ -19,6 +20,7 @@ export default function(files) {
     return entry[1] === "event" && entry[2].type === "Ballot"
   }).map((entry) => entry[2])
   .map((ballot) => {
+    ballot.payloadHash = ballot.payload;
     ballot.payload = findData(files, ballot.payload);
     return ballot;
   });
