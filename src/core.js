@@ -1,5 +1,3 @@
-// TODO: Cli implementation
-// TODO: File input to import .bel
 import sjcl from "sjcl";
 import { ed25519 } from '@noble/curves/ed25519';
 import { assert, readFile, findEvent, findData, log,
