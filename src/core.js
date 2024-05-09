@@ -156,6 +156,15 @@ export function checkOverallProof(state, ballot) {
       sumc.beta = sumc.beta.add(ed25519.ExtendedPoint.fromHex(rev(answer.choices[j].beta)));
     }
 
+    let sum_challenges = 0n;
+    for (let k = 0; k < answer.overall_proof.length; k++) {
+      const challenge = BigInt(answer.overall_proof[k].challenge);
+      sum_challenges = erem(sum_challenges + challenge, l);
+    }
+
+    const values = values_for_proof_of_interval_membership(y,
+      sumc.alpha, sumc.beta, answer.overall_proof, [1]);
+
     let challengeStr = `prove|`;
     challengeStr += `${state.setup.fingerprint}|${ballot.payload.credential}|`;
     let alphas_betas = [];
@@ -164,12 +173,13 @@ export function checkOverallProof(state, ballot) {
     }
     challengeStr += alphas_betas.join(',');
     challengeStr += `|${rev(sumc.alpha.toHex())},${rev(sumc.beta.toHex())}|`;
-
-    const values = values_for_proof_of_interval_membership(y,
-      sumc.alpha, sumc.beta, answer.overall_proof, [1]);
     challengeStr += values.map((v) => rev(v.toHex())).join(',');
 
-    console.log(state.setup.election);
-    console.log(challengeStr);
+    let verificationHash = sjcl.codec.hex.fromBits(
+      sjcl.hash.sha256.hash(challengeStr));
+    const hexReducedVerificationHash = erem(BigInt('0x'+verificationHash), l).toString(16);
+
+    assert(sum_challenges.toString(16) == hexReducedVerificationHash);
+    log("Valid overall proof");
   }
 }
