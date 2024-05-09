@@ -1,7 +1,7 @@
 import sjcl from "sjcl";
 import { ed25519 } from '@noble/curves/ed25519';
 import { assert, log } from './utils.js';
-import { g, l } from './math.js';
+import { g, l, rev, erem } from './math.js';
 
 export default function(state, ballot) {
     assert(state.setup.payload.election.uuid
@@ -11,18 +11,6 @@ export default function(state, ballot) {
     checkSignature(ballot);
     checkIndividualProofs(state, ballot);
     checkOverallProof(state, ballot);
-}
-
-let rev = (hexStr) => {
-  return hexStr.match(/.{1,2}/g).reverse().join('')
-}
-
-let erem = (a, b) => {
-  let remainder = a % b;
-  if (remainder < 0) {
-    remainder += b;
-  }
-  return remainder;
 }
 
 function values_for_proof_of_interval_membership(y, alpha, beta, transcripts, ms) {
