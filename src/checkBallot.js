@@ -3,7 +3,15 @@ import { ed25519 } from '@noble/curves/ed25519';
 import { assert, log } from './utils.js';
 import { g, l } from './math.js';
 
-// TODO: If possible in js, put checkBallot at the beginning of the file
+export default function(state, ballot) {
+    assert(state.setup.payload.election.uuid
+      === ballot.payload.election_uuid);
+    // TODO: More checks
+
+    checkSignature(ballot);
+    checkIndividualProofs(state, ballot);
+    checkOverallProof(state, ballot);
+}
 
 let rev = (hexStr) => {
   return hexStr.match(/.{1,2}/g).reverse().join('')
@@ -161,15 +169,4 @@ export function checkOverallProof(state, ballot) {
     assert(sum_challenges.toString(16) == hexReducedVerificationHash);
     log("Valid overall proof");
   }
-}
-
-export default function checkBallot(state, ballot) {
-    // NOTE: Check ballot is well formed
-
-    assert(state.setup.payload.election.uuid
-      === ballot.payload.election_uuid);
-
-    checkSignature(ballot);
-    checkIndividualProofs(state, ballot);
-    checkOverallProof(state, ballot);
 }
