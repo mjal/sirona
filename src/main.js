@@ -15,5 +15,6 @@ export default function(fileEntries) {
     }
   } catch (e) {
     logError("critical", "Something wrong happened.");
+    console.error(e);
   }
 }
