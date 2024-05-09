@@ -6,7 +6,10 @@ import { g, l, rev, erem } from './math.js';
 export default function(state, ballot) {
     assert(state.setup.payload.election.uuid
       === ballot.payload.election_uuid);
-    // TODO: More checks
+    // TODO: More check
+
+    // TODO: Check credential exists
+    // TODO: Check ballot is unique
 
     checkSignature(ballot);
     checkIndividualProofs(state, ballot);

@@ -1,3 +1,4 @@
+// TODO: Use `check` instead of assert and logSuccess
 import { readFile } from "./utils.js";
 import load from "./load.js";
 import checkFiles from "./checkFiles.js";
