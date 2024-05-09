@@ -1,4 +1,4 @@
-import { main } from "./main.js";
+import main from "./main.js";
 import untar from "js-untar";
 
 document.getElementById("file").addEventListener("change", function() {

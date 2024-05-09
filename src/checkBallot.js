@@ -1,11 +1,45 @@
 import sjcl from "sjcl";
 import { ed25519 } from '@noble/curves/ed25519';
-import { assert, readFile, findEvent, findData, log,
-  loadElection, loadBallots, } from "./utils.js";
+import { assert, log } from './utils.js';
+import { g, l } from './math.js';
 
-const g = ed25519.ExtendedPoint.BASE;
-const q = 2n ** 255n - 19n;
-const l = BigInt("0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed");
+// TODO: If possible in js, put checkBallot at the beginning of the file
+
+let rev = (hexStr) => {
+  return hexStr.match(/.{1,2}/g).reverse().join('')
+}
+
+let erem = (a, b) => {
+  let remainder = a % b;
+  if (remainder < 0) {
+    remainder += b;
+  }
+  return remainder;
+}
+
+function values_for_proof_of_interval_membership(y, alpha, beta, transcripts, ms) {
+  let values = [];  
+
+  for (let i = 0; i < transcripts.length; i++) {
+    const m = ms[i];
+
+    const challenge = BigInt(transcripts[i].challenge);
+    const response = BigInt(transcripts[i].response);
+
+    const g_response = g.multiply(response);
+    const alpha_challenge = alpha.multiply(challenge);
+    const a = g_response.add(alpha_challenge);
+    const y_response = y.multiply(response);
+    const g_m = (m == 0) ? ed25519.ExtendedPoint.ZERO : g.multiply(BigInt(m));
+    const b_div_g_m_challenge = beta.add(g_m.negate()).multiply(challenge);
+    const b = y_response.add(b_div_g_m_challenge)
+
+    values.push(a);
+    values.push(b);
+  }
+
+  return values;
+}
 
 function hashWithoutSignature(ballot) {
   let copy = Object.assign({}, ballot.payload);
@@ -14,40 +48,6 @@ function hashWithoutSignature(ballot) {
   let hash = sjcl.codec.base64.fromBits(
     sjcl.hash.sha256.hash(serialized));
   return hash.replace(/=+$/, '');
-}
-
-let rev = (hexStr) => {
-  return hexStr.match(/.{1,2}/g).reverse().join('')
-}
-
-let erem = (a, b) => {
-  let remainder = a % b;
-
-  if (remainder < 0) {
-    remainder += b;
-  }
-
-  return remainder;
-}
-
-export function checkEventChain(files) {
-  // TODO: Check hash correspond to content
-
-  // TODO: Check event are in canonical form
-
-  // NOTE: Check event chain
-  let parent = undefined;
-  let nEvent = 0;
-  for (let i = 0; i < files.length; i++) {
-    let [entryHash, type, content] = files[i];
-    if (type === "event") {
-      assert(content.parent == parent);
-      parent = entryHash;
-      nEvent++;
-    }
-  }
-
-  log(`Checked ${nEvent} events`);
 }
 
 export function checkSignature(ballot) {
@@ -161,4 +161,15 @@ export function checkOverallProof(state, ballot) {
     assert(sum_challenges.toString(16) == hexReducedVerificationHash);
     log("Valid overall proof");
   }
+}
+
+export default function checkBallot(state, ballot) {
+    // NOTE: Check ballot is well formed
+
+    assert(state.setup.payload.election.uuid
+      === ballot.payload.election_uuid);
+
+    checkSignature(ballot);
+    checkIndividualProofs(state, ballot);
+    checkOverallProof(state, ballot);
 }

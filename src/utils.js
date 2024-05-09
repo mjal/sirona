@@ -53,26 +53,3 @@ export function log(message) {
   p.textContent = message;
   document.getElementById("content").appendChild(p);
 }
-
-export function loadElection(files) {
-  let setup = findEvent(files, "Setup");
-  setup.payload = findData(files, setup.payload);
-  setup.fingerprint = sjcl.codec.base64.fromBits(
-      sjcl.codec.hex.toBits(setup.payload.election)).replace(/=+$/, '');
-  setup.payload.credentials = findData(files, setup.payload.credentials);
-  setup.payload.election = findData(files, setup.payload.election);
-  setup.payload.trustees = findData(files, setup.payload.trustees);
-
-  return setup;
-}
-
-export function loadBallots(files) {
-  let ballots = files.filter((entry) => entry[1] === "event" && entry[2].type === "Ballot");
-  ballots = ballots.map((ballot) => ballot[2]);
-  ballots.map((ballot) => {
-    ballot.payload = findData(files, ballot.payload);
-    return ballot;
-  });
-
-  return ballots;
-}
