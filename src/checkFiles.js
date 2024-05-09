@@ -1,4 +1,4 @@
-import { log, assert } from "./utils.js";
+import { logSuccess, assert } from "./utils.js";
 
 export default function(state) {
   // TODO: Check hash correspond to content
@@ -17,7 +17,7 @@ export default function(state) {
     }
   }
 
-  log(`Checked ${nEvent} events`);
+  logSuccess("database", `Checked ${nEvent} events`);
 }
 
 

@@ -1,6 +1,6 @@
 import sjcl from "sjcl";
 import { ed25519 } from '@noble/curves/ed25519';
-import { assert, log } from './utils.js';
+import { assert, logSuccess } from './utils.js';
 import { g, l, rev, erem } from './math.js';
 
 export default function(state, ballot) {
@@ -49,7 +49,7 @@ function hashWithoutSignature(ballot) {
 export function checkSignature(ballot) {
   assert(ballot.payload.signature.hash
     == hashWithoutSignature(ballot));
-  log("Hashes are equal");
+  logSuccess("ballots", "Hashes are equal");
 
   const credential = ed25519.ExtendedPoint.fromHex(rev(ballot.payload.credential));
 
@@ -71,7 +71,7 @@ export function checkSignature(ballot) {
   const hexReducedVerificationHash = erem(BigInt('0x'+verificationHash), l).toString(16);
 
   assert(challenge.toString(16) == hexReducedVerificationHash);
-  log("Valid signature");
+  logSuccess("ballots", "Valid signature");
 }
 
 export function checkIndividualProofs(state, ballot) {
@@ -107,7 +107,7 @@ export function checkIndividualProofs(state, ballot) {
       const hexReducedVerificationHash = erem(BigInt('0x'+verificationHash), l).toString(16);
 
       assert(sum_challenges.toString(16) == hexReducedVerificationHash);
-      log("Valid individual proof");
+      logSuccess("ballots", "Valid individual proof");
     }
   }
 }
@@ -117,8 +117,6 @@ export function checkOverallProof(state, ballot) {
   y = ed25519.ExtendedPoint.fromHex(rev(y));
 
   for (let i = 0; i < ballot.payload.answers.length; i++) {
-    console.log(ballot);
-    console.log(state.setup);
     let answer = ballot.payload.answers[i];
 
     let sumc = {
@@ -155,6 +153,6 @@ export function checkOverallProof(state, ballot) {
     const hexReducedVerificationHash = erem(BigInt('0x'+verificationHash), l).toString(16);
 
     assert(sum_challenges.toString(16) == hexReducedVerificationHash);
-    log("Valid overall proof");
+    logSuccess("ballots", "Valid overall proof");
   }
 }

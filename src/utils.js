@@ -48,8 +48,25 @@ export function findData(entries, hash) {
   }
 }
 
-export function log(message) {
+export function log(section, message, classeName = "", prefix = "") {
   let p = document.createElement("p");
-  p.textContent = message;
-  document.getElementById("content").appendChild(p);
+  p.className = classeName;
+  p.textContent = prefix + message;
+  document.getElementById(section).appendChild(p);
+}
+
+export function logSuccess(section, message) {
+  log(section, message, "success", "✔ ");
+}
+
+export function logError(section, message) {
+  log(section, message, "error", "✘ ");
+}
+
+export function check(section, message, test) {
+  if (test) {
+    logSuccess(section, message);
+  } else {
+    logError(section, message);
+  }
 }
