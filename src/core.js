@@ -124,11 +124,11 @@ export function checkIndividualProofs(state, ballot) {
       const values = values_for_proof_of_interval_membership(y, alpha, beta, individual_proofs[j], [0, 1]);
 
       let S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
-      let hashedStr = `prove|${S}|${choices[j].alpha},${choices[j].beta}|`;
-      hashedStr += values.map((v) => rev(v.toHex())).join(',');
+      let challengeStr = `prove|${S}|${choices[j].alpha},${choices[j].beta}|`;
+      challengeStr += values.map((v) => rev(v.toHex())).join(',');
 
       let verificationHash = sjcl.codec.hex.fromBits(
-        sjcl.hash.sha256.hash(hashedStr));
+        sjcl.hash.sha256.hash(challengeStr));
       const hexReducedVerificationHash = erem(BigInt('0x'+verificationHash), l).toString(16);
 
       assert(sum_challenges.toString(16) == hexReducedVerificationHash);
@@ -173,4 +173,3 @@ export function checkOverallProof(state, ballot) {
     console.log(challengeStr);
   }
 }
-
