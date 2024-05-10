@@ -21,7 +21,6 @@ export default function(state) {
     const x_challenge = X.multiply(challenge);
     const A = g_response.add(x_challenge);
 
-    console.log(state.setup.payload.election);
     let hashedStr = `pok|${state.setup.payload.election.group}|`;
     hashedStr += `${trustee[1].public_key}|`
     hashedStr += `${rev(A.toHex())}`;
@@ -34,4 +33,9 @@ export default function(state) {
       challenge.toString(16) == hexReducedVerificationHash
     );
   }
+
+  check("setup", "Election Public Key correspond to trustees",
+    state.setup.payload.trustees[0][1].public_key
+      === state.setup.payload.election.public_key
+  );
 }
