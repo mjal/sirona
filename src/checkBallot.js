@@ -9,10 +9,7 @@ export default function(state, ballot) {
 
   checkIsCanonical(ballot);
   checkCredential(state, ballot);
-
-  // TODO: Check credential exists
-  // TODO: Check ballot is unique
-  // TODO: More check
+  checkIsUnique(ballot);
 
   checkSignature(ballot);
   checkIndividualProofs(state, ballot);
@@ -100,6 +97,17 @@ function checkCredential(state, ballot) {
     "ballots", "Has a valid credential",
     state.setup.payload.credentials.indexOf(ballot.payload.credential) !== -1
   );
+}
+
+let processedBallots = {};
+
+function checkIsUnique(ballot) {
+  check(
+    "ballots", "Is unique",
+    processedBallots[ballot.payload.credential] === undefined
+  );
+
+  processedBallots[ballot.payload.credential] = ballot;
 }
 
 export function checkSignature(ballot) {
