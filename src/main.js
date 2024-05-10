@@ -1,11 +1,12 @@
 // TODO: Use `check` instead of assert and logSuccess
-import { readFile, logError } from "./utils.js";
+import { clear, readFile, logError } from "./utils.js";
 import load from "./load.js";
 import checkFiles from "./checkFiles.js";
 import checkSetup from "./checkSetup.js";
 import checkBallot from "./checkBallot.js";
 
 export default function(fileEntries) {
+  clear();
   try {
     let state = load(fileEntries.map(readFile));
     checkFiles(state);

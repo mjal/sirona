@@ -70,3 +70,10 @@ export function check(section, message, test) {
     logError(section, message);
   }
 }
+
+export function clear() {
+  document.getElementById("critical").innerHTML = "";
+  document.getElementById("database").innerHTML = "";
+  document.getElementById("setup").innerHTML = "";
+  document.getElementById("ballots").innerHTML = "";
+}
