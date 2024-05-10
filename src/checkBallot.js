@@ -4,18 +4,18 @@ import { assert, logSuccess } from './utils.js';
 import { g, l, rev, erem } from './math.js';
 
 export default function(state, ballot) {
-    assert(state.setup.payload.election.uuid
-      === ballot.payload.election_uuid);
+  assert(state.setup.payload.election.uuid
+    === ballot.payload.election_uuid);
 
-    checkIsCanonical(ballot);
-    // TODO: More check
+  checkIsCanonical(ballot);
 
-    // TODO: Check credential exists
-    // TODO: Check ballot is unique
+  // TODO: Check credential exists
+  // TODO: Check ballot is unique
+  // TODO: More check
 
-    checkSignature(ballot);
-    checkIndividualProofs(state, ballot);
-    checkOverallProof(state, ballot);
+  checkSignature(ballot);
+  checkIndividualProofs(state, ballot);
+  checkOverallProof(state, ballot);
 }
 
 function values_for_proof_of_interval_membership(y, alpha, beta, transcripts, ms) {
