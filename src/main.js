@@ -1,5 +1,5 @@
 // TODO: Use `check` instead of assert and logSuccess
-import { clear, readFile, logError } from "./utils.js";
+import { clear, readFile, logError, showResult } from "./utils.js";
 import load from "./load.js";
 import checkFiles from "./checkFiles.js";
 import checkSetup from "./checkSetup.js";
@@ -15,7 +15,8 @@ export default function(fileEntries) {
       checkBallot(state, state.ballots[i]);
     }
   } catch (e) {
-    logError("critical", "Something wrong happened.");
+    logError("top", "Something wrong happened.");
     console.error(e);
   }
+  showResult();
 }

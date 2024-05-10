@@ -35,7 +35,7 @@ export function findEvent(entries, eventType) {
 
 export function findData(entries, hash) {
   let entry = entries.find((entry) => {
-    let [entryHash, type, content, textContent] = entry;
+    let [entryHash, type, content] = entry;
     return entryHash === hash;
   });
 
@@ -57,8 +57,10 @@ export function logSuccess(section, message) {
   log(section, message, "success", "✔ ");
 }
 
+let errors = 0;
 export function logError(section, message) {
   log(section, message, "error", "✘ ");
+  errors++;
 }
 
 export function check(section, message, test) {
@@ -70,8 +72,17 @@ export function check(section, message, test) {
 }
 
 export function clear() {
-  document.getElementById("critical").innerHTML = "";
+  errors = 0;
+  document.getElementById("top").innerHTML = "";
   document.getElementById("database").innerHTML = "";
   document.getElementById("setup").innerHTML = "";
   document.getElementById("ballots").innerHTML = "";
+}
+
+export function showResult() {
+  if (errors === 0) {
+    logSuccess("top", "All checks passed.");
+  } else {
+    logError("top", "Some checks failed.");
+  }
 }
