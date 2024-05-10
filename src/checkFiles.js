@@ -5,7 +5,7 @@ export default function(state) {
 
   // TODO: Check event are in canonical form
 
-  // NOTE: Check event chain
+  // Check event chain
   let parent = undefined;
   let nEvent = 0;
   for (let i = 0; i < state.files.length; i++) {
