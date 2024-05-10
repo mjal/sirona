@@ -28,6 +28,9 @@ export default function(files) {
     const ballot = entry[2];
     ballot.payloadHash = ballot.payload;
 
+    // NOTE: We may want to keep the textContent to verify ballot is canonical
+    // TODO: Check if we can skip this and recompute the hash given
+    // by JSON.stringify (in checkBallot.js)
     let data = state.files.find((entry) => {
       let [entryHash, type, content, textContent] = entry;
       return entryHash === ballot.payloadHash;
