@@ -1,62 +1,61 @@
-import sjcl from "sjcl";
-import { ed25519 } from '@noble/curves/ed25519';
-import { check, assert, logSuccess } from './utils.js';
-import { g, l, rev, erem } from './math.js';
+import sjcl from 'sjcl'
+import { ed25519 } from '@noble/curves/ed25519'
+import { check, assert, logSuccess } from './utils.js'
+import { g, l, rev, erem } from './math.js'
 
-export default function(state, ballot) {
-  assert(state.setup.payload.election.uuid
-    === ballot.payload.election_uuid);
+export default function (state, ballot) {
+  assert(state.setup.payload.election.uuid ===
+    ballot.payload.election_uuid)
 
-  checkIsCanonical(ballot);
-  checkCredential(state, ballot);
-  checkIsUnique(ballot);
+  checkIsCanonical(ballot)
+  checkCredential(state, ballot)
+  checkIsUnique(ballot)
 
-  checkSignature(ballot);
-  checkIndividualProofs(state, ballot);
-  checkOverallProof(state, ballot);
+  checkSignature(ballot)
+  checkIndividualProofs(state, ballot)
+  checkOverallProof(state, ballot)
 }
 
-function values_for_proof_of_interval_membership(y, alpha, beta, transcripts, ms) {
-  let values = [];  
+function valuesForProofOfIntervalMembership (y, alpha, beta, transcripts, ms) {
+  const values = []
 
   for (let i = 0; i < transcripts.length; i++) {
-    const m = ms[i];
+    const m = ms[i]
 
-    const challenge = BigInt(transcripts[i].challenge);
-    const response = BigInt(transcripts[i].response);
+    const challenge = BigInt(transcripts[i].challenge)
+    const response = BigInt(transcripts[i].response)
 
-    const g_response = g.multiply(response);
-    const alpha_challenge = alpha.multiply(challenge);
-    const a = g_response.add(alpha_challenge);
-    const y_response = y.multiply(response);
-    const g_m = (m == 0) ? ed25519.ExtendedPoint.ZERO : g.multiply(BigInt(m));
-    const b_div_g_m_challenge = beta.add(g_m.negate()).multiply(challenge);
-    const b = y_response.add(b_div_g_m_challenge)
+    const a = g.multiply(response).add(alpha.multiply(challenge))
+    const gPowerM = (m === 0)
+      ? ed25519.ExtendedPoint.ZERO
+      : g.multiply(BigInt(m))
+    const b = y.multiply(response)
+      .add(beta.add(gPowerM.negate()).multiply(challenge))
 
-    values.push(a);
-    values.push(b);
+    values.push(a)
+    values.push(b)
   }
 
-  return values;
+  return values
 }
 
-function hashWithoutSignature(ballot) {
-  let copy = Object.assign({}, ballot.payload);
-  delete copy.signature;
-  let serialized = JSON.stringify(copy);
-  let hash = sjcl.codec.base64.fromBits(
-    sjcl.hash.sha256.hash(serialized));
-  return hash.replace(/=+$/, '');
+function hashWithoutSignature (ballot) {
+  const copy = Object.assign({}, ballot.payload)
+  delete copy.signature
+  const serialized = JSON.stringify(copy)
+  const hash = sjcl.codec.base64.fromBits(
+    sjcl.hash.sha256.hash(serialized))
+  return hash.replace(/=+$/, '')
 }
 
-function checkIsCanonical(ballot) {
+function checkIsCanonical (ballot) {
   // Force the field order
-  let obj = {
+  const obj = {
     election_uuid: ballot.payload.election_uuid,
     election_hash: ballot.payload.election_hash,
     credential: ballot.payload.credential,
     answers: ballot.payload.answers.map((answer) => {
-      let obj = {
+      const obj = {
         choices: answer.choices.map((choice) => {
           return {
             alpha: choice.alpha,
@@ -69,7 +68,7 @@ function checkIsCanonical(ballot) {
               challenge: proof.challenge,
               response: proof.response
             }
-          });
+          })
         }),
         overall_proof: answer.overall_proof.map((proof) => {
           return {
@@ -77,152 +76,148 @@ function checkIsCanonical(ballot) {
             response: proof.response
           }
         })
-      };
+      }
       if (answer.blank_proof !== undefined) {
         obj.blank_proof = {
           challenge: answer.blank_proof.response,
           response: answer.blank_proof.response
-        };
+        }
       }
-      return obj;
+      return obj
     }),
     signature: ballot.payload.signature
   }
-  assert(JSON.stringify(obj) === ballot.payloadStr);
-  logSuccess("ballots", "Is canonical");
+  assert(JSON.stringify(obj) === ballot.payloadStr)
+  logSuccess('ballots', 'Is canonical')
 }
 
-function checkCredential(state, ballot) {
+function checkCredential (state, ballot) {
   check(
-    "ballots", "Has a valid credential",
+    'ballots', 'Has a valid credential',
     state.setup.payload.credentials.indexOf(ballot.payload.credential) !== -1
-  );
+  )
 }
 
-let processedBallots = {};
+const processedBallots = {}
 
-function checkIsUnique(ballot) {
+function checkIsUnique (ballot) {
   check(
-    "ballots", "Is unique",
+    'ballots', 'Is unique',
     processedBallots[ballot.payload.credential] === undefined
-  );
+  )
 
-  processedBallots[ballot.payload.credential] = ballot;
+  processedBallots[ballot.payload.credential] = ballot
 }
 
-export function checkSignature(ballot) {
-  assert(ballot.payload.signature.hash
-    == hashWithoutSignature(ballot));
-  logSuccess("ballots", "Hashes are equal");
+export function checkSignature (ballot) {
+  assert(ballot.payload.signature.hash === hashWithoutSignature(ballot))
+  logSuccess('ballots', 'Hashes are equal')
 
-  const credential = ed25519.ExtendedPoint.fromHex(rev(ballot.payload.credential));
+  const credential = ed25519.ExtendedPoint.fromHex(rev(ballot.payload.credential))
 
-  let signature = ballot.payload.signature;
+  const signature = ballot.payload.signature
 
-  const challenge = BigInt(signature.proof.challenge);
-  const response  = BigInt(signature.proof.response);
+  const challenge = BigInt(signature.proof.challenge)
+  const response = BigInt(signature.proof.response)
 
-  const g_response = g.multiply(response);
-  const credential_challenge = credential.multiply(challenge);
+  const A = g.multiply(response).add(credential.multiply(challenge))
 
-  const A = g_response.add(credential_challenge);
+  const H = ballot.payload.signature.hash
 
-  let H = ballot.payload.signature.hash;
+  const verificationHash = sjcl.codec.hex.fromBits(
+    sjcl.hash.sha256.hash(`sig|${H}|${rev(A.toHex())}`))
 
-  let verificationHash = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(`sig|${H}|${rev(A.toHex())}`));
+  const hexReducedVerificationHash = erem(BigInt('0x' + verificationHash), l).toString(16)
 
-  const hexReducedVerificationHash = erem(BigInt('0x'+verificationHash), l).toString(16);
-
-  assert(challenge.toString(16) == hexReducedVerificationHash);
-  logSuccess("ballots", "Valid signature");
+  assert(challenge.toString(16) === hexReducedVerificationHash)
+  logSuccess('ballots', 'Valid signature')
 }
 
-export function checkIndividualProofs(state, ballot) {
-  let y = state.setup.payload.election.public_key;
-  y = ed25519.ExtendedPoint.fromHex(rev(y));
+export function checkIndividualProofs (state, ballot) {
+  let y = state.setup.payload.election.public_key
+  y = ed25519.ExtendedPoint.fromHex(rev(y))
 
-  let answers = ballot.payload.answers;
+  const answers = ballot.payload.answers
   for (let i = 0; i < answers.length; i++) {
-    let answer = answers[i];
-    let choices = answer.choices;
-    let individual_proofs = answer.individual_proofs;
+    const answer = answers[i]
+    const choices = answer.choices
+    const individualProofs = answer.individual_proofs
 
-    assert(individual_proofs.length == state.setup.payload.election.questions[i].answers.length);
-    for (let j = 0; j < individual_proofs.length; j++) {
-      let alpha = ed25519.ExtendedPoint.fromHex(rev(choices[j].alpha));
-      let beta  = ed25519.ExtendedPoint.fromHex(rev(choices[j].beta));
+    assert(individualProofs.length === state.setup.payload.election.questions[i].answers.length)
+    for (let j = 0; j < individualProofs.length; j++) {
+      const alpha = ed25519.ExtendedPoint.fromHex(rev(choices[j].alpha))
+      const beta = ed25519.ExtendedPoint.fromHex(rev(choices[j].beta))
       // TODO: Check alpha, beta are on the curve
 
-      let sum_challenges = 0n;
-      for (let k = 0; k < individual_proofs[j].length; k++) {
-        const challenge = BigInt(individual_proofs[j][k].challenge);
-        sum_challenges = erem(sum_challenges + challenge, l);
+      let sumChallenges = 0n
+      for (let k = 0; k < individualProofs[j].length; k++) {
+        const challenge = BigInt(individualProofs[j][k].challenge)
+        sumChallenges = erem(sumChallenges + challenge, l)
       }
 
-      const values = values_for_proof_of_interval_membership(y, alpha, beta, individual_proofs[j], [0, 1]);
+      const values = valuesForProofOfIntervalMembership(y, alpha, beta, individualProofs[j], [0, 1])
 
-      let S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
-      let challengeStr = `prove|${S}|${choices[j].alpha},${choices[j].beta}|`;
-      challengeStr += values.map((v) => rev(v.toHex())).join(',');
+      const S = `${state.setup.fingerprint}|${ballot.payload.credential}`
+      let challengeStr = `prove|${S}|${choices[j].alpha},${choices[j].beta}|`
+      challengeStr += values.map((v) => rev(v.toHex())).join(',')
 
-      let verificationHash = sjcl.codec.hex.fromBits(
-        sjcl.hash.sha256.hash(challengeStr));
-      const hexReducedVerificationHash = erem(BigInt('0x'+verificationHash), l).toString(16);
+      const verificationHash = sjcl.codec.hex.fromBits(
+        sjcl.hash.sha256.hash(challengeStr))
+      const hexReducedVerificationHash = erem(BigInt('0x' + verificationHash), l).toString(16)
 
-      assert(sum_challenges.toString(16) == hexReducedVerificationHash);
-      logSuccess("ballots", "Valid individual proof");
+      assert(sumChallenges.toString(16) === hexReducedVerificationHash)
+      logSuccess('ballots', 'Valid individual proof')
     }
   }
 }
 
-export function checkOverallProof(state, ballot) {
-  let y = state.setup.payload.election.public_key;
-  y = ed25519.ExtendedPoint.fromHex(rev(y));
+export function checkOverallProof (state, ballot) {
+  let y = state.setup.payload.election.public_key
+  y = ed25519.ExtendedPoint.fromHex(rev(y))
 
   for (let i = 0; i < ballot.payload.answers.length; i++) {
-    let answer = ballot.payload.answers[i];
+    const answer = ballot.payload.answers[i]
 
-    let sumc = {
+    const sumc = {
       alpha: ed25519.ExtendedPoint.ZERO,
       beta: ed25519.ExtendedPoint.ZERO
-    };
-
-    for (let j = 0; j < answer.choices.length; j++) {
-      sumc.alpha = sumc.alpha.add(ed25519.ExtendedPoint.fromHex(rev(answer.choices[j].alpha)));
-      sumc.beta = sumc.beta.add(ed25519.ExtendedPoint.fromHex(rev(answer.choices[j].beta)));
     }
 
-    let sum_challenges = 0n;
+    for (let j = 0; j < answer.choices.length; j++) {
+      sumc.alpha = sumc.alpha.add(ed25519.ExtendedPoint.fromHex(rev(answer.choices[j].alpha)))
+      sumc.beta = sumc.beta.add(ed25519.ExtendedPoint.fromHex(rev(answer.choices[j].beta)))
+    }
+
+    let sumChallenges = 0n
     for (let k = 0; k < answer.overall_proof.length; k++) {
-      const challenge = BigInt(answer.overall_proof[k].challenge);
-      sum_challenges = erem(sum_challenges + challenge, l);
+      const challenge = BigInt(answer.overall_proof[k].challenge)
+      sumChallenges = erem(sumChallenges + challenge, l)
     }
 
-    let min = state.setup.payload.election.questions[i].min;
-    let max = state.setup.payload.election.questions[i].max;
-    let ms = [];
+    const min = state.setup.payload.election.questions[i].min
+    const max = state.setup.payload.election.questions[i].max
+    const ms = []
     for (let j = min; j <= max; j++) {
-      ms.push(j);
+      ms.push(j)
     }
-    const values = values_for_proof_of_interval_membership(y,
-      sumc.alpha, sumc.beta, answer.overall_proof, ms);
+    const values = valuesForProofOfIntervalMembership(y,
+      sumc.alpha, sumc.beta, answer.overall_proof, ms)
 
-    let challengeStr = `prove|`;
-    challengeStr += `${state.setup.fingerprint}|${ballot.payload.credential}|`;
-    let alphas_betas = [];
+    let challengeStr = 'prove|'
+    challengeStr += `${state.setup.fingerprint}|${ballot.payload.credential}|`
+    const alphasBetas = []
     for (let j = 0; j < answer.choices.length; j++) {
-      alphas_betas.push(`${answer.choices[j].alpha},${answer.choices[j].beta}`);
+      alphasBetas.push(`${answer.choices[j].alpha},${answer.choices[j].beta}`)
     }
-    challengeStr += alphas_betas.join(',');
-    challengeStr += `|${rev(sumc.alpha.toHex())},${rev(sumc.beta.toHex())}|`;
-    challengeStr += values.map((v) => rev(v.toHex())).join(',');
+    challengeStr += alphasBetas.join(',')
+    challengeStr += `|${rev(sumc.alpha.toHex())},${rev(sumc.beta.toHex())}|`
+    challengeStr += values.map((v) => rev(v.toHex())).join(',')
 
-    let verificationHash = sjcl.codec.hex.fromBits(
-      sjcl.hash.sha256.hash(challengeStr));
-    const hexReducedVerificationHash = erem(BigInt('0x'+verificationHash), l).toString(16);
+    const verificationHash = sjcl.codec.hex.fromBits(
+      sjcl.hash.sha256.hash(challengeStr))
+    const hexReducedVerificationHash = erem(BigInt('0x' + verificationHash), l).toString(16)
 
-    assert(sum_challenges.toString(16) == hexReducedVerificationHash);
-    logSuccess("ballots", "Valid overall proof");
+    assert(sumChallenges.toString(16) === hexReducedVerificationHash)
+    logSuccess('ballots', 'Valid overall proof')
   }
 }

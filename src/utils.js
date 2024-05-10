@@ -1,42 +1,42 @@
-export let assert = console.assert;
+export const assert = console.assert
 
-export function log(section, message, classeName = "", prefix = "") {
-  let p = document.createElement("p");
-  p.className = classeName;
-  p.textContent = prefix + message;
-  document.getElementById(section).appendChild(p);
+export function log (section, message, classeName = '', prefix = '') {
+  const p = document.createElement('p')
+  p.className = classeName
+  p.textContent = prefix + message
+  document.getElementById(section).appendChild(p)
 }
 
-export function logSuccess(section, message) {
-  log(section, message, "success", "✔ ");
+export function logSuccess (section, message) {
+  log(section, message, 'success', '✔ ')
 }
 
-let errors = 0;
-export function logError(section, message) {
-  log(section, message, "error", "✘ ");
-  errors++;
+let errors = 0
+export function logError (section, message) {
+  log(section, message, 'error', '✘ ')
+  errors++
 }
 
-export function check(section, message, test) {
+export function check (section, message, test) {
   if (test) {
-    logSuccess(section, message);
+    logSuccess(section, message)
   } else {
-    logError(section, message);
+    logError(section, message)
   }
 }
 
-export function clear() {
-  errors = 0;
-  document.getElementById("top").innerHTML = "";
-  document.getElementById("database").innerHTML = "";
-  document.getElementById("setup").innerHTML = "";
-  document.getElementById("ballots").innerHTML = "";
+export function clear () {
+  errors = 0
+  document.getElementById('top').innerHTML = ''
+  document.getElementById('database').innerHTML = ''
+  document.getElementById('setup').innerHTML = ''
+  document.getElementById('ballots').innerHTML = ''
 }
 
-export function showResult() {
+export function showResult () {
   if (errors === 0) {
-    logSuccess("top", "All checks passed.");
+    logSuccess('top', 'All checks passed.')
   } else {
-    logError("top", "Some checks failed.");
+    logError('top', 'Some checks failed.')
   }
 }
