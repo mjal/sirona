@@ -12,19 +12,17 @@ export function readFile(file) {
   const type = splittedFilename[1];
   const textContent = file.readAsString();
   const jsonContent = JSON.parse(textContent);
-
-  // Calculer le hash du contenu
-  let hashContent = sjcl.hash.sha256.hash(textContent);
-  hashContent = sjcl.codec.hex.fromBits(hashContent);
+  const hashContent = sjcl.codec.hex.fromBits(
+    sjcl.hash.sha256.hash(textContent));
 
   assert(hash === hashContent);
 
-  return [hash, type, jsonContent];
+  return [hash, type, jsonContent, textContent];
 }
 
 export function findEvent(entries, eventType) {
   let entry = entries.find((entry) => {
-    let [entryHash, type, content] = entry;
+    let [entryHash, type, content, textContent] = entry;
     return type === "event" && content.type === eventType;
   });
 
@@ -37,7 +35,7 @@ export function findEvent(entries, eventType) {
 
 export function findData(entries, hash) {
   let entry = entries.find((entry) => {
-    let [entryHash, type, content] = entry;
+    let [entryHash, type, content, textContent] = entry;
     return entryHash === hash;
   });
 

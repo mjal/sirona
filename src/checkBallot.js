@@ -6,6 +6,8 @@ import { g, l, rev, erem } from './math.js';
 export default function(state, ballot) {
     assert(state.setup.payload.election.uuid
       === ballot.payload.election_uuid);
+
+    checkIsCanonical(ballot);
     // TODO: More check
 
     // TODO: Check credential exists
@@ -47,6 +49,49 @@ function hashWithoutSignature(ballot) {
   let hash = sjcl.codec.base64.fromBits(
     sjcl.hash.sha256.hash(serialized));
   return hash.replace(/=+$/, '');
+}
+
+function checkIsCanonical(ballot) {
+  // Force the field order
+  let obj = {
+    election_uuid: ballot.payload.election_uuid,
+    election_hash: ballot.payload.election_hash,
+    credential: ballot.payload.credential,
+    answers: ballot.payload.answers.map((answer) => {
+      let obj = {
+        choices: answer.choices.map((choice) => {
+          return {
+            alpha: choice.alpha,
+            beta: choice.beta
+          }
+        }),
+        individual_proofs: answer.individual_proofs.map((iproof) => {
+          return iproof.map((proof) => {
+            return {
+              challenge: proof.challenge,
+              response: proof.response
+            }
+          });
+        }),
+        overall_proof: answer.overall_proof.map((proof) => {
+          return {
+            challenge: proof.challenge,
+            response: proof.response
+          }
+        })
+      };
+      if (answer.blank_proof !== undefined) {
+        obj.blank_proof = {
+          challenge: answer.blank_proof.response,
+          response: answer.blank_proof.response
+        };
+      }
+      return obj;
+    }),
+    signature: ballot.payload.signature
+  }
+  assert(JSON.stringify(obj) === ballot.payloadStr);
+  logSuccess("ballots", "Is canonical");
 }
 
 export function checkSignature(ballot) {

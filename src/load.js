@@ -18,10 +18,20 @@ export default function(files) {
 
   state.ballots = files.filter((entry) => {
     return entry[1] === "event" && entry[2].type === "Ballot"
-  }).map((entry) => entry[2])
-  .map((ballot) => {
+  })
+  .map((entry) => {
+    const ballot = entry[2];
     ballot.payloadHash = ballot.payload;
-    ballot.payload = findData(files, ballot.payload);
+
+    let data = state.files.find((entry) => {
+      let [entryHash, type, content, textContent] = entry;
+      return entryHash === ballot.payloadHash;
+    });
+
+    let [entryHash, type, content, textContent] = data;
+    ballot.payloadStr = textContent;
+    ballot.payload = content;
+
     return ballot;
   });
 
