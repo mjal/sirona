@@ -1,6 +1,6 @@
 import sjcl from "sjcl";
 import { ed25519 } from '@noble/curves/ed25519';
-import { assert, logSuccess } from './utils.js';
+import { check, assert, logSuccess } from './utils.js';
 import { g, l, rev, erem } from './math.js';
 
 export default function(state, ballot) {
@@ -8,6 +8,7 @@ export default function(state, ballot) {
     === ballot.payload.election_uuid);
 
   checkIsCanonical(ballot);
+  checkCredential(state, ballot);
 
   // TODO: Check credential exists
   // TODO: Check ballot is unique
@@ -92,6 +93,13 @@ function checkIsCanonical(ballot) {
   }
   assert(JSON.stringify(obj) === ballot.payloadStr);
   logSuccess("ballots", "Is canonical");
+}
+
+function checkCredential(state, ballot) {
+  check(
+    "ballots", "Has a valid credential",
+    state.setup.payload.credentials.indexOf(ballot.payload.credential) !== -1
+  );
 }
 
 export function checkSignature(ballot) {
