@@ -43,6 +43,12 @@ export default function(files) {
     return ballot;
   });
 
+  state.encryptedTally = findEvent(files, "EncryptedTally");
+  state.encryptedTally.payload =
+    findData(files, state.encryptedTally.payload);
+  state.encryptedTally.payload.encrypted_tally =
+    findData(files, state.encryptedTally.payload.encrypted_tally);
+
   return state;
 }
 
