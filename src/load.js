@@ -7,14 +7,19 @@ export default function(files) {
   state.files = files;
 
   state.setup = findEvent(files, "Setup");
-  state.setup.payloadHash = state.setup.payload;
-  state.setup.payload = findData(files, state.setup.payload);
+  state.setup = {
+    ...state.setup,
+    payloadHash: state.setup.payload,
+    payload: findData(files, state.setup.payload),
+  };
   state.setup.fingerprint = sjcl.codec.base64.fromBits(
-      sjcl.codec.hex.toBits(state.setup.payload.election)).replace(/=+$/, '');
-  state.setup.payload.credentials =
-    findData(files, state.setup.payload.credentials);
-  state.setup.payload.election = findData(files, state.setup.payload.election);
-  state.setup.payload.trustees = findData(files, state.setup.payload.trustees);
+    sjcl.codec.hex.toBits(state.setup.payload.election)).replace(/=+$/, '');
+  state.setup.payload = {
+    ...state.setup.payload,
+    credentials: findData(files, state.setup.payload.credentials),
+    election: findData(files, state.setup.payload.election),
+    trustees: findData(files, state.setup.payload.trustees),
+  };
 
   state.ballots = files.filter((entry) => {
     return entry[1] === "event" && entry[2].type === "Ballot"
