@@ -9,7 +9,7 @@ export const rev = (hexStr) => {
 }
 
 export const one = ed25519.ExtendedPoint.fromHex(
-  rev("0000000000000000000000000000000000000000000000000000000000000001"))
+  rev('0000000000000000000000000000000000000000000000000000000000000001'))
 
 export const erem = (a, b) => {
   let remainder = a % b
