@@ -24,6 +24,7 @@ export default function (state) {
         const beta =
           ed25519.ExtendedPoint.fromHex(rev(answer.choices[k].beta))
 
+        // TODO: Use weight
         encryptedTally[j][k].alpha =
           encryptedTally[j][k].alpha.add(alpha)
         encryptedTally[j][k].beta =
@@ -41,6 +42,8 @@ export default function (state) {
       )
     }
   }
+
+  // TODO: Check total weight and total count
 }
 
 function keepLastBallotByCredentials (ballots) {
