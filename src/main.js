@@ -4,6 +4,7 @@ import load from './load.js'
 import checkFiles from './checkFiles.js'
 import checkSetup from './checkSetup.js'
 import checkBallot from './checkBallot.js'
+import checkEncryptedTally from './checkEncryptedTally.js'
 
 export default function (fileEntries) {
   clear()
@@ -14,6 +15,7 @@ export default function (fileEntries) {
     for (let i = 0; i < state.ballots.length; i++) {
       checkBallot(state, state.ballots[i])
     }
+    checkEncryptedTally(state)
   } catch (e) {
     logError('top', 'Something wrong happened.')
     console.error(e)
