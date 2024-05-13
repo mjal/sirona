@@ -23,13 +23,12 @@ export default function (fileEntries) {
 
   state.ballots = state.files.filter((entry) => {
     return entry[1] === 'event' && entry[2].type === 'Ballot'
+  }).map((entry) => {
+    const ballot = entry[2]
+    ballot.payloadHash = ballot.payload
+    ballot.payload = findData(state.files, ballot.payload)
+    return ballot
   })
-    .map((entry) => {
-      const ballot = entry[2]
-      ballot.payloadHash = ballot.payload
-      ballot.payload = findData(state.files, ballot.payload)
-      return ballot
-    })
 
   state.encryptedTally = findEvent(state.files, 'EncryptedTally')
   state.encryptedTally.payload =
