@@ -7,10 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "standard"
+    "lint": "prettier --write ."
   },
   "devDependencies": {
-    "standard": "^17.1.0",
+    "prettier": "3.2.5",
     "vite": "^5.2.0"
   },
   "dependencies": {
