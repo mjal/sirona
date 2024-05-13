@@ -36,6 +36,19 @@ export default function (fileEntries) {
   state.encryptedTally.payload.encrypted_tally =
     findData(state.files, state.encryptedTally.payload.encrypted_tally)
 
+  state.partialDecryptions = state.files.filter((entry) => {
+    return entry[1] === 'event' && entry[2].type === 'PartialDecryption'
+  }).map((entry) => {
+    const partialDecryption = entry[2]
+    partialDecryption.payload =
+      findData(state.files, partialDecryption.payload)
+    partialDecryption.payload.payload =
+      findData(state.files, partialDecryption.payload.payload)
+    return partialDecryption;
+  })
+
+  console.log(state.partialDecryptions)
+
   return state
 }
 
