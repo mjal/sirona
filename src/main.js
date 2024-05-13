@@ -5,6 +5,7 @@ import checkFiles from './checkFiles.js'
 import checkSetup from './checkSetup.js'
 import checkBallot from './checkBallot.js'
 import checkEncryptedTally from './checkEncryptedTally.js'
+import checkPartialDecryptions from './checkPartialDecryptions.js'
 
 export default function (fileEntries) {
   clear()
@@ -16,6 +17,7 @@ export default function (fileEntries) {
       checkBallot(state, state.ballots[i])
     }
     checkEncryptedTally(state)
+    checkPartialDecryptions(state)
   } catch (e) {
     logError('top', 'Something wrong happened.')
     console.error(e)
