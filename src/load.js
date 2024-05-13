@@ -60,6 +60,9 @@ export default function (fileEntries) {
       return partialDecryption;
     });
 
+    state.result = findEvent(state.files, "Result");
+    state.result.payload = findData(state.files, state.result.payload);
+
   return state;
 }
 

@@ -6,6 +6,7 @@ import checkSetup from "./checkSetup.js";
 import checkBallot from "./checkBallot.js";
 import checkEncryptedTally from "./checkEncryptedTally.js";
 import checkPartialDecryptions from "./checkPartialDecryptions.js";
+import checkResult from "./checkResult.js";
 
 export default function (fileEntries) {
   clear();
@@ -18,6 +19,7 @@ export default function (fileEntries) {
     }
     checkEncryptedTally(state);
     checkPartialDecryptions(state);
+    checkResult(state);
   } catch (e) {
     logError("top", "Something wrong happened.");
     console.error(e);
