@@ -47,8 +47,6 @@ export default function (fileEntries) {
     return partialDecryption;
   })
 
-  console.log(state.partialDecryptions)
-
   return state
 }
 
