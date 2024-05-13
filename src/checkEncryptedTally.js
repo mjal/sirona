@@ -6,23 +6,26 @@ export default function (state) {
   const ballots = keepLastBallotByCredentials(state.ballots);
 
   const questions = state.setup.payload.election.questions;
-  const encryptedTally = questions.map((question) => {
-    return question.answers.map((answer) => {
-      return {
-        alpha: one,
-        beta: one,
-      };
+  const encryptedTally = [];
+  for (let i = 0; i < questions.length; i++) {
+    const answers = questions[i].answers || [];
+    const row = answers.map((answer) => {
+      return { alpha: one, beta: one, };
     });
-  });
+    if (questions[i].blank) {
+      row.push({ alpha: one, beta: one, });
+    }
+    encryptedTally.push(row);
+  }
 
   for (let i = 0; i < ballots.length; i++) {
     for (let j = 0; j < encryptedTally.length; j++) {
       const answer = ballots[i].payload.answers[j];
       for (let k = 0; k < encryptedTally[j].length; k++) {
         const alpha = ed25519.ExtendedPoint.fromHex(
-          rev(answer.choices[k].alpha),
-        );
-        const beta = ed25519.ExtendedPoint.fromHex(rev(answer.choices[k].beta));
+          rev(answer.choices[k].alpha));
+        const beta = ed25519.ExtendedPoint.fromHex(
+          rev(answer.choices[k].beta));
 
         // TODO: Use weight
         encryptedTally[j][k].alpha = encryptedTally[j][k].alpha.add(alpha);
@@ -33,6 +36,9 @@ export default function (state) {
 
   const et = state.encryptedTally.payload.encrypted_tally;
   for (let i = 0; i < et.length; i++) {
+    if (questions[i].type === "NonHomomorphic") {
+      continue;
+    }
     for (let j = 0; j < et[i].length; j++) {
       check(
         "encryptedTally",

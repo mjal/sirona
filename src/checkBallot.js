@@ -1,6 +1,6 @@
 import sjcl from "sjcl";
 import { ed25519 } from "@noble/curves/ed25519";
-import { check, assert, logSuccess } from "./utils.js";
+import { check, assert, logSuccess, logError } from "./utils.js";
 import { g, l, rev, erem } from "./math.js";
 
 export default function (state, ballot) {
@@ -53,28 +53,38 @@ function checkIsCanonical(ballot) {
     election_hash: ballot.payload.election_hash,
     credential: ballot.payload.credential,
     answers: ballot.payload.answers.map((answer) => {
-      const obj = {
-        choices: answer.choices.map((choice) => {
+      let obj = {};
+      if (answer.choices.length === undefined) {
+        obj.choices = {
+          alpha: answer.choices.alpha,
+          beta: answer.choices.beta
+        }
+      } else {
+        obj.choices = answer.choices.map((choice) => {
           return {
             alpha: choice.alpha,
             beta: choice.beta,
           };
-        }),
-        individual_proofs: answer.individual_proofs.map((iproof) => {
+        })
+      }
+      if (answer.individual_proofs) {
+        obj.individual_proofs = answer.individual_proofs.map((iproof) => {
           return iproof.map((proof) => {
             return {
               challenge: proof.challenge,
               response: proof.response,
             };
           });
-        }),
-        overall_proof: answer.overall_proof.map((proof) => {
+        });
+      }
+      if (answer.overall_proof) {
+        obj.overall_proof = answer.overall_proof.map((proof) => {
           return {
             challenge: proof.challenge,
             response: proof.response,
           };
-        }),
-      };
+        });
+      }
       if (answer.blank_proof !== undefined) {
         obj.blank_proof = {
           challenge: answer.blank_proof.response,
@@ -149,6 +159,10 @@ export function checkIndividualProofs(state, ballot) {
 
   const answers = ballot.payload.answers;
   for (let i = 0; i < answers.length; i++) {
+    const question = state.setup.payload.election.questions[i];
+    if (question.type === "NonHomomorphic") {
+      continue;
+    }
     const answer = answers[i];
     const choices = answer.choices;
     const individualProofs = answer.individual_proofs;
@@ -199,6 +213,17 @@ export function checkOverallProof(state, ballot) {
   y = ed25519.ExtendedPoint.fromHex(rev(y));
 
   for (let i = 0; i < ballot.payload.answers.length; i++) {
+    const question = state.setup.payload.election.questions[i];
+    if (question.type === "NonHomomorphic") {
+      continue;
+    }
+    if (question.blank) {
+      // TODO:
+      logError("ballots", "Question with blank vote not implemented yet");
+      continue;
+    }
+    console.log(question);
+
     const answer = ballot.payload.answers[i];
 
     const sumc = {
