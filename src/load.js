@@ -27,21 +27,7 @@ export default function (fileEntries) {
     .map((entry) => {
       const ballot = entry[2]
       ballot.payloadHash = ballot.payload
-
-      // NOTE: We may want to keep the textContent to verify ballot is canonical
-      // TODO: Check if we can skip this and recompute the hash given
-      // by JSON.stringify (in checkBallot.js)
-      const data = state.files.find((entry) => {
-        // eslint-disable-next-line no-unused-vars
-        const [entryHash, type, content, textContent] = entry
-        return entryHash === ballot.payloadHash
-      })
-
-      // eslint-disable-next-line no-unused-vars
-      const [entryHash, type, content, textContent] = data
-      ballot.payloadStr = textContent
-      ballot.payload = content
-
+      ballot.payload = findData(state.files, ballot.payload)
       return ballot
     })
 
@@ -71,13 +57,13 @@ function readFile (file) {
     'database', 'File hash is correct',
     hash === hashContent)
 
-  return [hash, type, jsonContent, textContent]
+  return [hash, type, jsonContent]
 }
 
 function findEvent (entries, eventType) {
   const entry = entries.find((entry) => {
     // eslint-disable-next-line no-unused-vars
-    const [entryHash, type, content, textContent] = entry
+    const [entryHash, type, content] = entry
     return type === 'event' && content.type === eventType
   })
 

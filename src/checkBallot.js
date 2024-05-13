@@ -87,15 +87,14 @@ function checkIsCanonical (ballot) {
     }),
     signature: ballot.payload.signature
   }
-  assert(JSON.stringify(obj) === ballot.payloadStr)
-  logSuccess('ballots', 'Is canonical')
+  check('ballots', 'Is canonical',
+    sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(JSON.stringify(obj))) === ballot.payloadHash)
 }
 
 function checkCredential (state, ballot) {
   check(
     'ballots', 'Has a valid credential',
-    state.setup.payload.credentials.indexOf(ballot.payload.credential) !== -1
-  )
+    state.setup.payload.credentials.indexOf(ballot.payload.credential) !== -1)
 }
 
 const processedBallots = {}
