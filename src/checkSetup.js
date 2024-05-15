@@ -1,4 +1,4 @@
-import { check } from "./utils.js";
+import { assert, check } from "./utils.js";
 import { g, l, rev, erem } from "./math.js";
 import { ed25519 } from "@noble/curves/ed25519";
 import sjcl from "sjcl";
@@ -15,6 +15,10 @@ export default function (state) {
 
   for (let i = 0; i < state.setup.payload.trustees.length; i++) {
     const trustee = state.setup.payload.trustees[i];
+    assert(trustee[0] === "Single",
+      "Trustee is Single (Pedersen not implemented yet)");
+    if (trustee[0] === "Pedersen")
+      continue;
     const X = ed25519.ExtendedPoint.fromHex(rev(trustee[1].public_key));
     const challenge = BigInt(trustee[1].pok.challenge);
     const response = BigInt(trustee[1].pok.response);
