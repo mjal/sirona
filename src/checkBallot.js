@@ -115,10 +115,12 @@ function checkIsCanonical(ballot) {
 }
 
 function checkCredential(state, ballot) {
+  const credentials = state.setup.credentialsWeights
+    .map((cw) => cw.credential);
   check(
     "ballots",
     "Has a valid credential",
-    state.setup.payload.credentials.indexOf(ballot.payload.credential) !== -1,
+    credentials.indexOf(ballot.payload.credential) !== -1,
   );
 }
 
