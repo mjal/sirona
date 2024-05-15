@@ -1,17 +1,12 @@
 import { assert, check } from "./utils.js";
-import { g, l, rev, erem } from "./math.js";
+import { g, l, rev, erem, one } from "./math.js";
 import { ed25519 } from "@noble/curves/ed25519";
 import sjcl from "sjcl";
 
 export default function (state) {
-  // TODO: Handle more than one trustee
-  // TODO: Handle pedersen trustees
-  check(
-    "setup",
-    "Election Public Key correspond to trustees",
-    state.setup.payload.trustees[0][1].public_key ===
-      state.setup.payload.election.public_key,
-  );
+  // TODO: Handle Pedersen trustees
+
+  let joint_public_key = one;
 
   for (let i = 0; i < state.setup.payload.trustees.length; i++) {
     const trustee = state.setup.payload.trustees[i];
@@ -42,12 +37,17 @@ export default function (state) {
       `Trustee ${i} POK is valid`,
       challenge.toString(16) === hexReducedVerificationHash,
     );
+
+    joint_public_key = joint_public_key.add(X);
   }
+
+  console.log(rev(joint_public_key.toHex()));
+  console.log(state.setup.payload.election.public_key);
 
   check(
     "setup",
     "Election Public Key correspond to trustees",
-    state.setup.payload.trustees[0][1].public_key ===
+    rev(joint_public_key.toHex()) ===
       state.setup.payload.election.public_key,
   );
 }
