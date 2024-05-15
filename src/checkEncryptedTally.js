@@ -10,10 +10,10 @@ export default function (state) {
   for (let i = 0; i < questions.length; i++) {
     const answers = questions[i].answers || [];
     const row = answers.map((answer) => {
-      return { alpha: one, beta: one, };
+      return { alpha: one, beta: one };
     });
     if (questions[i].blank) {
-      row.push({ alpha: one, beta: one, });
+      row.push({ alpha: one, beta: one });
     }
     encryptedTally.push(row);
   }
@@ -23,9 +23,9 @@ export default function (state) {
       const answer = ballots[i].payload.answers[j];
       for (let k = 0; k < encryptedTally[j].length; k++) {
         const alpha = ed25519.ExtendedPoint.fromHex(
-          rev(answer.choices[k].alpha));
-        const beta = ed25519.ExtendedPoint.fromHex(
-          rev(answer.choices[k].beta));
+          rev(answer.choices[k].alpha),
+        );
+        const beta = ed25519.ExtendedPoint.fromHex(rev(answer.choices[k].beta));
 
         // TODO: Use weight
         encryptedTally[j][k].alpha = encryptedTally[j][k].alpha.add(alpha);

@@ -23,12 +23,13 @@ export default function (fileEntries) {
   };
 
   state.setup.credentialsWeights = state.setup.payload.credentials
-  .map((line) => line.split(",")).map((fields) => {
-    return {
-      credential: fields[0],
-      weight: fields[1] ? parseInt(fields[1]) : 1,
-    };
-  });
+    .map((line) => line.split(","))
+    .map((fields) => {
+      return {
+        credential: fields[0],
+        weight: fields[1] ? parseInt(fields[1]) : 1,
+      };
+    });
 
   state.ballots = state.files
     .filter((entry) => {
@@ -68,8 +69,8 @@ export default function (fileEntries) {
       return partialDecryption;
     });
 
-    state.result = findEvent(state.files, "Result");
-    state.result.payload = findData(state.files, state.result.payload);
+  state.result = findEvent(state.files, "Result");
+  state.result.payload = findData(state.files, state.result.payload);
 
   return state;
 }

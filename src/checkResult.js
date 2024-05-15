@@ -1,8 +1,8 @@
 import { ed25519 } from "@noble/curves/ed25519";
-import { check, } from "./utils.js";
+import { check } from "./utils.js";
 import { g, rev, one } from "./math.js";
 
-export default function(state) {
+export default function (state) {
   const et = state.encryptedTally.payload.encrypted_tally;
   const res = state.result.payload.result;
   for (let i = 0; i < res.length; i++) {
@@ -22,7 +22,8 @@ export default function(state) {
         "result",
         `Result ${i},${j} correspond to the log of the sum of partial decryptions`,
         (res[i][j] === 0 && result.toHex() === one.toHex()) ||
-        (res[i][j] !== 0 && result.toHex() === g.multiply(BigInt(res[i][j])).toHex())
+          (res[i][j] !== 0 &&
+            result.toHex() === g.multiply(BigInt(res[i][j])).toHex()),
       );
     }
   }

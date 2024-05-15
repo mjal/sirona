@@ -60,21 +60,21 @@ function checkIsCanonical(ballot) {
       if (answer.choices.length === undefined) {
         obj.choices = {
           alpha: answer.choices.alpha,
-          beta: answer.choices.beta
-        }
+          beta: answer.choices.beta,
+        };
       } else {
         obj.choices = answer.choices.map((choice) => {
           return {
             alpha: choice.alpha,
             beta: choice.beta,
           };
-        })
+        });
       }
       if (answer.proof) {
         obj.proof = {
           challenge: answer.proof.challenge,
-          response: answer.proof.response
-        }
+          response: answer.proof.response,
+        };
       }
       if (answer.individual_proofs) {
         obj.individual_proofs = answer.individual_proofs.map((iproof) => {
@@ -115,8 +115,7 @@ function checkIsCanonical(ballot) {
 }
 
 function checkCredential(state, ballot) {
-  const credentials = state.setup.credentialsWeights
-    .map((cw) => cw.credential);
+  const credentials = state.setup.credentialsWeights.map((cw) => cw.credential);
   check(
     "ballots",
     "Has a valid credential",
