@@ -47,7 +47,10 @@ function hashWithoutSignature(ballot) {
 }
 
 function checkIsCanonical(ballot) {
-  // Force the field order
+  // On most implementations, the order of the fields in the
+  // serialization correspond to the order of insertion. This
+  // is not guaranteed by the JSON standard, but it is guaranteed
+  // by JSON.stringify in most implementations.
   const obj = {
     election_uuid: ballot.payload.election_uuid,
     election_hash: ballot.payload.election_hash,
@@ -66,6 +69,12 @@ function checkIsCanonical(ballot) {
             beta: choice.beta,
           };
         })
+      }
+      if (answer.proof) {
+        obj.proof = {
+          challenge: answer.proof.challenge,
+          response: answer.proof.response
+        }
       }
       if (answer.individual_proofs) {
         obj.individual_proofs = answer.individual_proofs.map((iproof) => {
@@ -86,10 +95,12 @@ function checkIsCanonical(ballot) {
         });
       }
       if (answer.blank_proof !== undefined) {
-        obj.blank_proof = {
-          challenge: answer.blank_proof.response,
-          response: answer.blank_proof.response,
-        };
+        obj.blank_proof = answer.blank_proof.map((proof) => {
+          return {
+            challenge: proof.challenge,
+            response: proof.response,
+          };
+        });
       }
       return obj;
     }),
