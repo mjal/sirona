@@ -17,7 +17,6 @@ export default function (state) {
     const dp = partialDecryption.payload.payload.decryption_proofs;
 
     for (let i = 0; i < et.length; i++) {
-      console.log(et[i]);
       const question = state.setup.payload.election.questions[i];
       if (question.type === "NonHomomorphic") {
         continue; // TODO
