@@ -161,8 +161,9 @@ export function checkSignature(ballot) {
     l,
   ).toString(16);
 
-  assert(challenge.toString(16) === hexReducedVerificationHash);
-  logSuccess("ballots", "Valid signature");
+  check("ballots", "Valid signature",
+    challenge.toString(16) === hexReducedVerificationHash);
+}
 }
 
 export function checkIndividualProofs(state, ballot) {
