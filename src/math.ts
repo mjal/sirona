@@ -10,14 +10,16 @@ export const L = BigInt(
   "0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed",
 );
 
-export const rev = (hexStr) => {
-  return hexStr
-    .match(/.{1,2}/g)
-    .reverse()
-    .join("");
+export const rev = (hexStr: string) : string => {
+  const match = hexStr.match(/.{1,2}/g)
+  if (match !== null) {
+    return match.reverse().join("");
+  } else {
+    return "";
+  }
 };
 
-export const mod = (a, b) => {
+export const mod = (a : bigint, b : bigint) => {
   let remainder = a % b;
   if (remainder < 0) {
     remainder += b;
