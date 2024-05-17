@@ -96,7 +96,6 @@ function readFile(file) {
 
 function findEvent(entries, eventType) {
   const entry = entries.find((entry) => {
-    // eslint-disable-next-line no-unused-vars
     const [_entryHash, type, content] = entry;
     return type === "event" && content.type === eventType;
   });
@@ -110,7 +109,6 @@ function findEvent(entries, eventType) {
 
 function findData(entries, hash) {
   const entry = entries.find((entry) => {
-    // eslint-disable-next-line no-unused-vars
     const [entryHash, _type, _content] = entry;
     return entryHash === hash;
   });
