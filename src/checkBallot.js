@@ -1,7 +1,7 @@
 import sjcl from "sjcl";
 import { ed25519 } from "@noble/curves/ed25519";
 import { check, logError } from "./utils.js";
-import { g, L, rev, mod, isValidPoint } from "./math.js";
+import { g, L, rev, mod, isValidPoint } from "./math";
 
 export default function (state, ballot) {
   check(

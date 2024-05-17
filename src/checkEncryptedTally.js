@@ -1,5 +1,5 @@
 import { check } from "./utils.js";
-import { rev, one } from "./math.js";
+import { rev, one } from "./math";
 
 export default function (state) {
   const ballots = keepLastBallotByCredentials(state.ballots);
