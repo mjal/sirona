@@ -4,8 +4,8 @@
  * A copy of the license can be found in the LICENSE file.
  *
  * Whenver possible we try to use the hungarian notation for variable names.
- * It can be useful to quickly assess if a variable is a number, curve point,
- * hex string, or anything else.
+ * It can be useful to quickly know if a variable is a number, curve point,
+ * hex string, or something else.
  * Here are the prefixes:
  *
  * - n for BigInt
