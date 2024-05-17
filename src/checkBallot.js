@@ -4,7 +4,8 @@ import { check, assert, logSuccess, logError } from "./utils.js";
 import { g, l, rev, erem } from "./math.js";
 
 export default function (state, ballot) {
-  assert(state.setup.payload.election.uuid === ballot.payload.election_uuid);
+  check("ballots", "election.uuid correspond to election uuid",
+    state.setup.payload.election.uuid === ballot.payload.election_uuid);
 
   checkIsCanonical(ballot);
   checkCredential(state, ballot);
