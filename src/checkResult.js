@@ -1,6 +1,5 @@
-import { ed25519 } from "@noble/curves/ed25519";
 import { check } from "./utils.js";
-import { g, rev, one, parsePoint } from "./math";
+import { g, one, parsePoint } from "./math";
 
 export default function (state) {
   const et = state.encryptedTally.payload.encrypted_tally;
