@@ -1,5 +1,5 @@
 import { assert, check } from "./utils.js";
-import { rev, g, l, erem } from "./math.js";
+import { rev, g, l, mod } from "./math.js";
 import { ed25519 } from "@noble/curves/ed25519";
 import sjcl from "sjcl";
 
@@ -35,7 +35,7 @@ export default function (state) {
             `decrypt|${state.setup.fingerprint}|${rev(pPublicKey.toHex())}|${rev(pA.toHex())},${rev(pB.toHex())}`,
           ),
         );
-        const hReducedVerificationHash = erem(
+        const hReducedVerificationHash = mod(
           BigInt("0x" + hVerificationHash),
           l,
         ).toString(16);

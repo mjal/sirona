@@ -17,7 +17,7 @@ export const rev = (hexStr) => {
     .join("");
 };
 
-export const erem = (a, b) => {
+export const mod = (a, b) => {
   let remainder = a % b;
   if (remainder < 0) {
     remainder += b;

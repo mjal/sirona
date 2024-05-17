@@ -1,7 +1,7 @@
 import sjcl from "sjcl";
 import { ed25519 } from "@noble/curves/ed25519";
 import { check, logError } from "./utils.js";
-import { g, l, rev, erem, isValidPoint } from "./math.js";
+import { g, l, rev, mod, isValidPoint } from "./math.js";
 
 export default function (state, ballot) {
   check(
@@ -161,7 +161,7 @@ export function checkSignature(ballot) {
     sjcl.hash.sha256.hash(`sig|${H}|${rev(pA.toHex())}`),
   );
 
-  const hexReducedVerificationHash = erem(
+  const hexReducedVerificationHash = mod(
     BigInt("0x" + verificationHash),
     l,
   ).toString(16);
@@ -220,7 +220,7 @@ export function checkIndividualProofs(state, ballot) {
       let nSumChallenges = 0n;
       for (let k = 0; k < individualProofs[j].length; k++) {
         const challenge = BigInt(individualProofs[j][k].challenge);
-        nSumChallenges = erem(nSumChallenges + challenge, l);
+        nSumChallenges = mod(nSumChallenges + challenge, l);
       }
 
       const values = valuesForProofOfIntervalMembership(
@@ -238,7 +238,7 @@ export function checkIndividualProofs(state, ballot) {
       const hVerification = sjcl.codec.hex.fromBits(
         sjcl.hash.sha256.hash(sChallenge),
       );
-      const hReducedVerification = erem(
+      const hReducedVerification = mod(
         BigInt("0x" + hVerification),
         l,
       ).toString(16);
@@ -287,7 +287,7 @@ export function checkOverallProof(state, ballot) {
     let nSumChallenges = 0n;
     for (let k = 0; k < answer.overall_proof.length; k++) {
       const challenge = BigInt(answer.overall_proof[k].challenge);
-      nSumChallenges = erem(nSumChallenges + challenge, l);
+      nSumChallenges = mod(nSumChallenges + challenge, l);
     }
 
     const min = state.setup.payload.election.questions[i].min;
@@ -317,7 +317,7 @@ export function checkOverallProof(state, ballot) {
     const hVerification = sjcl.codec.hex.fromBits(
       sjcl.hash.sha256.hash(sChallenge),
     );
-    const hReducedVerification = erem(BigInt("0x" + hVerification), l).toString(
+    const hReducedVerification = mod(BigInt("0x" + hVerification), l).toString(
       16,
     );
 
