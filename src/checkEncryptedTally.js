@@ -9,7 +9,7 @@ export default function (state) {
   const encryptedTally = [];
   for (let i = 0; i < questions.length; i++) {
     const answers = questions[i].answers || [];
-    const row = answers.map((answer) => {
+    const row = answers.map((_answer) => {
       return { alpha: one, beta: one };
     });
     if (questions[i].blank) {
