@@ -15,7 +15,7 @@ export default function (state) {
       "Trustee is Single (Pedersen not implemented yet)",
     );
     if (trustee[0] === "Pedersen") continue;
-    const pX = ed25519.ExtendedPoint.fromHex(rev(trustee[1].public_key));
+    const pX = parsePoint(trustee[1].public_key);
 
     check(
       "setup",
@@ -55,9 +55,7 @@ export default function (state) {
     rev(pJointPublicKey.toHex()) === state.setup.payload.election.public_key,
   );
 
-  const pElectionPublicKey = ed25519.ExtendedPoint.fromHex(
-    rev(state.setup.payload.election.public_key),
-  );
+  const pElectionPublicKey = parsePoint(state.setup.payload.election.public_key);
   check(
     "setup",
     `Election Public Key is a valid curve point`,

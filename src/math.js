@@ -33,3 +33,9 @@ export const isValidPoint = (point) => {
   }
   return true;
 };
+
+export const parsePoint = (str) => {
+  return ed25519.ExtendedPoint.fromHex(
+    rev(ballot.payload.credential),
+  );
+}

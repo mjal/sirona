@@ -15,11 +15,11 @@ export default function (state) {
       for (let k = 0; k < state.partialDecryptions.length; k++) {
         const partialDecryption = state.partialDecryptions[k];
         const df = partialDecryption.payload.payload.decryption_factors;
-        const pFactor = ed25519.ExtendedPoint.fromHex(rev(df[i][j]));
+        const pFactor = parsePoint(df[i][j]);
         pSum = pSum.add(pFactor);
       }
 
-      const pBeta = ed25519.ExtendedPoint.fromHex(rev(et[i][j].beta));
+      const pBeta = parsePoint(et[i][j].beta);
       const pResult = pBeta.add(pSum.negate());
       const nAnswer = BigInt(res[i][j]);
 

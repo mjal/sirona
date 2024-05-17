@@ -1,6 +1,5 @@
 import { check } from "./utils.js";
 import { rev, one } from "./math.js";
-import { ed25519 } from "@noble/curves/ed25519";
 
 export default function (state) {
   const ballots = keepLastBallotByCredentials(state.ballots);
@@ -22,12 +21,8 @@ export default function (state) {
     for (let j = 0; j < encryptedTally.length; j++) {
       const answer = ballots[i].payload.answers[j];
       for (let k = 0; k < encryptedTally[j].length; k++) {
-        const pAlpha = ed25519.ExtendedPoint.fromHex(
-          rev(answer.choices[k].alpha),
-        );
-        const pBeta = ed25519.ExtendedPoint.fromHex(
-          rev(answer.choices[k].beta),
-        );
+        const pAlpha = parsePoint(answer.choices[k].alpha);
+        const pBeta = parsePoint(answer.choices[k].beta);
 
         // TODO: Use weight
         encryptedTally[j][k].alpha = encryptedTally[j][k].alpha.add(pAlpha);

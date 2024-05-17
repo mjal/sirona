@@ -145,9 +145,7 @@ export function checkSignature(ballot) {
     ballot.payload.signature.hash === hashWithoutSignature(ballot),
   );
 
-  const credential = ed25519.ExtendedPoint.fromHex(
-    rev(ballot.payload.credential),
-  );
+  const credential = parsePoint(ballot.payload.credential);
 
   const signature = ballot.payload.signature;
 
@@ -177,12 +175,8 @@ export function checkValidPoints(ballot) {
   const answers = ballot.payload.answers;
   for (let i = 0; i < answers.length; i++) {
     for (let j = 0; j < answers[i].choices.length; j++) {
-      const pAlpha = ed25519.ExtendedPoint.fromHex(
-        rev(answers[i].choices[j].alpha),
-      );
-      const pBeta = ed25519.ExtendedPoint.fromHex(
-        rev(answers[i].choices[j].beta),
-      );
+      const pAlpha = parsePoint(answers[i].choices[j].alpha);
+      const pBeta = parsePoint(answers[i].choices[j].beta);
       check(
         "ballots",
         "Encrypted choices alpha,beta are valid curve points",
@@ -194,7 +188,7 @@ export function checkValidPoints(ballot) {
 
 export function checkIndividualProofs(state, ballot) {
   let y = state.setup.payload.election.public_key;
-  y = ed25519.ExtendedPoint.fromHex(rev(y));
+  y = parsePoint(y);
 
   const answers = ballot.payload.answers;
   for (let i = 0; i < answers.length; i++) {
@@ -214,8 +208,8 @@ export function checkIndividualProofs(state, ballot) {
     );
 
     for (let j = 0; j < individualProofs.length; j++) {
-      const pAlpha = ed25519.ExtendedPoint.fromHex(rev(choices[j].alpha));
-      const pBeta = ed25519.ExtendedPoint.fromHex(rev(choices[j].beta));
+      const pAlpha = parsePoint(choices[j].alpha);
+      const pBeta = parsePoint(choices[j].beta);
 
       let nSumChallenges = 0n;
       for (let k = 0; k < individualProofs[j].length; k++) {
@@ -253,9 +247,7 @@ export function checkIndividualProofs(state, ballot) {
 }
 
 export function checkOverallProof(state, ballot) {
-  let pY = ed25519.ExtendedPoint.fromHex(
-    rev(state.setup.payload.election.public_key),
-  );
+  let pY = parsePoint(state.setup.payload.election.public_key);
 
   for (let i = 0; i < ballot.payload.answers.length; i++) {
     const question = state.setup.payload.election.questions[i];
@@ -277,10 +269,10 @@ export function checkOverallProof(state, ballot) {
 
     for (let j = 0; j < answer.choices.length; j++) {
       sumc.alpha = sumc.alpha.add(
-        ed25519.ExtendedPoint.fromHex(rev(answer.choices[j].alpha)),
+        parsePoint(answer.choices[j].alpha),
       );
       sumc.beta = sumc.beta.add(
-        ed25519.ExtendedPoint.fromHex(rev(answer.choices[j].beta)),
+        parsePoint(answer.choices[j].beta),
       );
     }
 
