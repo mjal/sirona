@@ -211,8 +211,8 @@ export function checkIndividualProofs(state, ballot) {
     check(
       "ballots",
       "Has a proof for every answer answers",
-      individualProofs.length ===
-        state.setup.payload.election.questions[i].answers.length,
+      individualProofs.length === (question.answers.length
+        + (question.blank ? 1 : 0))
     );
 
     for (let j = 0; j < individualProofs.length; j++) {
