@@ -129,15 +129,13 @@ function checkCredential(state, ballot) {
 }
 
 const processedBallots = {};
-
 function checkIsUnique(ballot) {
   check(
     "ballots",
     "Is unique",
-    processedBallots[ballot.payload.credential] === undefined,
+    processedBallots[ballot.payloadHash] === undefined,
   );
-
-  processedBallots[ballot.payload.credential] = ballot;
+  processedBallots[ballot.payloadHash] = ballot;
 }
 
 export function checkSignature(ballot) {
