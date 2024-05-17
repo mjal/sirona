@@ -32,4 +32,4 @@ export const isValidPoint = (point) => {
     return false;
   }
   return true;
-}
+};

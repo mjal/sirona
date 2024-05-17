@@ -9,8 +9,11 @@ export default function (state) {
   for (let i = 0; i < state.files.length; i++) {
     const [entryHash, type, content] = state.files[i];
     if (type === "event") {
-      check("database", "Parent field correspond to previous event's hash",
-        content.parent === parent);
+      check(
+        "database",
+        "Parent field correspond to previous event's hash",
+        content.parent === parent,
+      );
       parent = entryHash;
       nEvent++;
     }

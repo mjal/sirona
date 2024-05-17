@@ -10,16 +10,17 @@ export default function (state) {
 
   for (let i = 0; i < state.setup.payload.trustees.length; i++) {
     const trustee = state.setup.payload.trustees[i];
-    assert(trustee[0] === "Single",
-      "Trustee is Single (Pedersen not implemented yet)");
-    if (trustee[0] === "Pedersen")
-      continue;
+    assert(
+      trustee[0] === "Single",
+      "Trustee is Single (Pedersen not implemented yet)",
+    );
+    if (trustee[0] === "Pedersen") continue;
     const X = ed25519.ExtendedPoint.fromHex(rev(trustee[1].public_key));
 
     check(
       "setup",
       `Trustee ${i} public key is a valid curve point`,
-      isValidPoint(X)
+      isValidPoint(X),
     );
 
     const challenge = BigInt(trustee[1].pok.challenge);
@@ -51,15 +52,15 @@ export default function (state) {
   check(
     "setup",
     "Election Public Key correspond to trustees",
-    rev(jointPublicKey.toHex()) ===
-      state.setup.payload.election.public_key,
+    rev(jointPublicKey.toHex()) === state.setup.payload.election.public_key,
   );
 
-  const pElectionPublicKey
-    = ed25519.ExtendedPoint.fromHex(state.setup.payload.election.public_key);
+  const pElectionPublicKey = ed25519.ExtendedPoint.fromHex(
+    state.setup.payload.election.public_key,
+  );
   check(
     "setup",
     `Election Public Key is a valid curve point`,
-    pElectionPublicKey
+    pElectionPublicKey,
   );
 }
