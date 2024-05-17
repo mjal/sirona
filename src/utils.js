@@ -31,12 +31,14 @@ export function clear() {
   document.getElementById("database").innerHTML = "";
   document.getElementById("setup").innerHTML = "";
   document.getElementById("ballots").innerHTML = "";
+
+  logSuccess("top", "In progress...");
 }
 
 export function showResult() {
   if (errors === 0) {
-    logSuccess("top", "All checks passed.");
+    logSuccess("top", "Finished. All checks passed.");
   } else {
-    logError("top", "Some checks failed.");
+    logError("top", "Finished. Some checks failed.");
   }
 }

@@ -23,18 +23,28 @@ import checkEncryptedTally from "./checkEncryptedTally.js";
 import checkPartialDecryptions from "./checkPartialDecryptions.js";
 import checkResult from "./checkResult.js";
 
-export default function (fileEntries) {
+async function _async(f, ...args) {
+  return new Promise((resolve, reject) => {
+    requestAnimationFrame(() => {
+      f(...args);
+      resolve();
+    })
+  });
+}
+
+export default async function (fileEntries) {
   clear();
   try {
     const state = load(fileEntries);
-    checkFiles(state);
-    checkSetup(state);
+
+    await _async(checkFiles, state);
+    await _async(checkSetup, state);
     for (let i = 0; i < state.ballots.length; i++) {
-      checkBallot(state, state.ballots[i]);
+      await _async(checkBallot, state, state.ballots[i]);
     }
-    checkEncryptedTally(state);
-    checkPartialDecryptions(state);
-    checkResult(state);
+    await _async(checkEncryptedTally, state);
+    await _async(checkPartialDecryptions, state);
+    await _async(checkResult, state);
   } catch (e) {
     logError("top", "Something wrong happened.");
     console.error(e);
