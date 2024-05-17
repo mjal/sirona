@@ -24,3 +24,12 @@ export const erem = (a, b) => {
   }
   return remainder;
 };
+
+export const isValidPoint = (point) => {
+  try {
+    point.assertValidity();
+  } catch (e) {
+    return false;
+  }
+  return true;
+}

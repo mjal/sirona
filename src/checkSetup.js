@@ -1,5 +1,5 @@
 import { assert, check } from "./utils.js";
-import { g, l, rev, erem, one } from "./math.js";
+import { g, l, rev, erem, one, isValidPoint } from "./math.js";
 import { ed25519 } from "@noble/curves/ed25519";
 import sjcl from "sjcl";
 
@@ -15,6 +15,13 @@ export default function (state) {
     if (trustee[0] === "Pedersen")
       continue;
     const X = ed25519.ExtendedPoint.fromHex(rev(trustee[1].public_key));
+
+    check(
+      "setup",
+      `Trustee ${i} public key is a valid curve point`,
+      isValidPoint(X)
+    );
+
     const challenge = BigInt(trustee[1].pok.challenge);
     const response = BigInt(trustee[1].pok.response);
 
@@ -41,13 +48,18 @@ export default function (state) {
     joint_public_key = joint_public_key.add(X);
   }
 
-  console.log(rev(joint_public_key.toHex()));
-  console.log(state.setup.payload.election.public_key);
-
   check(
     "setup",
     "Election Public Key correspond to trustees",
     rev(joint_public_key.toHex()) ===
       state.setup.payload.election.public_key,
+  );
+
+  const pElectionPublicKey
+    = ed25519.ExtendedPoint.fromHex(state.setup.payload.election.public_key);
+  check(
+    "setup",
+    `Election Public Key is a valid curve point`,
+    pElectionPublicKey
   );
 }

@@ -1,7 +1,7 @@
 import sjcl from "sjcl";
 import { ed25519 } from "@noble/curves/ed25519";
-import { check, assert, logSuccess, logError } from "./utils.js";
-import { g, l, rev, erem } from "./math.js";
+import { check, assert, logError } from "./utils.js";
+import { g, l, rev, erem, isValidPoint } from "./math.js";
 
 export default function (state, ballot) {
   check("ballots", "election.uuid correspond to election uuid",
@@ -11,6 +11,7 @@ export default function (state, ballot) {
   checkCredential(state, ballot);
   checkIsUnique(ballot);
 
+  checkValidPoints(ballot);
   checkSignature(ballot);
   checkIndividualProofs(state, ballot);
   checkOverallProof(state, ballot);
@@ -164,6 +165,18 @@ export function checkSignature(ballot) {
   check("ballots", "Valid signature",
     challenge.toString(16) === hexReducedVerificationHash);
 }
+
+export function checkValidPoints(ballot) {
+  const answers = ballot.payload.answers;
+  for (let i = 0; i < answers.length; i++) {
+    for (let j = 0; j < answers[i].choices.length; j++) {
+      const pAlpha = ed25519.ExtendedPoint.fromHex(rev(answers[i].choices[j].alpha));
+      const pBeta = ed25519.ExtendedPoint.fromHex(rev(answers[i].choices[j].beta));
+      check("ballots", "Encrypted choices alpha,beta are valid curve points",
+        isValidPoint(pAlpha) && isValidPoint(pBeta)
+      )
+    }
+  }
 }
 
 export function checkIndividualProofs(state, ballot) {
