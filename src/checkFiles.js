@@ -1,9 +1,7 @@
-import { logSuccess, assert } from "./utils.js";
+import { check } from "./utils.js";
 
 export default function (state) {
   // TODO: Check hash correspond to content
-
-  // TODO: Check event are in canonical form
 
   // Check event chain
   let parent;
@@ -11,11 +9,10 @@ export default function (state) {
   for (let i = 0; i < state.files.length; i++) {
     const [entryHash, type, content] = state.files[i];
     if (type === "event") {
-      assert(content.parent === parent);
+      check("database", "Parent field correspond to previous event's hash",
+        content.parent === parent);
       parent = entryHash;
       nEvent++;
     }
   }
-
-  logSuccess("database", `Checked ${nEvent} events`);
 }
