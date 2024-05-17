@@ -136,8 +136,8 @@ function checkIsUnique(ballot) {
 }
 
 export function checkSignature(ballot) {
-  assert(ballot.payload.signature.hash === hashWithoutSignature(ballot));
-  logSuccess("ballots", "Hashes are equal");
+  check("ballots", "Hash without signature is correct",
+    ballot.payload.signature.hash === hashWithoutSignature(ballot));
 
   const credential = ed25519.ExtendedPoint.fromHex(
     rev(ballot.payload.credential),
@@ -151,7 +151,6 @@ export function checkSignature(ballot) {
   const A = g.multiply(response).add(credential.multiply(challenge));
 
   const H = ballot.payload.signature.hash;
-
   const verificationHash = sjcl.codec.hex.fromBits(
     sjcl.hash.sha256.hash(`sig|${H}|${rev(A.toHex())}`),
   );
