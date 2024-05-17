@@ -268,12 +268,8 @@ export function checkOverallProof(state, ballot) {
     };
 
     for (let j = 0; j < answer.choices.length; j++) {
-      sumc.alpha = sumc.alpha.add(
-        parsePoint(answer.choices[j].alpha),
-      );
-      sumc.beta = sumc.beta.add(
-        parsePoint(answer.choices[j].beta),
-      );
+      sumc.alpha = sumc.alpha.add(parsePoint(answer.choices[j].alpha));
+      sumc.beta = sumc.beta.add(parsePoint(answer.choices[j].beta));
     }
 
     let nSumChallenges = 0n;

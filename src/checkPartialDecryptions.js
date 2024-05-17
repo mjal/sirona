@@ -9,7 +9,9 @@ export default function (state) {
     const partialDecryption = state.partialDecryptions[k];
     const trusteeIdx = partialDecryption.payload.owner - 1;
     assert(state.setup.payload.trustees[trusteeIdx][0] === "Single");
-    const pPublicKey = parsePoint(state.setup.payload.trustees[trusteeIdx][1].public_key);
+    const pPublicKey = parsePoint(
+      state.setup.payload.trustees[trusteeIdx][1].public_key,
+    );
     const df = partialDecryption.payload.payload.decryption_factors;
     const dp = partialDecryption.payload.payload.decryption_proofs;
 

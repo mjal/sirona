@@ -36,4 +36,4 @@ export const isValidPoint = (point) => {
 
 export const parsePoint = (str: string) => {
   return ed25519.ExtendedPoint.fromHex(rev(str));
-}
+};

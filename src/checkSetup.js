@@ -54,7 +54,9 @@ export default function (state) {
     rev(pJointPublicKey.toHex()) === state.setup.payload.election.public_key,
   );
 
-  const pElectionPublicKey = parsePoint(state.setup.payload.election.public_key);
+  const pElectionPublicKey = parsePoint(
+    state.setup.payload.election.public_key,
+  );
   check(
     "setup",
     `Election Public Key is a valid curve point`,
