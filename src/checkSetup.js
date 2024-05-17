@@ -6,7 +6,7 @@ import sjcl from "sjcl";
 export default function (state) {
   // TODO: Handle Pedersen trustees
 
-  let joint_public_key = one;
+  let jointPublicKey = one;
 
   for (let i = 0; i < state.setup.payload.trustees.length; i++) {
     const trustee = state.setup.payload.trustees[i];
@@ -45,13 +45,13 @@ export default function (state) {
       challenge.toString(16) === hexReducedVerificationHash,
     );
 
-    joint_public_key = joint_public_key.add(X);
+    jointPublicKey = jointPublicKey.add(X);
   }
 
   check(
     "setup",
     "Election Public Key correspond to trustees",
-    rev(joint_public_key.toHex()) ===
+    rev(jointPublicKey.toHex()) ===
       state.setup.payload.election.public_key,
   );
 
