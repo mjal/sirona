@@ -6,7 +6,7 @@ import sjcl from "sjcl";
 export default function (state) {
   // TODO: Handle Pedersen trustees
 
-  let jointPublicKey = one;
+  let pJointPublicKey = one;
 
   for (let i = 0; i < state.setup.payload.trustees.length; i++) {
     const trustee = state.setup.payload.trustees[i];
@@ -15,22 +15,22 @@ export default function (state) {
       "Trustee is Single (Pedersen not implemented yet)",
     );
     if (trustee[0] === "Pedersen") continue;
-    const X = ed25519.ExtendedPoint.fromHex(rev(trustee[1].public_key));
+    const pX = ed25519.ExtendedPoint.fromHex(rev(trustee[1].public_key));
 
     check(
       "setup",
       `Trustee ${i} public key is a valid curve point`,
-      isValidPoint(X),
+      isValidPoint(pX),
     );
 
-    const challenge = BigInt(trustee[1].pok.challenge);
-    const response = BigInt(trustee[1].pok.response);
+    const nChallenge = BigInt(trustee[1].pok.challenge);
+    const nResponse = BigInt(trustee[1].pok.response);
 
-    const A = g.multiply(response).add(X.multiply(challenge));
+    const pA = g.multiply(nResponse).add(pX.multiply(nChallenge));
 
     let hashedStr = `pok|${state.setup.payload.election.group}|`;
     hashedStr += `${trustee[1].public_key}|`;
-    hashedStr += `${rev(A.toHex())}`;
+    hashedStr += `${rev(pA.toHex())}`;
 
     const verificationHash = sjcl.codec.hex.fromBits(
       sjcl.hash.sha256.hash(hashedStr),
@@ -43,20 +43,20 @@ export default function (state) {
     check(
       "setup",
       `Trustee ${i} POK is valid`,
-      challenge.toString(16) === hexReducedVerificationHash,
+      nChallenge.toString(16) === hexReducedVerificationHash,
     );
 
-    jointPublicKey = jointPublicKey.add(X);
+    pJointPublicKey = pJointPublicKey.add(pX);
   }
 
   check(
     "setup",
     "Election Public Key correspond to trustees",
-    rev(jointPublicKey.toHex()) === state.setup.payload.election.public_key,
+    rev(pJointPublicKey.toHex()) === state.setup.payload.election.public_key,
   );
 
   const pElectionPublicKey = ed25519.ExtendedPoint.fromHex(
-    state.setup.payload.election.public_key,
+    rev(state.setup.payload.election.public_key),
   );
   check(
     "setup",

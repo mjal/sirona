@@ -26,15 +26,15 @@ function valuesForProofOfIntervalMembership(y, alpha, beta, transcripts, ms) {
   for (let i = 0; i < transcripts.length; i++) {
     const m = ms[i];
 
-    const challenge = BigInt(transcripts[i].challenge);
-    const response = BigInt(transcripts[i].response);
+    const nChallenge = BigInt(transcripts[i].challenge);
+    const nResponse = BigInt(transcripts[i].response);
 
-    const a = g.multiply(response).add(alpha.multiply(challenge));
+    const a = g.multiply(nResponse).add(alpha.multiply(nChallenge));
     const gPowerM =
       m === 0 ? ed25519.ExtendedPoint.ZERO : g.multiply(BigInt(m));
     const b = y
-      .multiply(response)
-      .add(beta.add(gPowerM.negate()).multiply(challenge));
+      .multiply(nResponse)
+      .add(beta.add(gPowerM.negate()).multiply(nChallenge));
 
     values.push(a);
     values.push(b);
@@ -153,14 +153,14 @@ export function checkSignature(ballot) {
 
   const signature = ballot.payload.signature;
 
-  const challenge = BigInt(signature.proof.challenge);
-  const response = BigInt(signature.proof.response);
+  const nChallenge = BigInt(signature.proof.challenge);
+  const nResponse = BigInt(signature.proof.response);
 
-  const A = g.multiply(response).add(credential.multiply(challenge));
+  const pA = g.multiply(nResponse).add(credential.multiply(nChallenge));
 
-  const H = ballot.payload.signature.hash;
+  const H = signature.hash;
   const verificationHash = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(`sig|${H}|${rev(A.toHex())}`),
+    sjcl.hash.sha256.hash(`sig|${H}|${rev(pA.toHex())}`),
   );
 
   const hexReducedVerificationHash = erem(
@@ -171,7 +171,7 @@ export function checkSignature(ballot) {
   check(
     "ballots",
     "Valid signature",
-    challenge.toString(16) === hexReducedVerificationHash,
+    nChallenge.toString(16) === hexReducedVerificationHash,
   );
 }
 
@@ -216,48 +216,46 @@ export function checkIndividualProofs(state, ballot) {
     );
 
     for (let j = 0; j < individualProofs.length; j++) {
-      const alpha = ed25519.ExtendedPoint.fromHex(rev(choices[j].alpha));
-      const beta = ed25519.ExtendedPoint.fromHex(rev(choices[j].beta));
-      // TODO: Check alpha, beta are on the curve
+      const pAlpha = ed25519.ExtendedPoint.fromHex(rev(choices[j].alpha));
+      const pBeta = ed25519.ExtendedPoint.fromHex(rev(choices[j].beta));
 
-      let sumChallenges = 0n;
+      let nSumChallenges = 0n;
       for (let k = 0; k < individualProofs[j].length; k++) {
         const challenge = BigInt(individualProofs[j][k].challenge);
-        sumChallenges = erem(sumChallenges + challenge, l);
+        nSumChallenges = erem(nSumChallenges + challenge, l);
       }
 
       const values = valuesForProofOfIntervalMembership(
         y,
-        alpha,
-        beta,
+        pAlpha,
+        pBeta,
         individualProofs[j],
         [0, 1],
       );
 
       const S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
-      let challengeStr = `prove|${S}|${choices[j].alpha},${choices[j].beta}|`;
-      challengeStr += values.map((v) => rev(v.toHex())).join(",");
+      let sChallenge = `prove|${S}|${choices[j].alpha},${choices[j].beta}|`;
+      sChallenge  += values.map((v) => rev(v.toHex())).join(",");
 
-      const verificationHash = sjcl.codec.hex.fromBits(
-        sjcl.hash.sha256.hash(challengeStr),
+      const hVerification = sjcl.codec.hex.fromBits(
+        sjcl.hash.sha256.hash(sChallenge),
       );
-      const hexReducedVerificationHash = erem(
-        BigInt("0x" + verificationHash),
+      const hReducedVerification = erem(
+        BigInt("0x" + hVerification),
         l,
       ).toString(16);
 
       check(
         "ballots",
         "Valid individual proof",
-        sumChallenges.toString(16) === hexReducedVerificationHash,
+        nSumChallenges.toString(16) === hReducedVerification,
       );
     }
   }
 }
 
 export function checkOverallProof(state, ballot) {
-  let y = state.setup.payload.election.public_key;
-  y = ed25519.ExtendedPoint.fromHex(rev(y));
+  let pY = ed25519.ExtendedPoint.fromHex(rev(state.setup.payload.election.public_key));
 
   for (let i = 0; i < ballot.payload.answers.length; i++) {
     const question = state.setup.payload.election.questions[i];
@@ -269,7 +267,6 @@ export function checkOverallProof(state, ballot) {
       logError("ballots", "Question with blank vote not implemented yet");
       continue;
     }
-    console.log(question);
 
     const answer = ballot.payload.answers[i];
 
@@ -287,10 +284,10 @@ export function checkOverallProof(state, ballot) {
       );
     }
 
-    let sumChallenges = 0n;
+    let nSumChallenges = 0n;
     for (let k = 0; k < answer.overall_proof.length; k++) {
       const challenge = BigInt(answer.overall_proof[k].challenge);
-      sumChallenges = erem(sumChallenges + challenge, l);
+      nSumChallenges = erem(nSumChallenges + challenge, l);
     }
 
     const min = state.setup.payload.election.questions[i].min;
@@ -300,35 +297,35 @@ export function checkOverallProof(state, ballot) {
       ms.push(j);
     }
     const values = valuesForProofOfIntervalMembership(
-      y,
+      pY,
       sumc.alpha,
       sumc.beta,
       answer.overall_proof,
       ms,
     );
 
-    let challengeStr = "prove|";
-    challengeStr += `${state.setup.fingerprint}|${ballot.payload.credential}|`;
+    let sChallenge = "prove|";
+    sChallenge += `${state.setup.fingerprint}|${ballot.payload.credential}|`;
     const alphasBetas = [];
     for (let j = 0; j < answer.choices.length; j++) {
       alphasBetas.push(`${answer.choices[j].alpha},${answer.choices[j].beta}`);
     }
-    challengeStr += alphasBetas.join(",");
-    challengeStr += `|${rev(sumc.alpha.toHex())},${rev(sumc.beta.toHex())}|`;
-    challengeStr += values.map((v) => rev(v.toHex())).join(",");
+    sChallenge += alphasBetas.join(",");
+    sChallenge += `|${rev(sumc.alpha.toHex())},${rev(sumc.beta.toHex())}|`;
+    sChallenge += values.map((v) => rev(v.toHex())).join(",");
 
-    const verificationHash = sjcl.codec.hex.fromBits(
-      sjcl.hash.sha256.hash(challengeStr),
+    const hVerification = sjcl.codec.hex.fromBits(
+      sjcl.hash.sha256.hash(sChallenge),
     );
-    const hexReducedVerificationHash = erem(
-      BigInt("0x" + verificationHash),
+    const hReducedVerification = erem(
+      BigInt("0x" + hVerification),
       l,
     ).toString(16);
 
     check(
       "ballots",
       "Valid overall proof",
-      sumChallenges.toString(16) === hexReducedVerificationHash,
+      nSumChallenges.toString(16) === hReducedVerification,
     );
   }
 }

@@ -11,23 +11,24 @@ export default function (state) {
       continue; // TODO
     }
     for (let j = 0; j < res[i].length; j++) {
-      let sum = one;
+      let pSum = one;
       for (let k = 0; k < state.partialDecryptions.length; k++) {
         const partialDecryption = state.partialDecryptions[k];
         const df = partialDecryption.payload.payload.decryption_factors;
-        const factor = ed25519.ExtendedPoint.fromHex(rev(df[i][j]));
-        sum = sum.add(factor);
+        const pFactor = ed25519.ExtendedPoint.fromHex(rev(df[i][j]));
+        pSum = pSum.add(pFactor);
       }
 
-      const beta = ed25519.ExtendedPoint.fromHex(rev(et[i][j].beta));
-      const result = beta.add(sum.negate());
+      const pBeta = ed25519.ExtendedPoint.fromHex(rev(et[i][j].beta));
+      const pResult = pBeta.add(pSum.negate());
+      const nAnswer = BigInt(res[i][j]);
 
       check(
         "result",
         `Result ${i},${j} correspond to the log of the sum of partial decryptions`,
-        (res[i][j] === 0 && result.toHex() === one.toHex()) ||
+        (res[i][j] === 0 && pResult.toHex() === one.toHex()) ||
           (res[i][j] !== 0 &&
-            result.toHex() === g.multiply(BigInt(res[i][j])).toHex()),
+            pResult.toHex() === g.multiply(nAnswer).toHex()),
       );
     }
   }

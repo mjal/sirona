@@ -22,14 +22,14 @@ export default function (state) {
     for (let j = 0; j < encryptedTally.length; j++) {
       const answer = ballots[i].payload.answers[j];
       for (let k = 0; k < encryptedTally[j].length; k++) {
-        const alpha = ed25519.ExtendedPoint.fromHex(
+        const pAlpha = ed25519.ExtendedPoint.fromHex(
           rev(answer.choices[k].alpha),
         );
-        const beta = ed25519.ExtendedPoint.fromHex(rev(answer.choices[k].beta));
+        const pBeta = ed25519.ExtendedPoint.fromHex(rev(answer.choices[k].beta));
 
         // TODO: Use weight
-        encryptedTally[j][k].alpha = encryptedTally[j][k].alpha.add(alpha);
-        encryptedTally[j][k].beta = encryptedTally[j][k].beta.add(beta);
+        encryptedTally[j][k].alpha = encryptedTally[j][k].alpha.add(pAlpha);
+        encryptedTally[j][k].beta = encryptedTally[j][k].beta.add(pBeta);
       }
     }
   }

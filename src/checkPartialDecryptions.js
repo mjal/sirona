@@ -10,7 +10,7 @@ export default function (state) {
     const partialDecryption = state.partialDecryptions[k];
     const trusteeIdx = partialDecryption.payload.owner - 1;
     assert(state.setup.payload.trustees[trusteeIdx][0] === "Single");
-    const publicKey = ed25519.ExtendedPoint.fromHex(
+    const pPublicKey = ed25519.ExtendedPoint.fromHex(
       rev(state.setup.payload.trustees[trusteeIdx][1].public_key),
     );
     const df = partialDecryption.payload.payload.decryption_factors;
@@ -22,28 +22,28 @@ export default function (state) {
         continue; // TODO
       }
       for (let j = 0; j < et[i].length; j++) {
-        const alpha = ed25519.ExtendedPoint.fromHex(rev(et[i][j].alpha));
-        const factor = ed25519.ExtendedPoint.fromHex(rev(df[i][j]));
-        const challenge = BigInt(dp[i][j].challenge);
-        const response = BigInt(dp[i][j].response);
+        const pAlpha = ed25519.ExtendedPoint.fromHex(rev(et[i][j].alpha));
+        const pFactor = ed25519.ExtendedPoint.fromHex(rev(df[i][j]));
+        const nChallenge = BigInt(dp[i][j].challenge);
+        const nResponse = BigInt(dp[i][j].response);
 
-        const A = g.multiply(response).add(publicKey.multiply(challenge));
-        const B = alpha.multiply(response).add(factor.multiply(challenge));
+        const pA = g.multiply(nResponse).add(pPublicKey.multiply(nChallenge));
+        const pB = pAlpha.multiply(nResponse).add(pFactor.multiply(nChallenge));
 
-        const verificationHash = sjcl.codec.hex.fromBits(
+        const hVerificationHash = sjcl.codec.hex.fromBits(
           sjcl.hash.sha256.hash(
-            `decrypt|${state.setup.fingerprint}|${rev(publicKey.toHex())}|${rev(A.toHex())},${rev(B.toHex())}`,
+            `decrypt|${state.setup.fingerprint}|${rev(pPublicKey.toHex())}|${rev(pA.toHex())},${rev(pB.toHex())}`,
           ),
         );
-        const hexReducedVerificationHash = erem(
-          BigInt("0x" + verificationHash),
+        const hReducedVerificationHash = erem(
+          BigInt("0x" + hVerificationHash),
           l,
         ).toString(16);
 
         check(
           "partialDecryptions",
           "Valid decryption proof",
-          challenge.toString(16) === hexReducedVerificationHash,
+          nChallenge.toString(16) === hReducedVerificationHash,
         );
       }
     }
