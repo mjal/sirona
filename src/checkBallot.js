@@ -20,10 +20,8 @@ export default function (state, ballot) {
     } else {
       checkIndividualProofs(state, ballot, i);
       if (question.blank) {
-        // TODO
-        // checkBlankProof(state, ballot);
-        // checkOverallProofWithBlank(state, ballot);
-        logError("ballots", "Question with blank vote not implemented yet");
+        checkBlankProof(state, ballot, i);
+        checkOverallProofWithBlank(state, ballot, i);
       } else {
         checkOverallProofWithoutBlank(state, ballot, i);
       }
@@ -249,4 +247,65 @@ export function checkOverallProofWithoutBlank(state, ballot, idx) {
     "Valid overall proof (without blank vote)",
     nSumChallenges.toString(16) === hReducedVerification,
   );
+}
+
+export function checkBlankProof(state, ballot, idx) {
+  const pY = parsePoint(state.setup.payload.election.public_key);
+  const question = state.setup.payload.election.questions[idx];
+  const answer = ballot.payload.answers[idx];
+
+  const nChallenge0 = BigInt(answer.blank_proof[0].challenge);
+  const nResponse0 = BigInt(answer.blank_proof[0].response);
+  const nChallengeS = BigInt(answer.blank_proof[1].challenge);
+  const nResponseS = BigInt(answer.blank_proof[1].response);
+
+  const pAlpha0 = parsePoint(answer.choices[0].alpha);
+  const pBeta0 = parsePoint(answer.choices[0].beta);
+
+  let pAlphaS = ed25519.ExtendedPoint.ZERO;
+  let pBetaS = ed25519.ExtendedPoint.ZERO;
+
+  for (let j = 1; j < answer.choices.length; j++) {
+    pAlphaS = pAlphaS.add(parsePoint(answer.choices[j].alpha));
+    pBetaS = pBetaS.add(parsePoint(answer.choices[j].beta));
+  }
+
+  const nSumChallenges = answer.blank_proof.reduce(
+    (acc, proof) => acc + BigInt(proof.challenge),
+    0n,
+  );
+
+  const pA0 = g.multiply(nResponse0).add(pAlpha0.multiply(nChallenge0));
+  const pB0 = pY.multiply(nResponse0).add(pBeta0.multiply(nChallenge0));
+
+  const pAS = g.multiply(nResponseS).add(pAlphaS.multiply(nChallengeS));
+  const pBS = pY.multiply(nResponseS).add(pBetaS.multiply(nChallengeS));
+
+  let S = `${state.setup.fingerprint}|${ballot.payload.credential}|`;
+  const alphasBetas = [];
+  for (let j = 0; j < answer.choices.length; j++) {
+    alphasBetas.push(`${answer.choices[j].alpha},${answer.choices[j].beta}`);
+  }
+  S = S + alphasBetas.join(",");
+  let sChallenge = `bproof0|${S}|`;
+  sChallenge += `${rev(pA0.toHex())},${rev(pB0.toHex())},`;
+  sChallenge += `${rev(pAS.toHex())},${rev(pBS.toHex())}`;
+
+  const hVerification = sjcl.codec.hex.fromBits(
+    sjcl.hash.sha256.hash(sChallenge),
+  );
+  const hReducedVerification = mod(
+    BigInt("0x" + hVerification),
+    L,
+  ).toString(16);
+
+  check(
+    "ballots",
+    "Valid overall proof (with blank vote)",
+    nSumChallenges.toString(16) === hReducedVerification,
+  );
+}
+
+export function checkOverallProofWithBlank(state, ballot, idx) {
+  logError("ballots", "checkOverallProofWithBlank not implemented yet");
 }
