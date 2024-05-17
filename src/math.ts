@@ -1,4 +1,5 @@
 import { ed25519 } from "@noble/curves/ed25519";
+import type { ExtPointType } from '@noble/curves/abstract/edwards.js';
 
 export const g = ed25519.ExtendedPoint.BASE;
 export const one = ed25519.ExtendedPoint.fromHex(
@@ -27,7 +28,7 @@ export const mod = (a : bigint, b : bigint) => {
   return remainder;
 };
 
-export const isValidPoint = (point) => {
+export const isValidPoint = (point : ExtPointType) => {
   try {
     point.assertValidity();
   } catch (e) {
