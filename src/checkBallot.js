@@ -193,10 +193,11 @@ export function checkIndividualProofs(state, ballot) {
     const choices = answer.choices;
     const individualProofs = answer.individual_proofs;
 
-    assert(
+    check("ballots", "Has a proof for every answer answers",
       individualProofs.length ===
         state.setup.payload.election.questions[i].answers.length,
     );
+
     for (let j = 0; j < individualProofs.length; j++) {
       const alpha = ed25519.ExtendedPoint.fromHex(rev(choices[j].alpha));
       const beta = ed25519.ExtendedPoint.fromHex(rev(choices[j].beta));
@@ -228,8 +229,9 @@ export function checkIndividualProofs(state, ballot) {
         l,
       ).toString(16);
 
-      assert(sumChallenges.toString(16) === hexReducedVerificationHash);
-      logSuccess("ballots", "Valid individual proof");
+      check("ballots", "Valid individual proof",
+        sumChallenges.toString(16) === hexReducedVerificationHash
+      );
     }
   }
 }
@@ -304,7 +306,7 @@ export function checkOverallProof(state, ballot) {
       l,
     ).toString(16);
 
-    assert(sumChallenges.toString(16) === hexReducedVerificationHash);
-    logSuccess("ballots", "Valid overall proof");
+    check("ballots", "Valid overall proof",
+      sumChallenges.toString(16) === hexReducedVerificationHash);
   }
 }
