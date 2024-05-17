@@ -1,6 +1,6 @@
 import sjcl from "sjcl";
 import { ed25519 } from "@noble/curves/ed25519";
-import { check, logError } from "./utils.js";
+import { check, logError, assert } from "./utils.js";
 import { g, L, rev, mod, isValidPoint, parsePoint } from "./math";
 
 export default function (state, ballot) {
@@ -13,11 +13,27 @@ export default function (state, ballot) {
   checkIsCanonical(ballot);
   checkCredential(state, ballot);
   checkIsUnique(ballot);
-
   checkValidPoints(ballot);
   checkSignature(ballot);
-  checkIndividualProofs(state, ballot);
-  checkOverallProof(state, ballot);
+
+  for (let i = 0; i < state.setup.payload.election.questions.length; i++)
+  {
+    const question = state.setup.payload.election.questions[i];
+    if (question.type === "NonHomomorphic") {
+      // TODO
+      logError("ballots", "NonHomomorphic questions not implemented yet");
+    } else {
+      checkIndividualProofs(state, ballot, i);
+      if (question.blank) {
+        // TODO
+        // checkBlankProof(state, ballot);
+        // checkOverallProofWithBlank(state, ballot);
+        logError("ballots", "Question with blank vote not implemented yet");
+      } else {
+        checkOverallProofWithoutBlank(state, ballot, i);
+      }
+    }
+  }
 }
 
 function valuesForProofOfIntervalMembership(y, alpha, beta, transcripts, ms) {
@@ -146,17 +162,12 @@ export function checkSignature(ballot) {
   );
 
   const credential = parsePoint(ballot.payload.credential);
-
   const signature = ballot.payload.signature;
-
   const nChallenge = BigInt(signature.proof.challenge);
   const nResponse = BigInt(signature.proof.response);
-
   const pA = g.multiply(nResponse).add(credential.multiply(nChallenge));
-
-  const H = signature.hash;
   const verificationHash = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(`sig|${H}|${rev(pA.toHex())}`),
+    sjcl.hash.sha256.hash(`sig|${signature.hash}|${rev(pA.toHex())}`),
   );
 
   const hexReducedVerificationHash = mod(
@@ -186,133 +197,113 @@ export function checkValidPoints(ballot) {
   }
 }
 
-export function checkIndividualProofs(state, ballot) {
-  let y = state.setup.payload.election.public_key;
-  y = parsePoint(y);
+export function checkIndividualProofs(state, ballot, idx) {
+  const pY = parsePoint(state.setup.payload.election.public_key);
+  const question = state.setup.payload.election.questions[idx];
+  const answer = ballot.payload.answers[idx];
+  const choices = answer.choices;
+  const individualProofs = answer.individual_proofs;
 
-  const answers = ballot.payload.answers;
-  for (let i = 0; i < answers.length; i++) {
-    const question = state.setup.payload.election.questions[i];
-    if (question.type === "NonHomomorphic") {
-      continue;
-    }
-    const answer = answers[i];
-    const choices = answer.choices;
-    const individualProofs = answer.individual_proofs;
+  check(
+    "ballots",
+    "Has a proof for every answer answers",
+    individualProofs.length ===
+      question.answers.length + (question.blank ? 1 : 0),
+  );
 
-    check(
-      "ballots",
-      "Has a proof for every answer answers",
-      individualProofs.length ===
-        question.answers.length + (question.blank ? 1 : 0),
-    );
-
-    for (let j = 0; j < individualProofs.length; j++) {
-      const pAlpha = parsePoint(choices[j].alpha);
-      const pBeta = parsePoint(choices[j].beta);
-
-      let nSumChallenges = 0n;
-      for (let k = 0; k < individualProofs[j].length; k++) {
-        const challenge = BigInt(individualProofs[j][k].challenge);
-        nSumChallenges = mod(nSumChallenges + challenge, L);
-      }
-
-      const values = valuesForProofOfIntervalMembership(
-        y,
-        pAlpha,
-        pBeta,
-        individualProofs[j],
-        [0, 1],
-      );
-
-      const S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
-      let sChallenge = `prove|${S}|${choices[j].alpha},${choices[j].beta}|`;
-      sChallenge += values.map((v) => rev(v.toHex())).join(",");
-
-      const hVerification = sjcl.codec.hex.fromBits(
-        sjcl.hash.sha256.hash(sChallenge),
-      );
-      const hReducedVerification = mod(
-        BigInt("0x" + hVerification),
-        L,
-      ).toString(16);
-
-      check(
-        "ballots",
-        "Valid individual proof",
-        nSumChallenges.toString(16) === hReducedVerification,
-      );
-    }
-  }
-}
-
-export function checkOverallProof(state, ballot) {
-  let pY = parsePoint(state.setup.payload.election.public_key);
-
-  for (let i = 0; i < ballot.payload.answers.length; i++) {
-    const question = state.setup.payload.election.questions[i];
-    if (question.type === "NonHomomorphic") {
-      continue;
-    }
-    if (question.blank) {
-      // TODO:
-      logError("ballots", "Question with blank vote not implemented yet");
-      continue;
-    }
-
-    const answer = ballot.payload.answers[i];
-
-    const sumc = {
-      alpha: ed25519.ExtendedPoint.ZERO,
-      beta: ed25519.ExtendedPoint.ZERO,
-    };
-
-    for (let j = 0; j < answer.choices.length; j++) {
-      sumc.alpha = sumc.alpha.add(parsePoint(answer.choices[j].alpha));
-      sumc.beta = sumc.beta.add(parsePoint(answer.choices[j].beta));
-    }
+  for (let j = 0; j < individualProofs.length; j++) {
+    const pAlpha = parsePoint(choices[j].alpha);
+    const pBeta = parsePoint(choices[j].beta);
 
     let nSumChallenges = 0n;
-    for (let k = 0; k < answer.overall_proof.length; k++) {
-      const challenge = BigInt(answer.overall_proof[k].challenge);
+    for (let k = 0; k < individualProofs[j].length; k++) {
+      const challenge = BigInt(individualProofs[j][k].challenge);
       nSumChallenges = mod(nSumChallenges + challenge, L);
     }
 
-    const min = state.setup.payload.election.questions[i].min;
-    const max = state.setup.payload.election.questions[i].max;
-    const ms = [];
-    for (let j = min; j <= max; j++) {
-      ms.push(j);
-    }
     const values = valuesForProofOfIntervalMembership(
       pY,
-      sumc.alpha,
-      sumc.beta,
-      answer.overall_proof,
-      ms,
+      pAlpha,
+      pBeta,
+      individualProofs[j],
+      [0, 1],
     );
 
-    let sChallenge = "prove|";
-    sChallenge += `${state.setup.fingerprint}|${ballot.payload.credential}|`;
-    const alphasBetas = [];
-    for (let j = 0; j < answer.choices.length; j++) {
-      alphasBetas.push(`${answer.choices[j].alpha},${answer.choices[j].beta}`);
-    }
-    sChallenge += alphasBetas.join(",");
-    sChallenge += `|${rev(sumc.alpha.toHex())},${rev(sumc.beta.toHex())}|`;
+    const S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
+    let sChallenge = `prove|${S}|${choices[j].alpha},${choices[j].beta}|`;
     sChallenge += values.map((v) => rev(v.toHex())).join(",");
 
     const hVerification = sjcl.codec.hex.fromBits(
       sjcl.hash.sha256.hash(sChallenge),
     );
-    const hReducedVerification = mod(BigInt("0x" + hVerification), L).toString(
-      16,
-    );
+    const hReducedVerification = mod(
+      BigInt("0x" + hVerification),
+      L,
+    ).toString(16);
 
     check(
       "ballots",
-      "Valid overall proof",
+      "Valid individual proof",
       nSumChallenges.toString(16) === hReducedVerification,
     );
   }
+}
+
+export function checkOverallProofWithoutBlank(state, ballot, idx) {
+  const pY = parsePoint(state.setup.payload.election.public_key);
+  const question = state.setup.payload.election.questions[idx];
+  const answer = ballot.payload.answers[idx];
+
+  const sumc = {
+    alpha: ed25519.ExtendedPoint.ZERO,
+    beta: ed25519.ExtendedPoint.ZERO,
+  };
+
+  for (let j = 0; j < answer.choices.length; j++) {
+    sumc.alpha = sumc.alpha.add(parsePoint(answer.choices[j].alpha));
+    sumc.beta = sumc.beta.add(parsePoint(answer.choices[j].beta));
+  }
+
+  let nSumChallenges = 0n;
+  for (let k = 0; k < answer.overall_proof.length; k++) {
+    const challenge = BigInt(answer.overall_proof[k].challenge);
+    nSumChallenges = mod(nSumChallenges + challenge, L);
+  }
+
+  const min = question.min;
+  const max = question.max;
+  const ms = [];
+  for (let j = min; j <= max; j++) {
+    ms.push(j);
+  }
+  const values = valuesForProofOfIntervalMembership(
+    pY,
+    sumc.alpha,
+    sumc.beta,
+    answer.overall_proof,
+    ms,
+  );
+
+  let sChallenge = "prove|";
+  sChallenge += `${state.setup.fingerprint}|${ballot.payload.credential}|`;
+  const alphasBetas = [];
+  for (let j = 0; j < answer.choices.length; j++) {
+    alphasBetas.push(`${answer.choices[j].alpha},${answer.choices[j].beta}`);
+  }
+  sChallenge += alphasBetas.join(",");
+  sChallenge += `|${rev(sumc.alpha.toHex())},${rev(sumc.beta.toHex())}|`;
+  sChallenge += values.map((v) => rev(v.toHex())).join(",");
+
+  const hVerification = sjcl.codec.hex.fromBits(
+    sjcl.hash.sha256.hash(sChallenge),
+  );
+  const hReducedVerification = mod(BigInt("0x" + hVerification), L).toString(
+    16,
+  );
+
+  check(
+    "ballots",
+    "Valid overall proof (without blank vote)",
+    nSumChallenges.toString(16) === hReducedVerification,
+  );
 }
