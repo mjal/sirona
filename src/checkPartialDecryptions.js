@@ -1,5 +1,5 @@
 import { assert, check } from "./utils.js";
-import { rev, g, l, mod } from "./math.js";
+import { rev, g, L, mod } from "./math.js";
 import { ed25519 } from "@noble/curves/ed25519";
 import sjcl from "sjcl";
 
@@ -37,7 +37,7 @@ export default function (state) {
         );
         const hReducedVerificationHash = mod(
           BigInt("0x" + hVerificationHash),
-          l,
+          L,
         ).toString(16);
 
         check(

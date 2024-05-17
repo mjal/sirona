@@ -1,7 +1,7 @@
 import sjcl from "sjcl";
 import { ed25519 } from "@noble/curves/ed25519";
 import { check, logError } from "./utils.js";
-import { g, l, rev, mod, isValidPoint } from "./math.js";
+import { g, L, rev, mod, isValidPoint } from "./math.js";
 
 export default function (state, ballot) {
   check(
@@ -163,7 +163,7 @@ export function checkSignature(ballot) {
 
   const hexReducedVerificationHash = mod(
     BigInt("0x" + verificationHash),
-    l,
+    L,
   ).toString(16);
 
   check(
@@ -220,7 +220,7 @@ export function checkIndividualProofs(state, ballot) {
       let nSumChallenges = 0n;
       for (let k = 0; k < individualProofs[j].length; k++) {
         const challenge = BigInt(individualProofs[j][k].challenge);
-        nSumChallenges = mod(nSumChallenges + challenge, l);
+        nSumChallenges = mod(nSumChallenges + challenge, L);
       }
 
       const values = valuesForProofOfIntervalMembership(
@@ -240,7 +240,7 @@ export function checkIndividualProofs(state, ballot) {
       );
       const hReducedVerification = mod(
         BigInt("0x" + hVerification),
-        l,
+        L,
       ).toString(16);
 
       check(
@@ -287,7 +287,7 @@ export function checkOverallProof(state, ballot) {
     let nSumChallenges = 0n;
     for (let k = 0; k < answer.overall_proof.length; k++) {
       const challenge = BigInt(answer.overall_proof[k].challenge);
-      nSumChallenges = mod(nSumChallenges + challenge, l);
+      nSumChallenges = mod(nSumChallenges + challenge, L);
     }
 
     const min = state.setup.payload.election.questions[i].min;
@@ -317,7 +317,7 @@ export function checkOverallProof(state, ballot) {
     const hVerification = sjcl.codec.hex.fromBits(
       sjcl.hash.sha256.hash(sChallenge),
     );
-    const hReducedVerification = mod(BigInt("0x" + hVerification), l).toString(
+    const hReducedVerification = mod(BigInt("0x" + hVerification), L).toString(
       16,
     );
 
