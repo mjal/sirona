@@ -1,5 +1,5 @@
 import { assert, check } from "./utils.js";
-import { rev, g, L, mod } from "./math";
+import { rev, g, L, mod, parsePoint } from "./math";
 import { ed25519 } from "@noble/curves/ed25519";
 import sjcl from "sjcl";
 
