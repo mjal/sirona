@@ -211,8 +211,8 @@ export function checkIndividualProofs(state, ballot) {
     check(
       "ballots",
       "Has a proof for every answer answers",
-      individualProofs.length === (question.answers.length
-        + (question.blank ? 1 : 0))
+      individualProofs.length ===
+        question.answers.length + (question.blank ? 1 : 0),
     );
 
     for (let j = 0; j < individualProofs.length; j++) {
@@ -235,7 +235,7 @@ export function checkIndividualProofs(state, ballot) {
 
       const S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
       let sChallenge = `prove|${S}|${choices[j].alpha},${choices[j].beta}|`;
-      sChallenge  += values.map((v) => rev(v.toHex())).join(",");
+      sChallenge += values.map((v) => rev(v.toHex())).join(",");
 
       const hVerification = sjcl.codec.hex.fromBits(
         sjcl.hash.sha256.hash(sChallenge),
@@ -255,7 +255,9 @@ export function checkIndividualProofs(state, ballot) {
 }
 
 export function checkOverallProof(state, ballot) {
-  let pY = ed25519.ExtendedPoint.fromHex(rev(state.setup.payload.election.public_key));
+  let pY = ed25519.ExtendedPoint.fromHex(
+    rev(state.setup.payload.election.public_key),
+  );
 
   for (let i = 0; i < ballot.payload.answers.length; i++) {
     const question = state.setup.payload.election.questions[i];
@@ -317,10 +319,9 @@ export function checkOverallProof(state, ballot) {
     const hVerification = sjcl.codec.hex.fromBits(
       sjcl.hash.sha256.hash(sChallenge),
     );
-    const hReducedVerification = erem(
-      BigInt("0x" + hVerification),
-      l,
-    ).toString(16);
+    const hReducedVerification = erem(BigInt("0x" + hVerification), l).toString(
+      16,
+    );
 
     check(
       "ballots",

@@ -25,7 +25,9 @@ export default function (state) {
         const pAlpha = ed25519.ExtendedPoint.fromHex(
           rev(answer.choices[k].alpha),
         );
-        const pBeta = ed25519.ExtendedPoint.fromHex(rev(answer.choices[k].beta));
+        const pBeta = ed25519.ExtendedPoint.fromHex(
+          rev(answer.choices[k].beta),
+        );
 
         // TODO: Use weight
         encryptedTally[j][k].alpha = encryptedTally[j][k].alpha.add(pAlpha);

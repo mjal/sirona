@@ -27,8 +27,7 @@ export default function (state) {
         "result",
         `Result ${i},${j} correspond to the log of the sum of partial decryptions`,
         (res[i][j] === 0 && pResult.toHex() === one.toHex()) ||
-          (res[i][j] !== 0 &&
-            pResult.toHex() === g.multiply(nAnswer).toHex()),
+          (res[i][j] !== 0 && pResult.toHex() === g.multiply(nAnswer).toHex()),
       );
     }
   }
