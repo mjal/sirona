@@ -28,7 +28,7 @@ async function _async(f, ...args) {
     requestAnimationFrame(() => {
       f(...args);
       resolve();
-    })
+    });
   });
 }
 

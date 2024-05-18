@@ -1,5 +1,5 @@
 import { ed25519 } from "@noble/curves/ed25519";
-import type { ExtPointType } from '@noble/curves/abstract/edwards.js';
+import type { ExtPointType } from "@noble/curves/abstract/edwards.js";
 
 export const g = ed25519.ExtendedPoint.BASE;
 export const one = ed25519.ExtendedPoint.fromHex(
@@ -11,8 +11,8 @@ export const L = BigInt(
   "0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed",
 );
 
-export const rev = (hexStr: string) : string => {
-  const match = hexStr.match(/.{1,2}/g)
+export const rev = (hexStr: string): string => {
+  const match = hexStr.match(/.{1,2}/g);
   if (match !== null) {
     return match.reverse().join("");
   } else {
@@ -20,7 +20,7 @@ export const rev = (hexStr: string) : string => {
   }
 };
 
-export const mod = (a : bigint, b : bigint) => {
+export const mod = (a: bigint, b: bigint) => {
   let remainder = a % b;
   if (remainder < 0) {
     remainder += b;
@@ -28,7 +28,7 @@ export const mod = (a : bigint, b : bigint) => {
   return remainder;
 };
 
-export const isValidPoint = (point : ExtPointType) => {
+export const isValidPoint = (point: ExtPointType) => {
   try {
     point.assertValidity();
   } catch (e) {

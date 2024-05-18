@@ -2,7 +2,7 @@ import sjcl from "sjcl";
 import { ed25519 } from "@noble/curves/ed25519";
 import { check, logError } from "./utils.js";
 import { g, L, rev, mod, isValidPoint, parsePoint } from "./math";
-import { canonicalSerialization } from "./serializeBallot"
+import { canonicalSerialization } from "./serializeBallot";
 
 export default function (state, ballot) {
   checkMisc(state, ballot);
@@ -11,8 +11,7 @@ export default function (state, ballot) {
   checkValidPoints(ballot);
   checkSignature(ballot);
 
-  for (let i = 0; i < state.setup.payload.election.questions.length; i++)
-  {
+  for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
     const question = state.setup.payload.election.questions[i];
     if (question.type === "NonHomomorphic") {
       // TODO
@@ -177,10 +176,9 @@ export function checkIndividualProofs(state, ballot, idx) {
     const hVerification = sjcl.codec.hex.fromBits(
       sjcl.hash.sha256.hash(sChallenge),
     );
-    const hReducedVerification = mod(
-      BigInt("0x" + hVerification),
-      L,
-    ).toString(16);
+    const hReducedVerification = mod(BigInt("0x" + hVerification), L).toString(
+      16,
+    );
 
     check(
       "ballots",
@@ -294,10 +292,9 @@ export function checkBlankProof(state, ballot, idx) {
   const hVerification = sjcl.codec.hex.fromBits(
     sjcl.hash.sha256.hash(sChallenge),
   );
-  const hReducedVerification = mod(
-    BigInt("0x" + hVerification),
-    L,
-  ).toString(16);
+  const hReducedVerification = mod(BigInt("0x" + hVerification), L).toString(
+    16,
+  );
 
   check(
     "ballots",
@@ -329,12 +326,12 @@ export function checkOverallProofWithBlank(state, ballot, idx) {
   const pB = pY.multiply(nResponse0).add(pBDivGPowerM.multiply(nChallenge0));
   pABs.push(pA);
   pABs.push(pB);
-  for (let j = 1; j < (question.max - question.min + 2); j++) {
-    const challenge = BigInt(answer.overall_proof[j].challenge)
+  for (let j = 1; j < question.max - question.min + 2; j++) {
+    const challenge = BigInt(answer.overall_proof[j].challenge);
     const response = BigInt(answer.overall_proof[j].response);
     const pA = g.multiply(response).add(pAlphaS.multiply(challenge));
     const m = question.min + j - 1;
-    const gPowerM = (m === 0) ? one : g.multiply(BigInt(m));
+    const gPowerM = m === 0 ? one : g.multiply(BigInt(m));
     const pBDivGPowerM = pBetaS.add(gPowerM.negate());
     const pB = pY.multiply(response).add(pBDivGPowerM.multiply(challenge));
     pABs.push(pA);
@@ -358,10 +355,9 @@ export function checkOverallProofWithBlank(state, ballot, idx) {
   const hVerification = sjcl.codec.hex.fromBits(
     sjcl.hash.sha256.hash(sChallenge),
   );
-  const hReducedVerification = mod(
-    BigInt("0x" + hVerification),
-    L,
-  ).toString(16);
+  const hReducedVerification = mod(BigInt("0x" + hVerification), L).toString(
+    16,
+  );
 
   check(
     "ballots",
