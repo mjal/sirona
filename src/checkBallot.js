@@ -307,5 +307,72 @@ export function checkBlankProof(state, ballot, idx) {
 }
 
 export function checkOverallProofWithBlank(state, ballot, idx) {
-  logError("ballots", "checkOverallProofWithBlank not implemented yet");
+  const pY = parsePoint(state.setup.payload.election.public_key);
+  const question = state.setup.payload.election.questions[idx];
+  const answer = ballot.payload.answers[idx];
+
+  const nChallenge0 = BigInt(answer.overall_proof[0].challenge);
+  const nResponse0 = BigInt(answer.overall_proof[0].response);
+  const pAlpha0 = parsePoint(answer.choices[0].alpha);
+  const pBeta0 = parsePoint(answer.choices[0].beta);
+
+  let pAlphaS = ed25519.ExtendedPoint.ZERO;
+  let pBetaS = ed25519.ExtendedPoint.ZERO;
+  for (let j = 1; j < answer.choices.length; j++) {
+    pAlphaS = pAlphaS.add(parsePoint(answer.choices[j].alpha));
+    pBetaS = pBetaS.add(parsePoint(answer.choices[j].beta));
+  }
+
+  let pABs = [];
+  const pA = g.multiply(nResponse0).add(pAlpha0.multiply(nChallenge0));
+  const pBDivGPowerM = pBeta0.add(g.negate());
+  const pB = pY.multiply(nResponse0).add(pBDivGPowerM.multiply(nChallenge0));
+  pABs.push(pA);
+  pABs.push(pB);
+  console.log(question);
+  console.log((question.max - question.min));
+  for (let j = 1; j < (question.max - question.min + 2); j++) {
+    const challenge = BigInt(answer.overall_proof[j].challenge)
+    const response = BigInt(answer.overall_proof[j].response);
+    const pA = g.multiply(response).add(pAlphaS.multiply(challenge));
+    const m = question.min + j - 1;
+    const gPowerM = (m === 0) ? one : g.multiply(BigInt(m));
+    const pBDivGPowerM = pBetaS.add(gPowerM.negate());
+    const pB = pY.multiply(response).add(pBDivGPowerM.multiply(challenge));
+    pABs.push(pA);
+    pABs.push(pB);
+  }
+
+  const nSumChallenges = answer.overall_proof.reduce(
+    (acc, proof) => mod(acc + BigInt(proof.challenge), L),
+    BigInt(0),
+  );
+
+  let S = `${state.setup.fingerprint}|${ballot.payload.credential}|`;
+  const alphasBetas = [];
+  for (let j = 0; j < answer.choices.length; j++) {
+    alphasBetas.push(`${answer.choices[j].alpha},${answer.choices[j].beta}`);
+  }
+  S = S + alphasBetas.join(",");
+  let sChallenge = `bproof1|${S}|`;
+  sChallenge += pABs.map((p) => rev(p.toHex())).join(",");
+
+  const hVerification = sjcl.codec.hex.fromBits(
+    sjcl.hash.sha256.hash(sChallenge),
+  );
+  const hReducedVerification = mod(
+    BigInt("0x" + hVerification),
+    L,
+  ).toString(16);
+
+
+  console.log(sChallenge);
+  console.log(nSumChallenges.toString(16));
+  console.log(hReducedVerification);
+
+  check(
+    "ballots",
+    "Valid overall proof (with blank vote)",
+    nSumChallenges.toString(16) === hReducedVerification,
+  );
 }
