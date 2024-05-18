@@ -329,8 +329,6 @@ export function checkOverallProofWithBlank(state, ballot, idx) {
   const pB = pY.multiply(nResponse0).add(pBDivGPowerM.multiply(nChallenge0));
   pABs.push(pA);
   pABs.push(pB);
-  console.log(question);
-  console.log((question.max - question.min));
   for (let j = 1; j < (question.max - question.min + 2); j++) {
     const challenge = BigInt(answer.overall_proof[j].challenge)
     const response = BigInt(answer.overall_proof[j].response);
@@ -364,11 +362,6 @@ export function checkOverallProofWithBlank(state, ballot, idx) {
     BigInt("0x" + hVerification),
     L,
   ).toString(16);
-
-
-  console.log(sChallenge);
-  console.log(nSumChallenges.toString(16));
-  console.log(hReducedVerification);
 
   check(
     "ballots",
