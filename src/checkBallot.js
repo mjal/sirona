@@ -271,7 +271,7 @@ export function checkBlankProof(state, ballot, idx) {
   }
 
   const nSumChallenges = answer.blank_proof.reduce(
-    (acc, proof) => acc + BigInt(proof.challenge),
+    (acc, proof) => mod(acc + BigInt(proof.challenge), L),
     0n,
   );
 
@@ -301,7 +301,7 @@ export function checkBlankProof(state, ballot, idx) {
 
   check(
     "ballots",
-    "Valid overall proof (with blank vote)",
+    "Valid blank proof",
     nSumChallenges.toString(16) === hReducedVerification,
   );
 }
