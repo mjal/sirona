@@ -22,15 +22,6 @@ export default function (fileEntries) {
     trustees: findData(state.files, state.setup.payload.trustees),
   };
 
-  state.setup.credentialsWeights = state.setup.payload.credentials
-    .map((line) => line.split(","))
-    .map((fields) => {
-      return {
-        credential: fields[0],
-        weight: fields[1] ? parseInt(fields[1]) : 1,
-      };
-    });
-
   state.ballots = state.files
     .filter((entry) => {
       return entry[1] === "event" && entry[2].type === "Ballot";
@@ -71,6 +62,16 @@ export default function (fileEntries) {
 
   state.result = findEvent(state.files, "Result");
   state.result.payload = findData(state.files, state.result.payload);
+
+  // Helpers
+  state.credentialsWeights = state.setup.payload.credentials
+    .map((line) => line.split(","))
+    .map((fields) => {
+      return {
+        credential: fields[0],
+        weight: fields[1] ? parseInt(fields[1]) : 1,
+      };
+    });
 
   return state;
 }

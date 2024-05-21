@@ -76,7 +76,7 @@ function hashWithoutSignature(ballot) {
 }
 
 function checkCredential(state, ballot) {
-  const credentials = state.setup.credentialsWeights.map((cw) => cw.credential);
+  const credentials = state.credentialsWeights.map((cw) => cw.credential);
   check(
     "ballots",
     "Has a valid credential",
