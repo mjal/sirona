@@ -7,11 +7,29 @@ export default function (state) {
 
   for (let k = 0; k < state.partialDecryptions.length; k++) {
     const partialDecryption = state.partialDecryptions[k];
-    const trusteeIdx = partialDecryption.payload.owner - 1;
-    assert(state.setup.payload.trustees[trusteeIdx][0] === "Single");
-    const pPublicKey = parsePoint(
-      state.setup.payload.trustees[trusteeIdx][1].public_key,
-    );
+
+    let nKey = 0;
+    let pPublicKey = null;
+    for (let i = 0; i < state.setup.payload.trustees.length; i++) {
+      if (state.setup.payload.trustees[i][0] == "Single") {
+        if (nKey === partialDecryption.payload.owner - 1) {
+          pPublicKey = state.setup.payload.trustees[i][1].public_key
+          break;
+        }
+        nKey++;
+      } else { // Pedersen
+        for (let j = 0; j < state.setup.payload.trustees[i][1].verification_keys.length; j++) {
+          if (nKey === partialDecryption.payload.owner - 1) {
+            pPublicKey = state.setup.payload.trustees[i][1].verification_keys[j].public_key
+          }
+          nKey++;
+        }
+        if (nKey > partialDecryption.payload.owner - 1) {
+          break;
+        }
+      }
+    }
+    pPublicKey = parsePoint(pPublicKey);
     const df = partialDecryption.payload.payload.decryption_factors;
     const dp = partialDecryption.payload.payload.decryption_proofs;
 

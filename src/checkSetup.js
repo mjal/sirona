@@ -1,51 +1,29 @@
+import { ed25519 } from "@noble/curves/ed25519";
 import { assert, check } from "./utils.js";
 import { g, L, rev, mod, one, isValidPoint, parsePoint } from "./math";
 import sjcl from "sjcl";
 
 export default function (state) {
-  // TODO: Handle Pedersen trustees
-
   let pJointPublicKey = one;
-
   for (let i = 0; i < state.setup.payload.trustees.length; i++) {
     const trustee = state.setup.payload.trustees[i];
-    assert(
-      trustee[0] === "Single",
-      "Trustee is Single (Pedersen not implemented yet)",
-    );
-    if (trustee[0] === "Pedersen") continue;
-    const pX = parsePoint(trustee[1].public_key);
-
-    check(
-      "setup",
-      `Trustee ${i} public key is a valid curve point`,
-      isValidPoint(pX),
-    );
-
-    const nChallenge = BigInt(trustee[1].pok.challenge);
-    const nResponse = BigInt(trustee[1].pok.response);
-
-    const pA = g.multiply(nResponse).add(pX.multiply(nChallenge));
-
-    let hashedStr = `pok|${state.setup.payload.election.group}|`;
-    hashedStr += `${trustee[1].public_key}|`;
-    hashedStr += `${rev(pA.toHex())}`;
-
-    const verificationHash = sjcl.codec.hex.fromBits(
-      sjcl.hash.sha256.hash(hashedStr),
-    );
-    const hexReducedVerificationHash = mod(
-      BigInt("0x" + verificationHash),
-      L,
-    ).toString(16);
-
-    check(
-      "setup",
-      `Trustee ${i} POK is valid`,
-      nChallenge.toString(16) === hexReducedVerificationHash,
-    );
-
-    pJointPublicKey = pJointPublicKey.add(pX);
+    if (trustee[0] === "Single") {
+      checkTrusteePublicKey(state, trustee[1]);
+      const pX = parsePoint(trustee[1].public_key);
+      pJointPublicKey = pJointPublicKey.add(pX);
+    } else { // "Pedersen"
+      for (let j = 0; j < trustee[1].verification_keys.length; j++) {
+        checkTrusteePublicKey(state, trustee[1].verification_keys[j]);
+      }
+      const coefexps = trustee[1].coefexps.map((o) => {
+        return JSON.parse(o.message).coefexps[0];
+      });
+      let sum = one;
+      for (let j = 0; j < coefexps.length; j++) {
+        sum = sum.add(parsePoint(coefexps[j]));
+      }
+      pJointPublicKey = pJointPublicKey.add(sum);
+    }
   }
 
   check(
@@ -61,5 +39,38 @@ export default function (state) {
     "setup",
     `Election Public Key is a valid curve point`,
     pElectionPublicKey,
+  );
+}
+
+function checkTrusteePublicKey(state, trustee) {
+  const pX = parsePoint(trustee.public_key);
+
+  check(
+    "setup",
+    `Trustee public key is a valid curve point`,
+    isValidPoint(pX),
+  );
+
+  const nChallenge = BigInt(trustee.pok.challenge);
+  const nResponse = BigInt(trustee.pok.response);
+
+  const pA = g.multiply(nResponse).add(pX.multiply(nChallenge));
+
+  let hashedStr = `pok|${state.setup.payload.election.group}|`;
+  hashedStr += `${trustee.public_key}|`;
+  hashedStr += `${rev(pA.toHex())}`;
+
+  const verificationHash = sjcl.codec.hex.fromBits(
+    sjcl.hash.sha256.hash(hashedStr),
+  );
+  const hexReducedVerificationHash = mod(
+    BigInt("0x" + verificationHash),
+    L,
+  ).toString(16);
+
+  check(
+    "setup",
+    `Trustee POK is valid`,
+    nChallenge.toString(16) === hexReducedVerificationHash,
   );
 }
