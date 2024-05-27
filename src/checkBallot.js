@@ -1,7 +1,6 @@
 import sjcl from "sjcl";
-import { ed25519 } from "@noble/curves/ed25519";
 import { check, logError } from "./utils.js";
-import { g, L, rev, mod, isValidPoint, parsePoint } from "./math";
+import { g, L, rev, mod, isValidPoint, parsePoint, zero } from "./math";
 import { canonicalSerialization } from "./serializeBallot";
 
 export default function (state, ballot) {
@@ -55,7 +54,7 @@ function valuesForProofOfIntervalMembership(y, alpha, beta, transcripts, ms) {
 
     const a = g.multiply(nResponse).add(alpha.multiply(nChallenge));
     const gPowerM =
-      m === 0 ? ed25519.ExtendedPoint.ZERO : g.multiply(BigInt(m));
+      m === 0 ? zero : g.multiply(BigInt(m));
     const b = y
       .multiply(nResponse)
       .add(beta.add(gPowerM.negate()).multiply(nChallenge));
@@ -194,8 +193,8 @@ export function checkOverallProofWithoutBlank(state, ballot, idx) {
   const answer = ballot.payload.answers[idx];
 
   const sumc = {
-    alpha: ed25519.ExtendedPoint.ZERO,
-    beta: ed25519.ExtendedPoint.ZERO,
+    alpha: zero,
+    beta: zero
   };
 
   for (let j = 0; j < answer.choices.length; j++) {
@@ -260,8 +259,8 @@ export function checkBlankProof(state, ballot, idx) {
   const pAlpha0 = parsePoint(answer.choices[0].alpha);
   const pBeta0 = parsePoint(answer.choices[0].beta);
 
-  let pAlphaS = ed25519.ExtendedPoint.ZERO;
-  let pBetaS = ed25519.ExtendedPoint.ZERO;
+  let pAlphaS = zero;
+  let pBetaS = zero;
 
   for (let j = 1; j < answer.choices.length; j++) {
     pAlphaS = pAlphaS.add(parsePoint(answer.choices[j].alpha));
@@ -313,8 +312,8 @@ export function checkOverallProofWithBlank(state, ballot, idx) {
   const pAlpha0 = parsePoint(answer.choices[0].alpha);
   const pBeta0 = parsePoint(answer.choices[0].beta);
 
-  let pAlphaS = ed25519.ExtendedPoint.ZERO;
-  let pBetaS = ed25519.ExtendedPoint.ZERO;
+  let pAlphaS = zero;
+  let pBetaS = zero;
   for (let j = 1; j < answer.choices.length; j++) {
     pAlphaS = pAlphaS.add(parsePoint(answer.choices[j].alpha));
     pBetaS = pBetaS.add(parsePoint(answer.choices[j].beta));

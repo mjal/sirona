@@ -1,10 +1,10 @@
 import { ed25519 } from "@noble/curves/ed25519";
 import { assert, check } from "./utils.js";
-import { g, L, rev, mod, one, isValidPoint, parsePoint } from "./math";
+import { g, L, rev, mod, zero, isValidPoint, parsePoint } from "./math";
 import sjcl from "sjcl";
 
 export default function (state) {
-  let pJointPublicKey = one;
+  let pJointPublicKey = zero;
   for (let i = 0; i < state.setup.payload.trustees.length; i++) {
     const trustee = state.setup.payload.trustees[i];
     if (trustee[0] === "Single") {
@@ -18,7 +18,7 @@ export default function (state) {
       const coefexps = trustee[1].coefexps.map((o) => {
         return JSON.parse(o.message).coefexps[0];
       });
-      let sum = one;
+      let sum = zero;
       for (let j = 0; j < coefexps.length; j++) {
         sum = sum.add(parsePoint(coefexps[j]));
       }

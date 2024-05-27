@@ -1,5 +1,5 @@
 import { check } from "./utils.js";
-import { rev, one, parsePoint } from "./math";
+import { rev, zero, parsePoint } from "./math";
 
 export default function (state) {
   const ballots = keepLastBallotByCredentials(state.ballots);
@@ -9,10 +9,10 @@ export default function (state) {
   for (let i = 0; i < questions.length; i++) {
     const answers = questions[i].answers || [];
     const row = answers.map((_answer) => {
-      return { alpha: one, beta: one };
+      return { alpha: zero, beta: zero };
     });
     if (questions[i].blank) {
-      row.push({ alpha: one, beta: one });
+      row.push({ alpha: zero, beta: zero });
     }
     encryptedTally.push(row);
   }

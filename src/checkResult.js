@@ -1,5 +1,5 @@
 import { check } from "./utils.js";
-import { g, L, one, mod, modInverse, parsePoint } from "./math";
+import { g, L, zero, mod, modInverse, parsePoint } from "./math";
 
 export default function (state) {
   const et = state.encryptedTally.payload.encrypted_tally;
@@ -18,7 +18,7 @@ export default function (state) {
       check(
         "result",
         `Result ${i},${j} correspond to the log of the sum of partial decryptions`,
-        (res[i][j] === 0 && pResult.toHex() === one.toHex()) ||
+        (res[i][j] === 0 && pResult.toHex() === zero.toHex()) ||
           (res[i][j] !== 0 && pResult.toHex() === g.multiply(nAnswer).toHex()),
       );
     }
@@ -31,7 +31,7 @@ function getDecryptionFactors(state) {
   for (let i = 0; i < et.length; i++) {
     let row = [];
     for (let j = 0; j < et[i].length; j++) {
-      row.push(one);
+      row.push(zero);
     }
     df.push(row);
   }
@@ -87,7 +87,7 @@ function getDecryptionFactors(state) {
       for (let i = 0; i < et.length; i++) {
         let row = [];
         for (let j = 0; j < et[i].length; j++) {
-          row.push(one);
+          row.push(zero);
         }
         res.push(row);
       }
