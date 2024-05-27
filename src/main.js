@@ -14,7 +14,7 @@
  * - h for hexadecimal strings
  */
 
-import { clear, logError, showResult } from "./utils.js";
+import { clear, logError, showResult, _async } from "./utils.js";
 import load from "./load.js";
 import checkFiles from "./checkFiles.js";
 import checkSetup from "./checkSetup.js";
@@ -22,15 +22,6 @@ import checkBallot from "./checkBallot.js";
 import checkEncryptedTally from "./checkEncryptedTally.js";
 import checkPartialDecryptions from "./checkPartialDecryptions.js";
 import checkResult from "./checkResult.js";
-
-async function _async(f, ...args) {
-  return new Promise((resolve, reject) => {
-    requestAnimationFrame(() => {
-      f(...args);
-      resolve();
-    });
-  });
-}
 
 export default async function (fileEntries) {
   clear();
