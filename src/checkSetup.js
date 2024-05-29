@@ -14,7 +14,8 @@ function checkTrustees(state) {
     const trustee = state.setup.payload.trustees[i];
     if (trustee[0] === "Single") {
       checkTrusteePublicKey(state, trustee[1]);
-    } else { // "Pedersen"
+    } else {
+      // "Pedersen"
       for (let j = 0; j < trustee[1].verification_keys.length; j++) {
         checkTrusteePublicKey(state, trustee[1].verification_keys[j]);
       }
@@ -89,9 +90,10 @@ function checkTrusteePublicKey(state, trustee) {
 
 function checkCredentials(state) {
   for (let i = 0; i < state.credentialsWeights.length; i++) {
-    check("setup",
+    check(
+      "setup",
       `Credential ${i} is valid`,
-      isValidPoint(parsePoint(state.credentialsWeights[i].credential))
-    )
+      isValidPoint(parsePoint(state.credentialsWeights[i].credential)),
+    );
   }
 }

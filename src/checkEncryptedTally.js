@@ -38,7 +38,8 @@ export default function (state) {
 
   const et = state.encryptedTally.payload.encrypted_tally;
   for (let i = 0; i < et.length; i++) {
-    if (questions[i].type === undefined) { // question_h
+    if (questions[i].type === undefined) {
+      // question_h
       for (let j = 0; j < et[i].length; j++) {
         check(
           "encryptedTally",
@@ -48,7 +49,7 @@ export default function (state) {
         );
       }
     } else {
-      continue // TODO
+      continue; // TODO
     }
   }
 

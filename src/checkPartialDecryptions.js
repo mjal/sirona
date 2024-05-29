@@ -42,7 +42,8 @@ export default function (state) {
 
     for (let i = 0; i < et.length; i++) {
       const question = state.setup.payload.election.questions[i];
-      if (question.type === undefined) { // question_h
+      if (question.type === undefined) {
+        // question_h
         for (let j = 0; j < et[i].length; j++) {
           const pAlpha = parsePoint(et[i][j].alpha);
           const pFactor = parsePoint(df[i][j]);
@@ -50,7 +51,9 @@ export default function (state) {
           const nResponse = BigInt(dp[i][j].response);
 
           const pA = g.multiply(nResponse).add(pPublicKey.multiply(nChallenge));
-          const pB = pAlpha.multiply(nResponse).add(pFactor.multiply(nChallenge));
+          const pB = pAlpha
+            .multiply(nResponse)
+            .add(pFactor.multiply(nChallenge));
 
           const hVerificationHash = sjcl.codec.hex.fromBits(
             sjcl.hash.sha256.hash(
