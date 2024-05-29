@@ -51,7 +51,24 @@ export default function (state) {
     }
   }
 
-  // TODO: Check total weight and total count
+  const total_weight = ballots.reduce((acc, ballot) => {
+    const weight = state.credentialsWeights.find(
+      (line) => line.credential === ballot.payload.credential,
+    ).weight;
+    return weight + acc;
+  }, 0);
+
+  check(
+    "encryptedTally",
+    "total_weight is correct",
+    total_weight === state.encryptedTally.payload.total_weight
+  );
+
+  check(
+    "encryptedTally",
+    "num_tallied is correct",
+    ballots.length === state.encryptedTally.payload.num_tallied
+  );
 }
 
 function keepLastBallotByCredentials(ballots) {
