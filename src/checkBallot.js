@@ -132,9 +132,9 @@ export function checkValidPoints(ballot) {
   for (let i = 0; i < answers.length; i++) {
     for (let j = 0; j < answers[i].choices.length; j++) {
       const choices =
-        answers[i].choices[j].length === undefined
-          ? [answers[i].choices[j]]
-          : answers[i].choices[j];
+        Array.isArray(answers[i].choices[j])
+          ? answers[i].choices[j]
+          : [answers[i].choices[j]];
       for (let k = 0; k < choices.length; k++) {
         const pAlpha = parsePoint(choices[k].alpha);
         const pBeta = parsePoint(choices[k].beta);

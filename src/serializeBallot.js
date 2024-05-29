@@ -9,18 +9,18 @@ export function canonicalSerialization(ballot) {
     credential: ballot.payload.credential,
     answers: ballot.payload.answers.map((answer) => {
       let obj = {};
-      if (answer.choices.length === undefined) {
-        obj.choices = {
-          alpha: answer.choices.alpha,
-          beta: answer.choices.beta,
-        };
-      } else {
+      if (Array.isArray(answer.choices)) {
         obj.choices = answer.choices.map((choice) => {
           return {
             alpha: choice.alpha,
             beta: choice.beta,
           };
         });
+      } else {
+        obj.choices = {
+          alpha: answer.choices.alpha,
+          beta: answer.choices.beta,
+        };
       }
       if (answer.proof) {
         obj.proof = {
@@ -39,18 +39,18 @@ export function canonicalSerialization(ballot) {
         });
       }
       if (answer.overall_proof) {
-        if (answer.overall_proof.length === undefined) {
-          obj.overall_proof = {
-            challenge: answer.overall_proof.challenge,
-            response: answer.overall_proof.response,
-          };
-        } else {
+        if (Array.isArray(answer.overall_proof.length)) {
           obj.overall_proof = answer.overall_proof.map((proof) => {
             return {
               challenge: proof.challenge,
               response: proof.response,
             };
           });
+        } else {
+          obj.overall_proof = {
+            challenge: answer.overall_proof.challenge,
+            response: answer.overall_proof.response,
+          };
         }
       }
       if (answer.blank_proof !== undefined) {
