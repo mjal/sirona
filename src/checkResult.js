@@ -72,10 +72,7 @@ function getDecryptionFactors(state) {
         partialDecryption !== null,
         true,
       );
-      console.log("ICI: pd", partialDecryption);
-      console.log(parseDf(partialDecryption));
       df = multiplyDfPow(df, parseDf(partialDecryption), 1);
-      console.log("ICI: df", df);
     } else {
       //  "Pedersen"
 
@@ -133,22 +130,16 @@ function lagrange(n, indexes) {
   for (let i = 0; i < indexes.length; i++) {
     if (n !== indexes[i]) {
       let denominator = mod(BigInt(indexes[i] - n), L);
-      //console.log(modInverse(denominator, L));
       result = mod(result * BigInt(indexes[i]) * modInverse(denominator, L), L);
-      //console.log(result);
     }
     //let kj = k - j in
     //if kj = 0 then accu else G.Zq.(accu * of_int k * invert (of_int kj)))
   }
-  //console.log("n", n);
-  //console.log("indexes", indexes);
-  //console.log("lagrange", result);
   return result;
 }
 
 function parseDf(df) {
   let m = df.payload.payload.decryption_factors;
-  console.log("m", m);
   let res = [];
   for (let i = 0; i < m.length; i++) {
     let row = [];
