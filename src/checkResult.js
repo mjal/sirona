@@ -37,31 +37,13 @@ function getDecryptionFactors(state) {
     df.push(row);
   }
 
-  // TODO: Move to load's helpers
-
-  // Associate owner index to trustees index and sub-index if pedersen
-  let ownerToTrusteeIndex = [
-    ["Unused", -1, -1], // owners indexes start at 1, not 0
-  ];
-  for (let i = 0; i < state.setup.payload.trustees.length; i++) {
-    const [type, content] = state.setup.payload.trustees[i];
-    if (type === "Single") {
-      ownerToTrusteeIndex.push(["Single", i, -1]);
-    } else {
-      //  "Pedersen"
-      for (let j = 0; j < content.coefexps.length; j++) {
-        ownerToTrusteeIndex.push(["Pedersen", i, j]);
-      }
-    }
-  }
-
   for (let i = 0; i < state.setup.payload.trustees.length; i++) {
     const [type, content] = state.setup.payload.trustees[i];
     if (type === "Single") {
       let partialDecryption = null;
       for (let j = 0; j < state.partialDecryptions.length; j++) {
         const [_type, trusteeIdx, subIdx] =
-          ownerToTrusteeIndex[state.partialDecryptions[j].payload.owner];
+          state.ownerToTrusteeIndex[state.partialDecryptions[j].payload.owner];
         if (trusteeIdx === i && subIdx === -1) {
           partialDecryption = state.partialDecryptions[j];
         }
@@ -77,7 +59,7 @@ function getDecryptionFactors(state) {
       //  "Pedersen"
 
       let pds = state.partialDecryptions.filter((pd) => {
-        return ownerToTrusteeIndex[pd.payload.owner][1] === i;
+        return state.ownerToTrusteeIndex[pd.payload.owner][1] === i;
       });
       pds = [
         ...new Map(pds.map((item) => [item.payload.owner, item])).values(),
@@ -104,10 +86,10 @@ function getDecryptionFactors(state) {
       // AGGREGATE PEDERSON DF
       for (let j = 0; j < pds.length; j++) {
         const [_type, trusteeIdx, subIdx] =
-          ownerToTrusteeIndex[pds[j].payload.owner];
+          state.ownerToTrusteeIndex[pds[j].payload.owner];
         let indexes = pds.map((pd) => {
           const [_type, _trusteeIdx, subIdx] =
-            ownerToTrusteeIndex[pd.payload.owner];
+            state.ownerToTrusteeIndex[pd.payload.owner];
           return subIdx + 1;
         });
         res = multiplyDfPow(
