@@ -14,7 +14,14 @@
  * - h for hexadecimal strings
  */
 
-import { clear, logError, showResult, _async } from "./utils.js";
+import {
+  clear,
+  getErrors,
+  logError,
+  logSuccess,
+  showResult,
+  _async,
+} from "./utils.js";
 import load from "./load.js";
 import checkFiles from "./checkFiles.js";
 import checkSetup from "./checkSetup.js";
@@ -30,6 +37,10 @@ export default async function (fileEntries) {
 
     await _async(checkFiles, state);
     await _async(checkSetup, state);
+    if (!getErrors()) {
+      logSuccess("top", "Database valid.");
+    }
+
     for (let i = 0; i < state.ballots.length; i++) {
       await _async(checkBallot, state, state.ballots[i]);
     }

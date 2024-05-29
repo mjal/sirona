@@ -20,6 +20,7 @@ export default function (state) {
         `Result ${i},${j} correspond to the log of the sum of partial decryptions`,
         (res[i][j] === 0 && pResult.toHex() === zero.toHex()) ||
           (res[i][j] !== 0 && pResult.toHex() === g.multiply(nAnswer).toHex()),
+        true,
       );
     }
   }
@@ -40,13 +41,14 @@ function getDecryptionFactors(state) {
 
   // Associate owner index to trustees index and sub-index if pedersen
   let ownerToTrusteeIndex = [
-    ["Unused", -1, -1] // owners indexes start at 1, not 0
+    ["Unused", -1, -1], // owners indexes start at 1, not 0
   ];
   for (let i = 0; i < state.setup.payload.trustees.length; i++) {
-    const [type, content] = state.setup.payload.trustees[i]
+    const [type, content] = state.setup.payload.trustees[i];
     if (type === "Single") {
       ownerToTrusteeIndex.push(["Single", i, -1]);
-    } else { //  "Pedersen"
+    } else {
+      //  "Pedersen"
       for (let j = 0; j < content.coefexps.length; j++) {
         ownerToTrusteeIndex.push(["Pedersen", i, j]);
       }
@@ -58,29 +60,39 @@ function getDecryptionFactors(state) {
     if (type === "Single") {
       let partialDecryption = null;
       for (let j = 0; j < state.partialDecryptions.length; j++) {
-        const [_type, trusteeIdx, subIdx]
-          = ownerToTrusteeIndex[state.partialDecryptions[j].payload.owner];
+        const [_type, trusteeIdx, subIdx] =
+          ownerToTrusteeIndex[state.partialDecryptions[j].payload.owner];
         if (trusteeIdx === i && subIdx === -1) {
           partialDecryption = state.partialDecryptions[j];
         }
       }
-      check("result", `Partial decryption found for trustee ${i}`,
-        partialDecryption !== null);
+      check(
+        "result",
+        `Partial decryption found for trustee ${i}`,
+        partialDecryption !== null,
+        true,
+      );
       console.log("ICI: pd", partialDecryption);
       console.log(parseDf(partialDecryption));
       df = multiplyDfPow(df, parseDf(partialDecryption), 1);
       console.log("ICI: df", df);
-    } else { //  "Pedersen"
+    } else {
+      //  "Pedersen"
 
       let pds = state.partialDecryptions.filter((pd) => {
         return ownerToTrusteeIndex[pd.payload.owner][1] === i;
-      })
-      pds = [...new Map(pds.map(item =>
-        [item.payload.owner, item])).values()]; // Unique by owner
+      });
+      pds = [
+        ...new Map(pds.map((item) => [item.payload.owner, item])).values(),
+      ]; // Unique by owner
       pds = pds.slice(0, content.threshold); // Remove useless shares
 
-      check("result", `Enough partial decryptions for Pedersen trustee ${i}`,
-        pds.length === content.threshold);
+      check(
+        "result",
+        `Enough partial decryptions for Pedersen trustee ${i}`,
+        pds.length === content.threshold,
+        true,
+      );
 
       // INIT PERDERSON DF
       let res = [];
@@ -94,14 +106,18 @@ function getDecryptionFactors(state) {
 
       // AGGREGATE PEDERSON DF
       for (let j = 0; j < pds.length; j++) {
-        const [_type, trusteeIdx, subIdx]
-          = ownerToTrusteeIndex[pds[j].payload.owner];
+        const [_type, trusteeIdx, subIdx] =
+          ownerToTrusteeIndex[pds[j].payload.owner];
         let indexes = pds.map((pd) => {
-          const [_type, _trusteeIdx, subIdx]
-            = ownerToTrusteeIndex[pd.payload.owner];
+          const [_type, _trusteeIdx, subIdx] =
+            ownerToTrusteeIndex[pd.payload.owner];
           return subIdx + 1;
         });
-        res = multiplyDfPow(res, parseDf(pds[j]), lagrange(subIdx + 1, indexes));
+        res = multiplyDfPow(
+          res,
+          parseDf(pds[j]),
+          lagrange(subIdx + 1, indexes),
+        );
       }
 
       // ADD PEDERSON DF TO GLOBAL DF
@@ -118,8 +134,7 @@ function lagrange(n, indexes) {
     if (n !== indexes[i]) {
       let denominator = mod(BigInt(indexes[i] - n), L);
       //console.log(modInverse(denominator, L));
-      result =
-        mod(result * BigInt(indexes[i]) * modInverse(denominator, L), L);
+      result = mod(result * BigInt(indexes[i]) * modInverse(denominator, L), L);
       //console.log(result);
     }
     //let kj = k - j in

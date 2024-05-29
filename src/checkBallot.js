@@ -32,6 +32,7 @@ function checkMisc(state, ballot) {
     "ballots",
     "election.uuid correspond to election uuid",
     state.setup.payload.election.uuid === ballot.payload.election_uuid,
+    true,
   );
 
   const sSerializedBallot = canonicalSerialization(ballot);
@@ -40,6 +41,7 @@ function checkMisc(state, ballot) {
     "Is canonical",
     sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(sSerializedBallot)) ===
       ballot.payloadHash,
+    true,
   );
 }
 
@@ -53,8 +55,7 @@ function valuesForProofOfIntervalMembership(y, alpha, beta, transcripts, ms) {
     const nResponse = BigInt(transcripts[i].response);
 
     const a = g.multiply(nResponse).add(alpha.multiply(nChallenge));
-    const gPowerM =
-      m === 0 ? zero : g.multiply(BigInt(m));
+    const gPowerM = m === 0 ? zero : g.multiply(BigInt(m));
     const b = y
       .multiply(nResponse)
       .add(beta.add(gPowerM.negate()).multiply(nChallenge));
@@ -80,6 +81,7 @@ function checkCredential(state, ballot) {
     "ballots",
     "Has a valid credential",
     credentials.indexOf(ballot.payload.credential) !== -1,
+    true,
   );
 }
 
@@ -89,6 +91,7 @@ function checkIsUnique(ballot) {
     "ballots",
     "Is unique",
     processedBallots[ballot.payloadHash] === undefined,
+    true,
   );
   processedBallots[ballot.payloadHash] = ballot;
 }
@@ -98,6 +101,7 @@ export function checkSignature(ballot) {
     "ballots",
     "Hash without signature is correct",
     ballot.payload.signature.hash === hashWithoutSignature(ballot),
+    true,
   );
 
   const credential = parsePoint(ballot.payload.credential);
@@ -118,6 +122,7 @@ export function checkSignature(ballot) {
     "ballots",
     "Valid signature",
     nChallenge.toString(16) === hexReducedVerificationHash,
+    true,
   );
 }
 
@@ -131,6 +136,7 @@ export function checkValidPoints(ballot) {
         "ballots",
         "Encrypted choices alpha,beta are valid curve points",
         isValidPoint(pAlpha) && isValidPoint(pBeta),
+        true,
       );
     }
   }
@@ -148,6 +154,7 @@ export function checkIndividualProofs(state, ballot, idx) {
     "Has a proof for every answer answers",
     individualProofs.length ===
       question.answers.length + (question.blank ? 1 : 0),
+    true,
   );
 
   for (let j = 0; j < individualProofs.length; j++) {
@@ -183,6 +190,7 @@ export function checkIndividualProofs(state, ballot, idx) {
       "ballots",
       "Valid individual proof",
       nSumChallenges.toString(16) === hReducedVerification,
+      true,
     );
   }
 }
@@ -194,7 +202,7 @@ export function checkOverallProofWithoutBlank(state, ballot, idx) {
 
   const sumc = {
     alpha: zero,
-    beta: zero
+    beta: zero,
   };
 
   for (let j = 0; j < answer.choices.length; j++) {
@@ -243,6 +251,7 @@ export function checkOverallProofWithoutBlank(state, ballot, idx) {
     "ballots",
     "Valid overall proof (without blank vote)",
     nSumChallenges.toString(16) === hReducedVerification,
+    true,
   );
 }
 
@@ -299,6 +308,7 @@ export function checkBlankProof(state, ballot, idx) {
     "ballots",
     "Valid blank proof",
     nSumChallenges.toString(16) === hReducedVerification,
+    true,
   );
 }
 
@@ -362,5 +372,6 @@ export function checkOverallProofWithBlank(state, ballot, idx) {
     "ballots",
     "Valid overall proof (with blank vote)",
     nSumChallenges.toString(16) === hReducedVerification,
+    true,
   );
 }

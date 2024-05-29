@@ -17,12 +17,18 @@ export function logError(section, message) {
   errors++;
 }
 
-export function check(section, message, test) {
+export function check(section, message, test, log = false) {
   if (test) {
-    logSuccess(section, message);
+    if (log) {
+      logSuccess(section, message);
+    }
   } else {
     logError(section, message);
   }
+}
+
+export function getErrors() {
+  return errors;
 }
 
 export function clear() {
@@ -51,4 +57,3 @@ export async function _async(f, ...args) {
     });
   });
 }
-

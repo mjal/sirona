@@ -13,14 +13,21 @@ export default function (state) {
     for (let i = 0; i < state.setup.payload.trustees.length; i++) {
       if (state.setup.payload.trustees[i][0] == "Single") {
         if (nKey === partialDecryption.payload.owner - 1) {
-          pPublicKey = state.setup.payload.trustees[i][1].public_key
+          pPublicKey = state.setup.payload.trustees[i][1].public_key;
           break;
         }
         nKey++;
-      } else { // Pedersen
-        for (let j = 0; j < state.setup.payload.trustees[i][1].verification_keys.length; j++) {
+      } else {
+        // Pedersen
+        for (
+          let j = 0;
+          j < state.setup.payload.trustees[i][1].verification_keys.length;
+          j++
+        ) {
           if (nKey === partialDecryption.payload.owner - 1) {
-            pPublicKey = state.setup.payload.trustees[i][1].verification_keys[j].public_key
+            pPublicKey =
+              state.setup.payload.trustees[i][1].verification_keys[j]
+                .public_key;
           }
           nKey++;
         }
@@ -61,6 +68,7 @@ export default function (state) {
           "partialDecryptions",
           "Valid decryption proof",
           nChallenge.toString(16) === hReducedVerificationHash,
+          true,
         );
       }
     }

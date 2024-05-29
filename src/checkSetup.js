@@ -11,7 +11,8 @@ export default function (state) {
       checkTrusteePublicKey(state, trustee[1]);
       const pX = parsePoint(trustee[1].public_key);
       pJointPublicKey = pJointPublicKey.add(pX);
-    } else { // "Pedersen"
+    } else {
+      // "Pedersen"
       for (let j = 0; j < trustee[1].verification_keys.length; j++) {
         checkTrusteePublicKey(state, trustee[1].verification_keys[j]);
       }
@@ -45,11 +46,7 @@ export default function (state) {
 function checkTrusteePublicKey(state, trustee) {
   const pX = parsePoint(trustee.public_key);
 
-  check(
-    "setup",
-    `Trustee public key is a valid curve point`,
-    isValidPoint(pX),
-  );
+  check("setup", `Trustee public key is a valid curve point`, isValidPoint(pX));
 
   const nChallenge = BigInt(trustee.pok.challenge);
   const nResponse = BigInt(trustee.pok.response);

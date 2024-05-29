@@ -23,9 +23,9 @@ export default function (state) {
       for (let k = 0; k < encryptedTally[j].length; k++) {
         const pAlpha = parsePoint(answer.choices[k].alpha);
         const pBeta = parsePoint(answer.choices[k].beta);
-        const weight = state.credentialsWeights
-          .find((line) => line.credential === ballots[i].payload.credential)
-          .weight;
+        const weight = state.credentialsWeights.find(
+          (line) => line.credential === ballots[i].payload.credential,
+        ).weight;
         encryptedTally[j][k].alpha = encryptedTally[j][k].alpha.add(
           pAlpha.multiply(BigInt(weight)),
         );
