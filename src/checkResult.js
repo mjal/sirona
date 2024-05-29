@@ -127,7 +127,8 @@ function parseDf(df) {
   for (let i = 0; i < m.length; i++) {
     let row = [];
     for (let j = 0; j < m[i].length; j++) {
-      if (m[i][j].length) {
+      if (Array.isArray(m[i][j])) {
+        console.log(m[i][j]);
         row.push(m[i][j].map(parsePoint));
       } else {
         row.push(parsePoint(m[i][j]));
