@@ -39,7 +39,7 @@ export function canonicalSerialization(ballot) {
         });
       }
       if (answer.overall_proof) {
-        if (Array.isArray(answer.overall_proof.length)) {
+        if (Array.isArray(answer.overall_proof)) {
           obj.overall_proof = answer.overall_proof.map((proof) => {
             return {
               challenge: proof.challenge,
