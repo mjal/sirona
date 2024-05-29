@@ -4,18 +4,41 @@ import { g, L, rev, mod, zero, isValidPoint, parsePoint } from "./math";
 import sjcl from "sjcl";
 
 export default function (state) {
-  let pJointPublicKey = zero;
+  checkTrustees(state);
+  checkElectionPublicKey(state);
+}
+
+function checkTrustees(state) {
   for (let i = 0; i < state.setup.payload.trustees.length; i++) {
     const trustee = state.setup.payload.trustees[i];
     if (trustee[0] === "Single") {
       checkTrusteePublicKey(state, trustee[1]);
+    } else { // "Pedersen"
+      for (let j = 0; j < trustee[1].verification_keys.length; j++) {
+        checkTrusteePublicKey(state, trustee[1].verification_keys[j]);
+      }
+    }
+  }
+}
+
+function checkElectionPublicKey(state) {
+  const pElectionPublicKey = parsePoint(
+    state.setup.payload.election.public_key,
+  );
+  check(
+    "setup",
+    `Election Public Key is a valid curve point`,
+    isValidPoint(pElectionPublicKey),
+  );
+
+  let pJointPublicKey = zero;
+  for (let i = 0; i < state.setup.payload.trustees.length; i++) {
+    const trustee = state.setup.payload.trustees[i];
+    if (trustee[0] === "Single") {
       const pX = parsePoint(trustee[1].public_key);
       pJointPublicKey = pJointPublicKey.add(pX);
     } else {
       // "Pedersen"
-      for (let j = 0; j < trustee[1].verification_keys.length; j++) {
-        checkTrusteePublicKey(state, trustee[1].verification_keys[j]);
-      }
       const coefexps = trustee[1].coefexps.map((o) => {
         return JSON.parse(o.message).coefexps[0];
       });
@@ -31,15 +54,6 @@ export default function (state) {
     "setup",
     "Election Public Key correspond to trustees",
     rev(pJointPublicKey.toHex()) === state.setup.payload.election.public_key,
-  );
-
-  const pElectionPublicKey = parsePoint(
-    state.setup.payload.election.public_key,
-  );
-  check(
-    "setup",
-    `Election Public Key is a valid curve point`,
-    pElectionPublicKey,
   );
 }
 
