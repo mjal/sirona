@@ -39,12 +39,19 @@ export function canonicalSerialization(ballot) {
         });
       }
       if (answer.overall_proof) {
-        obj.overall_proof = answer.overall_proof.map((proof) => {
-          return {
-            challenge: proof.challenge,
-            response: proof.response,
+        if (answer.overall_proof.length === undefined) {
+          obj.overall_proof = {
+            challenge: answer.overall_proof.challenge,
+            response: answer.overall_proof.response,
           };
-        });
+        } else {
+          obj.overall_proof = answer.overall_proof.map((proof) => {
+            return {
+              challenge: proof.challenge,
+              response: proof.response,
+            };
+          });
+        }
       }
       if (answer.blank_proof !== undefined) {
         obj.blank_proof = answer.blank_proof.map((proof) => {

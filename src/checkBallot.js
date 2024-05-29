@@ -12,10 +12,7 @@ export default function (state, ballot) {
 
   for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
     const question = state.setup.payload.election.questions[i];
-    if (question.type === "NonHomomorphic") {
-      // TODO
-      logError("ballots", "NonHomomorphic questions not implemented yet");
-    } else {
+    if (question.type === undefined) { // question_h
       checkIndividualProofs(state, ballot, i);
       if (question.blank) {
         checkBlankProof(state, ballot, i);
@@ -23,6 +20,10 @@ export default function (state, ballot) {
       } else {
         checkOverallProofWithoutBlank(state, ballot, i);
       }
+    } else if (question.type === "NonHomomorphic") {
+      logError("ballots", "NonHomomorphic questions not implemented yet");
+    } else {
+      logError("ballots", `Unknow question type (${question.type})`);
     }
   }
 }
@@ -130,14 +131,20 @@ export function checkValidPoints(ballot) {
   const answers = ballot.payload.answers;
   for (let i = 0; i < answers.length; i++) {
     for (let j = 0; j < answers[i].choices.length; j++) {
-      const pAlpha = parsePoint(answers[i].choices[j].alpha);
-      const pBeta = parsePoint(answers[i].choices[j].beta);
-      check(
-        "ballots",
-        "Encrypted choices alpha,beta are valid curve points",
-        isValidPoint(pAlpha) && isValidPoint(pBeta),
-        true,
-      );
+      const choices =
+        answers[i].choices[j].length === undefined
+          ? [answers[i].choices[j]]
+          : answers[i].choices[j];
+      for (let k = 0; k < choices.length; k++) {
+        const pAlpha = parsePoint(choices[k].alpha);
+        const pBeta = parsePoint(choices[k].beta);
+        check(
+          "ballots",
+          "Encrypted choices alpha,beta are valid curve points",
+          isValidPoint(pAlpha) && isValidPoint(pBeta),
+          true,
+        );
+      }
     }
   }
 }

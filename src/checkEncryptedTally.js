@@ -38,16 +38,17 @@ export default function (state) {
 
   const et = state.encryptedTally.payload.encrypted_tally;
   for (let i = 0; i < et.length; i++) {
-    if (questions[i].type === "NonHomomorphic") {
-      continue;
-    }
-    for (let j = 0; j < et[i].length; j++) {
-      check(
-        "encryptedTally",
-        "Encrypted tally microballot correspond to the weighted sum of all ballots",
-        et[i][j].alpha === rev(encryptedTally[i][j].alpha.toHex()) &&
-          et[i][j].beta === rev(encryptedTally[i][j].beta.toHex()),
-      );
+    if (questions[i].type === undefined) { // question_h
+      for (let j = 0; j < et[i].length; j++) {
+        check(
+          "encryptedTally",
+          "Encrypted tally microballot correspond to the weighted sum of all ballots",
+          et[i][j].alpha === rev(encryptedTally[i][j].alpha.toHex()) &&
+            et[i][j].beta === rev(encryptedTally[i][j].beta.toHex()),
+        );
+      }
+    } else {
+      continue // TODO
     }
   }
 
@@ -61,13 +62,13 @@ export default function (state) {
   check(
     "encryptedTally",
     "total_weight is correct",
-    total_weight === state.encryptedTally.payload.total_weight
+    total_weight === state.encryptedTally.payload.total_weight,
   );
 
   check(
     "encryptedTally",
     "num_tallied is correct",
-    ballots.length === state.encryptedTally.payload.num_tallied
+    ballots.length === state.encryptedTally.payload.num_tallied,
   );
 }
 

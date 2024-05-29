@@ -42,34 +42,35 @@ export default function (state) {
 
     for (let i = 0; i < et.length; i++) {
       const question = state.setup.payload.election.questions[i];
-      if (question.type === "NonHomomorphic") {
+      if (question.type === undefined) { // question_h
+        for (let j = 0; j < et[i].length; j++) {
+          const pAlpha = parsePoint(et[i][j].alpha);
+          const pFactor = parsePoint(df[i][j]);
+          const nChallenge = BigInt(dp[i][j].challenge);
+          const nResponse = BigInt(dp[i][j].response);
+
+          const pA = g.multiply(nResponse).add(pPublicKey.multiply(nChallenge));
+          const pB = pAlpha.multiply(nResponse).add(pFactor.multiply(nChallenge));
+
+          const hVerificationHash = sjcl.codec.hex.fromBits(
+            sjcl.hash.sha256.hash(
+              `decrypt|${state.setup.fingerprint}|${rev(pPublicKey.toHex())}|${rev(pA.toHex())},${rev(pB.toHex())}`,
+            ),
+          );
+          const hReducedVerificationHash = mod(
+            BigInt("0x" + hVerificationHash),
+            L,
+          ).toString(16);
+
+          check(
+            "partialDecryptions",
+            "Valid decryption proof",
+            nChallenge.toString(16) === hReducedVerificationHash,
+            true,
+          );
+        }
+      } else {
         continue; // TODO
-      }
-      for (let j = 0; j < et[i].length; j++) {
-        const pAlpha = parsePoint(et[i][j].alpha);
-        const pFactor = parsePoint(df[i][j]);
-        const nChallenge = BigInt(dp[i][j].challenge);
-        const nResponse = BigInt(dp[i][j].response);
-
-        const pA = g.multiply(nResponse).add(pPublicKey.multiply(nChallenge));
-        const pB = pAlpha.multiply(nResponse).add(pFactor.multiply(nChallenge));
-
-        const hVerificationHash = sjcl.codec.hex.fromBits(
-          sjcl.hash.sha256.hash(
-            `decrypt|${state.setup.fingerprint}|${rev(pPublicKey.toHex())}|${rev(pA.toHex())},${rev(pB.toHex())}`,
-          ),
-        );
-        const hReducedVerificationHash = mod(
-          BigInt("0x" + hVerificationHash),
-          L,
-        ).toString(16);
-
-        check(
-          "partialDecryptions",
-          "Valid decryption proof",
-          nChallenge.toString(16) === hReducedVerificationHash,
-          true,
-        );
       }
     }
   }

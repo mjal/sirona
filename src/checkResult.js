@@ -7,21 +7,22 @@ export default function (state) {
   const df = getDecryptionFactors(state);
   for (let i = 0; i < res.length; i++) {
     const question = state.setup.payload.election.questions[i];
-    if (question.type === "NonHomomorphic") {
-      continue; // TODO
-    }
-    for (let j = 0; j < res[i].length; j++) {
-      const pBeta = parsePoint(et[i][j].beta);
-      const pResult = pBeta.add(df[i][j].negate());
-      const nAnswer = BigInt(res[i][j]);
+    if (question.type === undefined) {
+      for (let j = 0; j < res[i].length; j++) {
+        const pBeta = parsePoint(et[i][j].beta);
+        const pResult = pBeta.add(df[i][j].negate());
+        const nAnswer = BigInt(res[i][j]);
 
-      check(
-        "result",
-        `Result ${i},${j} correspond to the log of the sum of partial decryptions`,
-        (res[i][j] === 0 && pResult.toHex() === zero.toHex()) ||
-          (res[i][j] !== 0 && pResult.toHex() === g.multiply(nAnswer).toHex()),
-        true,
-      );
+        check(
+          "result",
+          `Result ${i},${j} correspond to the log of the sum of partial decryptions`,
+          (res[i][j] === 0 && pResult.toHex() === zero.toHex()) ||
+            (res[i][j] !== 0 && pResult.toHex() === g.multiply(nAnswer).toHex()),
+          true,
+        );
+      }
+    } else {
+      continue; // TODO
     }
   }
 }
@@ -126,7 +127,11 @@ function parseDf(df) {
   for (let i = 0; i < m.length; i++) {
     let row = [];
     for (let j = 0; j < m[i].length; j++) {
-      row.push(parsePoint(m[i][j]));
+      if (m[i][j].length) {
+        row.push(m[i][j].map(parsePoint));
+      } else {
+        row.push(parsePoint(m[i][j]));
+      }
     }
     res.push(row);
   }
@@ -136,7 +141,13 @@ function parseDf(df) {
 function multiplyDfPow(df, df2, exp) {
   for (let i = 0; i < df.length; i++) {
     for (let j = 0; j < df[i].length; j++) {
-      df[i][j] = df[i][j].add(df2[i][j].multiply(BigInt(exp)));
+      if (df2[i][j].length) {
+        for (let k = 0; k < df[i][j].length; k++) {
+          df[i][j][k] = df[i][j][k].add(df2[i][j][k].multiply(BigInt(exp)));
+        }
+      } else {
+        df[i][j] = df[i][j].add(df2[i][j].multiply(BigInt(exp)));
+      }
     }
   }
   return df;
