@@ -6,6 +6,7 @@ import sjcl from "sjcl";
 export default function (state) {
   checkTrustees(state);
   checkElectionPublicKey(state);
+  checkCredentials(state);
 }
 
 function checkTrustees(state) {
@@ -84,4 +85,13 @@ function checkTrusteePublicKey(state, trustee) {
     `Trustee POK is valid`,
     nChallenge.toString(16) === hexReducedVerificationHash,
   );
+}
+
+function checkCredentials(state) {
+  for (let i = 0; i < state.credentialsWeights.length; i++) {
+    check("setup",
+      `Credential ${i} is valid`,
+      isValidPoint(parsePoint(state.credentialsWeights[i].credential))
+    )
+  }
 }
