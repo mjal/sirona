@@ -37,6 +37,14 @@ function checkMisc(state, ballot) {
     true,
   );
 
+  check(
+    "ballots",
+    "election.hash correspond to election hash",
+    state.setup.fingerprint === ballot.payload.election_hash,
+    true,
+  );
+
+
   const sSerializedBallot = canonicalSerialization(ballot);
   check(
     "ballots",
