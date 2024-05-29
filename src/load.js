@@ -89,7 +89,6 @@ export default function (fileEntries) {
     }
   }
 
-
   return state;
 }
 
