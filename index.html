@@ -25,9 +25,7 @@
         <span uk-spinner="ratio: 4.5" class="uk-margin-auto"></span>
       </div>
 
-      <div id="election-card"></div>
       <div id="stats-card"></div>
-      <div id="results-card"></div>
 
       <div id="content" class="uk-hidden uk-margin">
         <button uk-toggle="target: #generate-ballot-modal" class="uk-button uk-button-default uk-align-right" type="button">Generate a ballot</button>
@@ -37,6 +35,26 @@
         <p>Election fingerprint: <span id="info-fingerprint"></span></p>
         <div id="results"></div>
       </div>
+
+      <ul uk-tab>
+        <li><a href="#">Election infos</a></li>
+        <li><a href="#">Ballots</a></li>
+        <li><a href="#">Results</a></li>
+        <li><a href="#">Booth</a></li>
+      </ul>
+
+      <!-- Tab Contents -->
+      <ul class="uk-switcher uk-margin">
+        <li id="election-info">
+          ...
+        </li>
+        <li>
+          ...
+        </li>
+        <li id="election-results">
+          ...
+        </li>
+      </ul>
 
       <div id="content">
         <h3 id="top"></h3>
@@ -89,28 +107,17 @@
       </div>
     </div>
 
-    <script type="text/template" id="election-card-template">
+    <script type="text/template" id="election-info-template">
       <div class="uk-card uk-card-default uk-card-body uk-margin">
         <h3 class="uk-card-title"><%- name %></h3>
         <p><%- description %></p>
         <p>Election UUID: <%- uuid %></p>
         <p>Election fingerprint: <%- fingerprint %></p>
+        <p>Number of ballots: <%- countBallots %></p>
       </div>
     </script>
 
-    <script type="text/template" id="stats-card-template">
-      <div class="uk-card uk-card-default uk-card-body uk-margin">
-        <h3 class="uk-card-title">Stats</h3>
-        <ul>
-          <li>Ballots: <%- ballots %></li>
-          <li>Trustees: <%- trustees %></li>
-          <li>Partial Decryptions: <%- partialDecryptions %></li>
-          <li>Decrypted Tally: <%- decryptedTally %></li>
-        </ul>
-      </div>
-    </script>
-
-    <script type="text/template" id="results-card-template">
+    <script type="text/template" id="election-results-template">
       <div class="uk-card uk-card-default uk-card-body uk-margin">
         <h3 class="uk-card-title">Results</h3>
         <ul>

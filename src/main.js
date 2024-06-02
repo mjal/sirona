@@ -63,31 +63,23 @@ export default async function (fileEntries) {
     document.getElementById("info-fingerprint").textContent
       = state.setup.fingerprint;
 
-    const statsCardTemplate = document.getElementById("stats-card-template").innerHTML;
-    const statsCardCompiled = _.template(statsCardTemplate)({
-        ballots: state.ballots.length,
-        trustees: state.setup.payload.trustees.length,
-        partialDecryptions: state.partialDecryptions.length,
-        decryptedTally: state.encryptedTally.payload.encrypted_tally.length,
-      });
-    document.getElementById("stats-card").innerHTML = statsCardCompiled;
-
-    const electionCardTemplate = document.getElementById("election-card-template").innerHTML;
-    const electionCardCompiled = _.template(electionCardTemplate)({
+    const electionInfoTemplate = document.getElementById("election-info-template").innerHTML;
+    const electionInfoCompiled = _.template(electionInfoTemplate)({
       name: state.setup.payload.election.name,
       description: state.setup.payload.election.description,
       uuid: state.setup.payload.election.uuid,
       fingerprint: state.setup.fingerprint,
+      countBallots: state.ballots.length,
     });
-    document.getElementById("election-card").innerHTML = electionCardCompiled;
+    document.getElementById("election-info").innerHTML = electionInfoCompiled;
 
-    const resultsCardTemplate = document.getElementById("results-card-template").innerHTML;
+    const resultsCardTemplate = document.getElementById("election-results-template").innerHTML;
     const resultsCardCompiled = _.template(resultsCardTemplate)({
       result: state.result.payload.result,
       questions: state.setup.payload.election.questions,
     });
-    document.getElementById("results-card").innerHTML = resultsCardCompiled;
-    console.log(state.setup.payload.election.questions);
+    document.getElementById("election-results").innerHTML = resultsCardCompiled;
+
   } catch (e) {
     logError("top", "Something wrong happened.");
     console.error(e);
