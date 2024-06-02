@@ -57,7 +57,9 @@ export default async function (fileEntries) {
       = state.setup.payload.election.name;
     document.getElementById("info-description").textContent
       = state.setup.payload.election.description;
-    document.getElementById("info-hash").textContent
+    document.getElementById("info-uuid").textContent
+      = state.setup.payload.election.uuid;
+    document.getElementById("info-fingerprint").textContent
       = state.setup.fingerprint;
 
   } catch (e) {
