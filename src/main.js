@@ -14,6 +14,7 @@
  * - h for hexadecimal strings
  */
 
+import _ from "lodash";
 import {
   clear,
   getErrors,
@@ -61,6 +62,31 @@ export default async function (fileEntries) {
       = state.setup.payload.election.uuid;
     document.getElementById("info-fingerprint").textContent
       = state.setup.fingerprint;
+
+    // Make a small result template for lodash.template.
+    // Compile it and render it to #results
+    const template = `
+      <div class="uk-card uk-card-default uk-card-body">
+        <h3 class="uk-card-title">Results</h3>
+        <ul>
+          <li>Ballots: <%- ballots %></li>
+          <li>Trustees: <%- trustees %></li>
+          <li>Partial Decryptions: <%- partialDecryptions %></li>
+          <li>Decrypted Tally: <%- decryptedTally %></li>
+        </ul>
+      </div>
+    `;
+
+    const compiled
+      = _.template(template)({
+        ballots: state.ballots.length,
+        trustees: state.setup.payload.trustees.length,
+        partialDecryptions: state.partialDecryptions.length,
+        decryptedTally: state.encryptedTally.payload.encrypted_tally.length,
+      });
+
+    document.getElementById("results").innerHTML = compiled;
+
 
   } catch (e) {
     logError("top", "Something wrong happened.");
