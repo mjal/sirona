@@ -63,30 +63,23 @@ export default async function (fileEntries) {
     document.getElementById("info-fingerprint").textContent
       = state.setup.fingerprint;
 
-    // Make a small result template for lodash.template.
-    // Compile it and render it to #results
-    const template = `
-      <div class="uk-card uk-card-default uk-card-body">
-        <h3 class="uk-card-title">Results</h3>
-        <ul>
-          <li>Ballots: <%- ballots %></li>
-          <li>Trustees: <%- trustees %></li>
-          <li>Partial Decryptions: <%- partialDecryptions %></li>
-          <li>Decrypted Tally: <%- decryptedTally %></li>
-        </ul>
-      </div>
-    `;
-
-    const compiled
-      = _.template(template)({
+    const statsCardTemplate = document.getElementById("stats-card-template").innerHTML;
+    const statsCardCompiled = _.template(statsCardTemplate)({
         ballots: state.ballots.length,
         trustees: state.setup.payload.trustees.length,
         partialDecryptions: state.partialDecryptions.length,
         decryptedTally: state.encryptedTally.payload.encrypted_tally.length,
       });
+    document.getElementById("stats-card").innerHTML = statsCardCompiled;
 
-    document.getElementById("results").innerHTML = compiled;
-
+    const electionCardTemplate = document.getElementById("election-card-template").innerHTML;
+    const electionCardCompiled = _.template(electionCardTemplate)({
+      name: state.setup.payload.election.name,
+      description: state.setup.payload.election.description,
+      uuid: state.setup.payload.election.uuid,
+      fingerprint: state.setup.fingerprint,
+    });
+    document.getElementById("election-card").innerHTML = electionCardCompiled;
 
   } catch (e) {
     logError("top", "Something wrong happened.");
