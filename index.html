@@ -4,16 +4,34 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Election verifier</title>
-    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="stylesheet" type="text/css" href="/vendor/franken-ui-0.0.12.min.css" />
   </head>
   <body>
-    <div class="container">
-      <!--
-          <input type="text" id="uuid" placeholder="Election uuid" value="uSvjxvtjMbuFvg">
-        <button id="verify">Verify</button>
-        -->
-      <h2>Import your .bel file</h2>
-      <input type="file" id="file" placeholder="Import your .bel file" />
+    <div class="uk-container uk-container-xsmall uk-padding">
+      <h1 class="uk-h1 uk-text-center">Belenios Election Verifier</h1>
+
+      <div id="import" class="uk-card uk-card-body uk-width-medium uk-margin uk-margin-auto">
+        <h3 class="uk-card-title">Import your .bel file</h3>
+
+        <div class="js-upload" uk-form-custom>
+          <input type="file" id="file" placeholder="Import your .bel file" />
+          <button class="uk-button uk-button-default uk-margin-top" type="button" tabindex="-1">
+            Import
+          </button>
+        </div>
+      </div>
+
+      <div id="spinner" class="uk-text-center uk-margin uk-hidden">
+        <span uk-spinner="ratio: 4.5" class="uk-margin-auto"></span>
+      </div>
+
+      <div id="content" class="uk-hidden uk-margin">
+        <button uk-toggle="target: #generate-ballot-modal" class="uk-button uk-button-default uk-align-right" type="button">Generate a ballot</button>
+        <h2 id="info-name" class="uk-h2"></h2>
+        <p id="info-description"></p>
+        <p>Fingerprint: <span id="info-hash"></span></p>
+      </div>
+
       <div id="content">
         <h3 id="top"></h3>
         <h3>Database</h3>
@@ -30,6 +48,43 @@
         <div id="result"></div>
       </div>
     </div>
+
+    <div class="uk-modal p-6" id="generate-ballot-modal" uk-modal>
+      <div class="uk-modal-body uk-modal-dialog">
+        <h2 class="uk-modal-title">Generate a ballot</h2>
+        <form class="uk-form-stacked uk-margin">
+          <div class="uk-margin">
+            <label class="uk-form-label" for="generate-ballot-private-key">Private key</label>
+            <div class="uk-form-controls">
+              <input
+              class="uk-input generate-ballot-input"
+              id="generate-ballot-private-key"
+              type="text"
+              placeholder="Paste your private key"
+              />
+            </div>
+          </div>
+          <div id="generate-ballot-questions">
+          </div>
+          <div class="uk-margin">
+            <label class="uk-form-label" for="generate-ballot-ballot">Your ballot</label>
+            <textarea
+              id="generate-ballot-ballot"
+              class="uk-textarea"
+              rows="5"
+              placeholder="Textarea"
+              aria-label="Textarea"
+              style="white-space: pre-wrap"
+              readonly
+              ></textarea>
+          </div>
+        </form>
+        <button class="uk-modal-close uk-button uk-button-default" type="button">Close</button>
+      </div>
+    </div>
+
     <script type="module" src="src/web.js"></script>
+    <script type="module" src="/vendor/uikit.min.js.js"></script>
+    <script type="module" src="/vendor/uikit-icons.min.js.js"></script>
   </body>
 </html>

@@ -32,6 +32,8 @@ import checkResult from "./checkResult.js";
 
 export default async function (fileEntries) {
   clear();
+  document.getElementById("import").classList.add("uk-hidden");
+  document.getElementById("spinner").classList.remove("uk-hidden");
   try {
     const state = load(fileEntries);
 
@@ -47,6 +49,17 @@ export default async function (fileEntries) {
     await _async(checkEncryptedTally, state);
     await _async(checkPartialDecryptions, state);
     await _async(checkResult, state);
+    document.getElementById("spinner").classList.add("uk-hidden");
+    document.getElementById("content").classList.remove("uk-hidden");
+    // Add a text to element info-name
+    console.log(state.setup.payload.election);
+    document.getElementById("info-name").textContent
+      = state.setup.payload.election.name;
+    document.getElementById("info-description").textContent
+      = state.setup.payload.election.description;
+    document.getElementById("info-hash").textContent
+      = state.setup.fingerprint;
+
   } catch (e) {
     logError("top", "Something wrong happened.");
     console.error(e);
