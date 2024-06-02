@@ -81,6 +81,13 @@ export default async function (fileEntries) {
     });
     document.getElementById("election-card").innerHTML = electionCardCompiled;
 
+    const resultsCardTemplate = document.getElementById("results-card-template").innerHTML;
+    const resultsCardCompiled = _.template(resultsCardTemplate)({
+      result: state.result.payload.result,
+      questions: state.setup.payload.election.questions,
+    });
+    document.getElementById("results-card").innerHTML = resultsCardCompiled;
+    console.log(state.setup.payload.election.questions);
   } catch (e) {
     logError("top", "Something wrong happened.");
     console.error(e);

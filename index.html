@@ -27,7 +27,7 @@
 
       <div id="election-card"></div>
       <div id="stats-card"></div>
-      <div id="results"></div>
+      <div id="results-card"></div>
 
       <div id="content" class="uk-hidden uk-margin">
         <button uk-toggle="target: #generate-ballot-modal" class="uk-button uk-button-default uk-align-right" type="button">Generate a ballot</button>
@@ -106,6 +106,33 @@
           <li>Trustees: <%- trustees %></li>
           <li>Partial Decryptions: <%- partialDecryptions %></li>
           <li>Decrypted Tally: <%- decryptedTally %></li>
+        </ul>
+      </div>
+    </script>
+
+    <script type="text/template" id="results-card-template">
+      <div class="uk-card uk-card-default uk-card-body uk-margin">
+        <h3 class="uk-card-title">Results</h3>
+        <ul>
+          <% for (let i = 0; i < questions.length; i++) { %>
+            <table class="uk-table uk-table-divider">
+              <h4><%- questions[i].question %></h4>
+              <thead>
+                <tr>
+                  <th>Answer</th>
+                  <th>Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% for (let j = 0; j < questions[i].answers.length; j++) { %>
+                  <tr>
+                    <td><%- questions[i].answers[j] %></td>
+                    <td><%- result[i][j] %></td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          <% } %>
         </ul>
       </div>
     </script>
