@@ -34,14 +34,16 @@ export default function (fileEntries) {
     });
 
   state.encryptedTally = findEvent(state.files, "EncryptedTally");
-  state.encryptedTally.payload = findData(
-    state.files,
-    state.encryptedTally.payload,
-  );
-  state.encryptedTally.payload.encrypted_tally = findData(
-    state.files,
-    state.encryptedTally.payload.encrypted_tally,
-  );
+  if (state.encryptedTally) {
+    state.encryptedTally.payload = findData(
+      state.files,
+      state.encryptedTally.payload,
+    );
+    state.encryptedTally.payload.encrypted_tally = findData(
+      state.files,
+      state.encryptedTally.payload.encrypted_tally,
+    );
+  }
 
   state.partialDecryptions = state.files
     .filter((entry) => {
@@ -61,7 +63,9 @@ export default function (fileEntries) {
     });
 
   state.result = findEvent(state.files, "Result");
-  state.result.payload = findData(state.files, state.result.payload);
+  if (state.result) {
+    state.result.payload = findData(state.files, state.result.payload);
+  }
 
   // Helpers
   // Parse weights associated with each credential

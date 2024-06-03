@@ -104,12 +104,14 @@ export function showResult(state) {
     document.getElementById("election-ballots").innerHTML += ballotCardCompiled;
   }
 
-  const resultsCardTemplate = document.getElementById("election-results-template").innerHTML;
-  const resultsCardCompiled = _.template(resultsCardTemplate)({
-    result: state.result.payload.result,
-    questions: state.setup.payload.election.questions,
-  });
-  document.getElementById("election-results").innerHTML = resultsCardCompiled;
+  if (state.result) {
+    const resultsCardTemplate = document.getElementById("election-results-template").innerHTML;
+    const resultsCardCompiled = _.template(resultsCardTemplate)({
+      result: state.result.payload.result,
+      questions: state.setup.payload.election.questions,
+    });
+    document.getElementById("election-results").innerHTML = resultsCardCompiled;
+  }
 }
 
 export async function _async(f, ...args) {

@@ -47,9 +47,15 @@ export default async function (fileEntries) {
     for (let i = 0; i < state.ballots.length; i++) {
       await _async(checkBallot, state, state.ballots[i]);
     }
-    await _async(checkEncryptedTally, state);
-    await _async(checkPartialDecryptions, state);
-    await _async(checkResult, state);
+    if (state.encryptedTally) {
+      await _async(checkEncryptedTally, state);
+    }
+    if (state.partialDecryptions.length > 0) {
+      await _async(checkPartialDecryptions, state);
+    }
+    if (state.result) {
+      await _async(checkResult, state);
+    }
     showResult(state);
   } catch (e) {
     logError("top", "Something wrong happened.");
