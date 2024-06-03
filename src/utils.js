@@ -112,7 +112,6 @@ export function showResult(state) {
       return ballot.tracker === document.getElementById("ballot-search").value;
     });
     renderBallots(ballots);
-    console.log("renderBallots", ballots);
   });
 
   if (state.result) {
