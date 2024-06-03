@@ -73,13 +73,14 @@ export default async function (fileEntries) {
     });
     document.getElementById("election-info").innerHTML = electionInfoCompiled;
 
+    UIkit.tab(document.querySelector('.uk-tab')).show(1);
+
     const resultsCardTemplate = document.getElementById("election-results-template").innerHTML;
     const resultsCardCompiled = _.template(resultsCardTemplate)({
       result: state.result.payload.result,
       questions: state.setup.payload.election.questions,
     });
     document.getElementById("election-results").innerHTML = resultsCardCompiled;
-
   } catch (e) {
     logError("top", "Something wrong happened.");
     console.error(e);
