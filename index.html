@@ -114,6 +114,7 @@
         <h3 class="uk-card-title">Results</h3>
         <ul>
           <% for (let i = 0; i < questions.length; i++) { %>
+            <% if (questions[i].type !== undefined) { continue } %>
             <table class="uk-table uk-table-divider">
               <h4><%- questions[i].question %></h4>
               <thead>
