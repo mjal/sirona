@@ -56,6 +56,8 @@ export function clear() {
   document.getElementById("setup").innerHTML = "";
   document.getElementById("ballots").innerHTML = "";
 
+  document.getElementById("election-ballots").innerHTML = "";
+
   logSuccess("top", "In progress...");
 }
 
@@ -88,7 +90,10 @@ export function showResult(state) {
   });
   document.getElementById("election-info").innerHTML = electionInfoCompiled;
 
+  // Show election infos
   UIkit.tab(document.querySelector('.uk-tab')).show(1);
+
+  document.getElementById("election-ballots").innerHTML = "";
 
   const resultsCardTemplate = document.getElementById("election-results-template").innerHTML;
   const resultsCardCompiled = _.template(resultsCardTemplate)({
