@@ -2,7 +2,7 @@ import { check } from "./utils.js";
 import { rev, zero, parsePoint } from "./math";
 
 export default function (state) {
-  const ballots = keepLastBallotByCredentials(state.ballots);
+  const ballots = state.ballots.filter((ballot) => ballot.accepted);
 
   const questions = state.setup.payload.election.questions;
   const encryptedTally = [];

@@ -93,6 +93,17 @@ export default function (fileEntries) {
     }
   }
 
+  // Mark accepted ballots
+  if (state.encryptedTally) {
+    let ballotByCredential = {};
+    for (let i = state.ballots.length - 1; i >= 0; i--) {
+      if (!ballotByCredential[state.ballots[i].payload.credential]) {
+        state.ballots[i].accepted = true;
+      }
+      ballotByCredential[state.ballots[i].payload.credential] = true;
+    }
+  }
+
   return state;
 }
 
