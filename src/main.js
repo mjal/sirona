@@ -17,6 +17,7 @@
 import _ from "lodash";
 import {
   clear,
+  setupUI,
   getErrors,
   logError,
   logSuccess,
@@ -33,8 +34,7 @@ import checkResult from "./checkResult.js";
 
 export default async function (fileEntries) {
   clear();
-  document.getElementById("import").classList.add("uk-hidden");
-  document.getElementById("spinner").classList.remove("uk-hidden");
+  setupUI();
   try {
     const state = load(fileEntries);
 
@@ -50,40 +50,9 @@ export default async function (fileEntries) {
     await _async(checkEncryptedTally, state);
     await _async(checkPartialDecryptions, state);
     await _async(checkResult, state);
-    document.getElementById("spinner").classList.add("uk-hidden");
-    document.getElementById("content").classList.remove("uk-hidden");
-    // Add a text to element info-name
-    console.log(state.setup.payload.election);
-    document.getElementById("info-name").textContent
-      = state.setup.payload.election.name;
-    document.getElementById("info-description").textContent
-      = state.setup.payload.election.description;
-    document.getElementById("info-uuid").textContent
-      = state.setup.payload.election.uuid;
-    document.getElementById("info-fingerprint").textContent
-      = state.setup.fingerprint;
-
-    const electionInfoTemplate = document.getElementById("election-info-template").innerHTML;
-    const electionInfoCompiled = _.template(electionInfoTemplate)({
-      name: state.setup.payload.election.name,
-      description: state.setup.payload.election.description,
-      uuid: state.setup.payload.election.uuid,
-      fingerprint: state.setup.fingerprint,
-      countBallots: state.ballots.length,
-    });
-    document.getElementById("election-info").innerHTML = electionInfoCompiled;
-
-    UIkit.tab(document.querySelector('.uk-tab')).show(1);
-
-    const resultsCardTemplate = document.getElementById("election-results-template").innerHTML;
-    const resultsCardCompiled = _.template(resultsCardTemplate)({
-      result: state.result.payload.result,
-      questions: state.setup.payload.election.questions,
-    });
-    document.getElementById("election-results").innerHTML = resultsCardCompiled;
+    showResult(state);
   } catch (e) {
     logError("top", "Something wrong happened.");
     console.error(e);
   }
-  showResult();
 }

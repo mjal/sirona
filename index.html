@@ -27,13 +27,9 @@
 
       <div id="alerts"></div>
 
-      <div id="content" class="uk-hidden uk-margin">
-        <button uk-toggle="target: #generate-ballot-modal" class="uk-button uk-button-default uk-align-right" type="button">Generate a ballot</button>
-        <h2 id="info-name" class="uk-h2"></h2>
-        <p id="info-description"></p>
-        <p>Election UUID: <span id="info-uuid"></span></p>
-        <p>Election fingerprint: <span id="info-fingerprint"></span></p>
-        <div id="results"></div>
+      <div id="actions" class="uk-hidden uk-margin">
+        <button id="find-your-ballot" class="uk-button uk-button-default" type="button">Find your ballot</button>
+        <button uk-toggle="target: #generate-ballot-modal" class="uk-button uk-button-default" type="button">Generate a ballot</button>
       </div>
 
       <ul uk-tab>

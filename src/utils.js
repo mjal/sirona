@@ -59,12 +59,43 @@ export function clear() {
   logSuccess("top", "In progress...");
 }
 
-export function showResult() {
+export function setupUI() {
+  document.getElementById("import").classList.add("uk-hidden");
+  document.getElementById("spinner").classList.remove("uk-hidden");
+
+  document.getElementById("find-your-ballot").addEventListener("click", () => {
+    UIkit.tab(document.querySelector('.uk-tab')).show(2);
+  });
+}
+
+export function showResult(state) {
   if (errors === 0) {
     logAlertSuccess("Finished. All checks passed.");
   } else {
     logAlertError("Finished. Some checks failed.");
   }
+
+  document.getElementById("spinner").classList.add("uk-hidden");
+  document.getElementById("actions").classList.remove("uk-hidden");
+
+  const electionInfoTemplate = document.getElementById("election-info-template").innerHTML;
+  const electionInfoCompiled = _.template(electionInfoTemplate)({
+    name: state.setup.payload.election.name,
+    description: state.setup.payload.election.description,
+    uuid: state.setup.payload.election.uuid,
+    fingerprint: state.setup.fingerprint,
+    countBallots: state.ballots.length,
+  });
+  document.getElementById("election-info").innerHTML = electionInfoCompiled;
+
+  UIkit.tab(document.querySelector('.uk-tab')).show(1);
+
+  const resultsCardTemplate = document.getElementById("election-results-template").innerHTML;
+  const resultsCardCompiled = _.template(resultsCardTemplate)({
+    result: state.result.payload.result,
+    questions: state.setup.payload.election.questions,
+  });
+  document.getElementById("election-results").innerHTML = resultsCardCompiled;
 }
 
 export async function _async(f, ...args) {
