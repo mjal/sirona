@@ -56,7 +56,7 @@ export function clear() {
   document.getElementById("setup").innerHTML = "";
   document.getElementById("ballots").innerHTML = "";
 
-  document.getElementById("election-ballots").innerHTML = "";
+  document.getElementById("ballot-list").innerHTML = "";
 
   logSuccess("top", "In progress...");
 }
@@ -93,16 +93,27 @@ export function showResult(state) {
   // Show election infos
   UIkit.tab(document.querySelector('.uk-tab')).show(1);
 
-  document.getElementById("election-ballots").innerHTML = "";
-  for (let i = 0; i < state.ballots.length; i++) {
-    console.log(state.ballots[i]);
-    const ballotCardTemplate = document.getElementById("election-ballot-template").innerHTML;
-    const ballotCardCompiled = _.template(ballotCardTemplate)({
-      state: state,
-      ballot: state.ballots[i]
-    });
-    document.getElementById("election-ballots").innerHTML += ballotCardCompiled;
+  const renderBallots = (ballots) => {
+    document.getElementById("ballot-list").innerHTML = "";
+    for (let i = 0; i < ballots.length; i++) {
+      const ballotCardTemplate =
+        document.getElementById("election-ballot-template").innerHTML;
+      const ballotCardCompiled = _.template(ballotCardTemplate)({
+        state: state,
+        ballot: ballots[i]
+      });
+      document.getElementById("ballot-list").innerHTML += ballotCardCompiled;
+    }
   }
+  renderBallots(state.ballots);
+
+  document.getElementById("ballot-search").addEventListener("input", () => {
+    const ballots = state.ballots.filter((ballot) => {
+      return ballot.tracker === document.getElementById("ballot-search").value;
+    });
+    renderBallots(ballots);
+    console.log("renderBallots", ballots);
+  });
 
   if (state.result) {
     const resultsCardTemplate = document.getElementById("election-results-template").innerHTML;

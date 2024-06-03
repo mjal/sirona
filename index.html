@@ -55,8 +55,10 @@
           <div id="election-results">
           </div>
         </li>
-        <li id="election-ballots">
-          Nothing here...
+        <li>
+          <input id="ballot-search" placeholder="Search a ballot by smart tracker id" class="uk-input uk-margin" type="text" />
+          <ul id="ballot-list" class="uk-list uk-list-disc">
+          </ul>
         </li>
       </ul>
     </div>
@@ -134,14 +136,16 @@
 
     <script type="text/template" id="election-ballot-template">
       <div class="uk-card uk-card-default uk-card-body uk-margin">
-        <h3 class="uk-card-title"><%- ballot.payloadHash %></h3>
-        <% if (!state.encryptedTally) { %>
-          <span class="uk-badge uk-badge-warning">Pending</span>
-        <% } else if (ballot.accepted) { %>
-          <span class="uk-badge uk-badge-success">Accepted</span>
-        <% } else { %>
-          <span class="uk-badge uk-badge-danger">Rejected</span>
-        <% } %>
+        <h3 class="uk-card-title">Ballot tracker: <%- ballot.tracker %></h3>
+        <div><span>Status: </span>
+          <% if (!state.encryptedTally) { %>
+            <span class="uk-badge uk-badge-warning">Pending</span>
+          <% } else if (ballot.accepted) { %>
+            <span class="uk-badge uk-badge-success">Accepted</span>
+          <% } else { %>
+            <span class="uk-badge uk-badge-danger">Rejected</span>
+          <% } %>
+        </div>
       </div>
     </script>
 
