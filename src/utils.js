@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 export const assert = console.assert;
 
 export function log(section, message, classeName = "", prefix = "") {
@@ -16,6 +18,22 @@ export function logError(section, message) {
   log(section, message, "error", "✘ ");
   errors++;
 }
+
+export function logAlert(message, className) {
+  // Use a _.template and a uikit alert component
+  const alertTemplate = `<div class='uk-margin-top ${className}' uk-alert><a class='uk-alert-close' uk-close></a><p><%- message %></p></div>`;
+  const alertCompiled = _.template(alertTemplate)({ message });
+  document.getElementById("alerts").innerHTML += alertCompiled;
+}
+
+export function logAlertSuccess(message) {
+  logAlert(message, "uk-alert-success");
+}
+
+export function logAlertError(message) {
+  logAlert(message, "uk-alert-danger");
+}
+
 
 export function check(section, message, test, log = false) {
   if (test) {
@@ -43,9 +61,9 @@ export function clear() {
 
 export function showResult() {
   if (errors === 0) {
-    logSuccess("top", "Finished. All checks passed.");
+    logAlertSuccess("Finished. All checks passed.");
   } else {
-    logError("top", "Finished. Some checks failed.");
+    logAlertError("Finished. Some checks failed.");
   }
 }
 
