@@ -94,6 +94,14 @@ export function showResult(state) {
   UIkit.tab(document.querySelector('.uk-tab')).show(1);
 
   document.getElementById("election-ballots").innerHTML = "";
+  for (let i = 0; i < state.ballots.length; i++) {
+    console.log(state.ballots[i]);
+    const ballotCardTemplate = document.getElementById("election-ballot-template").innerHTML;
+    const ballotCardCompiled = _.template(ballotCardTemplate)({
+      ballot: state.ballots[i]
+    });
+    document.getElementById("election-ballots").innerHTML += ballotCardCompiled;
+  }
 
   const resultsCardTemplate = document.getElementById("election-results-template").innerHTML;
   const resultsCardCompiled = _.template(resultsCardTemplate)({
