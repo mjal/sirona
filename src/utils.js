@@ -90,6 +90,12 @@ export function showResult(state) {
   });
   document.getElementById("election-info").innerHTML = electionInfoCompiled;
 
+  const generateBallotFormTemplate = document.getElementById("generate-ballot-form-template").innerHTML;
+  const generateBallotFormCompiled = _.template(generateBallotFormTemplate)({
+    questions: state.setup.payload.election.questions,
+  });
+  document.getElementById("generate-ballot-form").innerHTML = generateBallotFormCompiled;
+
   // Show election infos
   UIkit.tab(document.querySelector('.uk-tab')).show(1);
 

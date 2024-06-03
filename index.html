@@ -80,8 +80,9 @@
               />
             </div>
           </div>
-          <div id="generate-ballot-questions">
+          <div id="generate-ballot-form">
           </div>
+
           <div class="uk-margin">
             <label class="uk-form-label" for="generate-ballot-ballot">Your ballot</label>
             <textarea
@@ -150,6 +151,29 @@
           <% } %>
         </div>
       </div>
+    </script>
+
+    <script type="text/template" id="generate-ballot-form-template">
+      <form onsubmit="generateBallot(); return false;">
+        <div class="uk-margin">
+          <% for (let i = 0; i < questions.length; i++) { %>
+            <div class="uk-margin">
+              <label class="uk-form-label" for="q-<%- i %>">
+                <%- questions[i].question %>
+              </label>
+              <div class="uk-form-controls">
+                <select class="uk-select generate-ballot-input" id="q-<%- i %>">
+                  <option value="">Select an answer</option>
+                  <% for (let j = 0; j < questions[i].answers.length; j++) { %>
+                    <option value="<%- j %>"><%- questions[i].answers[j] %></option>
+                  <% } %>
+                </select>
+              </div>
+            </div>
+          <% } %>
+          <input type="submit" class="uk-button uk-button-default" value="Generate ballot" />
+        </div>
+      </form>
     </script>
 
     <script type="module" src="src/web.js"></script>
