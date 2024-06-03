@@ -98,6 +98,7 @@ export function showResult(state) {
     console.log(state.ballots[i]);
     const ballotCardTemplate = document.getElementById("election-ballot-template").innerHTML;
     const ballotCardCompiled = _.template(ballotCardTemplate)({
+      state: state,
       ballot: state.ballots[i]
     });
     document.getElementById("election-ballots").innerHTML += ballotCardCompiled;
