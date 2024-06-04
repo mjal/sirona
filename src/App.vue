@@ -5,6 +5,7 @@ import check from "./check.js";
 import ElectionInfo from "./ElectionInfo.vue";
 import ElectionResult from "./ElectionResult.vue";
 import ElectionBallotList from "./ElectionBallotList.vue";
+import GenerateBallotModal from "./GenerateBallotModal.vue";
 
 const state = ref({});
 const loading = ref(false);
@@ -36,7 +37,7 @@ const goToBallotList = () => {
     <div
       id="import"
       class="uk-card uk-card-body uk-width-medium uk-margin uk-margin-auto"
-      v-if="!loaded"
+      v-if="!loaded && !loading"
     >
       <h3 class="uk-card-title">Import your .bel file</h3>
 
@@ -109,33 +110,8 @@ const goToBallotList = () => {
     </ul>
   </div>
 
-  <!-- Generate ballot modal -->
-  <div class="uk-modal p-6" id="generate-ballot-modal" uk-modal>
-    <div class="uk-modal-body uk-modal-dialog">
-      <h2 class="uk-modal-title">Generate a ballot</h2>
-      <div class="uk-form-stacked uk-margin">
-        <div id="generate-ballot-form"></div>
-
-        <div class="uk-margin">
-          <label class="uk-form-label" for="generate-ballot-ballot"
-            >Your ballot</label
-          >
-          <textarea
-            id="generate-ballot-ballot"
-            class="uk-textarea"
-            rows="5"
-            placeholder="Textarea"
-            aria-label="Textarea"
-            style="white-space: pre-wrap"
-            readonly
-          ></textarea>
-        </div>
-      </div>
-      <button class="uk-modal-close uk-button uk-button-default" type="button">
-        Close
-      </button>
-    </div>
-  </div>
+  <GenerateBallotModal :state="state" v-if="loaded" />
 </template>
 
-<style scoped></style>
+<style scoped>
+</style>
