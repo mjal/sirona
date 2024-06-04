@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import untar from "js-untar";
 import check from "./check.js";
+import ElectionInfo from "./ElectionInfo.vue";
 
 const state = ref({});
 const loading = ref(false);
@@ -73,23 +74,17 @@ const onUploadedFile = (event) => {
     </div>
 
     <ul uk-tab>
-      <li><a href="#">Verifications</a></li>
       <li><a href="#">Election infos</a></li>
       <li><a href="#">Ballots</a></li>
+      <li><a href="#">Log</a></li>
     </ul>
 
     <!-- Tab Contents -->
     <ul class="uk-switcher uk-margin">
       <li>
-        <h3 id="top"></h3>
-        <div id="database"></div>
-        <div id="setup"></div>
-        <div id="ballots"></div>
-        <div id="encryptedTally"></div>
-        <div id="partialDecryptions"></div>
-        <div id="result"></div>
-      </li>
-      <li>
+        <div v-if="!loaded">Not loaded yet.</div>
+        <ElectionInfo state v-if="loaded" />
+        <!-- ElectionResult state v-if="loaded" /-->
         <div id="election-info"></div>
         <div id="election-results"></div>
       </li>
@@ -101,6 +96,15 @@ const onUploadedFile = (event) => {
           type="text"
         />
         <ul id="ballot-list" class="uk-list uk-list-disc"></ul>
+      </li>
+      <li>
+        <h3 id="top"></h3>
+        <div id="database"></div>
+        <div id="setup"></div>
+        <div id="ballots"></div>
+        <div id="encryptedTally"></div>
+        <div id="partialDecryptions"></div>
+        <div id="result"></div>
       </li>
     </ul>
   </div>
