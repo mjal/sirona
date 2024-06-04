@@ -83,7 +83,7 @@ const onUploadedFile = (event) => {
     <ul class="uk-switcher uk-margin">
       <li>
         <div v-if="!loaded">Not loaded yet.</div>
-        <ElectionInfo state v-if="loaded" />
+        <ElectionInfo :state="state" v-if="loaded" />
         <!-- ElectionResult state v-if="loaded" /-->
         <div id="election-info"></div>
         <div id="election-results"></div>
