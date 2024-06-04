@@ -1,5 +1,6 @@
 <script setup>
-  import { computed } from "vue";
+  import { checkVotingCode } from "../generateBallot.js";
+  import { ref, computed } from "vue";
 
   const props = defineProps(["state", "loaded"]);
   const questions = computed(() => {
@@ -16,6 +17,11 @@
       data[key] = value;
     });
     console.log(data);
+  }
+
+  const credential = ref("");
+  const checkCode = () => {
+    checkVotingCode(props.state, credential.value.trim());
   }
 
 </script>
@@ -35,13 +41,16 @@
               </label>
               <div class="uk-form-controls">
                 <input
-                class="uk-input generate-ballot-input"
-                id="credential"
-                name="credential"
                 type="text"
+                class="uk-input"
+                v-model="credential"
                 placeholder="Paste your code"
                 />
               </div>
+
+              <button class="uk-button uk-button-default" type="button" @click="checkCode">
+                Check
+              </button>
             </div>
 
             <div class="uk-margin" v-for="(question, i) in questions" v-bind:key="i">
