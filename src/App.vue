@@ -23,6 +23,10 @@ const onUploadedFile = (event) => {
   };
   reader.readAsArrayBuffer(event.target.files[0]);
 };
+
+const goToBallotList = () => {
+  UIkit.tab(document.querySelector(".uk-tab")).show(1);
+};
 </script>
 
 <template>
@@ -32,6 +36,7 @@ const onUploadedFile = (event) => {
     <div
       id="import"
       class="uk-card uk-card-body uk-width-medium uk-margin uk-margin-auto"
+      v-if="!loaded"
     >
       <h3 class="uk-card-title">Import your .bel file</h3>
 
@@ -58,11 +63,12 @@ const onUploadedFile = (event) => {
 
     <div id="alerts"></div>
 
-    <div id="actions" class="uk-hidden uk-margin">
+    <div id="actions" class="uk-margin" v-if="loaded">
       <button
         id="find-your-ballot"
         class="uk-button uk-button-default"
         type="button"
+        @click="goToBallotList"
       >
         Find your ballot
       </button>

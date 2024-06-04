@@ -58,12 +58,7 @@ export function clear() {
 }
 
 export function setupUI() {
-  document.getElementById("import").classList.add("uk-hidden");
-  document.getElementById("spinner").classList.remove("uk-hidden");
-
-  document.getElementById("find-your-ballot").addEventListener("click", () => {
-    UIkit.tab(document.querySelector(".uk-tab")).show(2);
-  });
+  // TODO: Delete
 }
 
 export function showResult(state) {
