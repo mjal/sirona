@@ -4,6 +4,7 @@ import untar from "js-untar";
 import check from "./check.js";
 import ElectionInfo from "./ElectionInfo.vue";
 import ElectionResult from "./ElectionResult.vue";
+import ElectionBallotList from "./ElectionBallotList.vue";
 
 const state = ref({});
 const loading = ref(false);
@@ -88,13 +89,7 @@ const onUploadedFile = (event) => {
         <ElectionResult :state="state" v-if="loaded && state.result"/>
       </li>
       <li>
-        <input
-          id="ballot-search"
-          placeholder="Search a ballot by smart tracker id"
-          class="uk-input uk-margin"
-          type="text"
-        />
-        <ul id="ballot-list" class="uk-list uk-list-disc"></ul>
+        <ElectionBallotList :state="state" v-if="loaded"/>
       </li>
       <li>
         <h3 id="top"></h3>

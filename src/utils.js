@@ -54,9 +54,6 @@ export function clear() {
   document.getElementById("database").innerHTML = "";
   document.getElementById("setup").innerHTML = "";
   document.getElementById("ballots").innerHTML = "";
-
-  document.getElementById("ballot-list").innerHTML = "";
-
   logSuccess("top", "In progress...");
 }
 
