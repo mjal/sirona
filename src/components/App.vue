@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import untar from "js-untar";
-import check from "./check.js";
+import check from "../check.js";
 import ElectionInfo from "./ElectionInfo.vue";
 import ElectionResult from "./ElectionResult.vue";
 import ElectionBallotList from "./ElectionBallotList.vue";
