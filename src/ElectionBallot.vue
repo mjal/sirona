@@ -1,7 +1,7 @@
 <script setup>
   const props = defineProps(["state", "ballot"]);
   const ballot = props.ballot;
-  const isTallied = props.state.encryptedTally !== undefined;
+  const isTallied = !!props.state.encryptedTally;
 </script>
 
 <template>
