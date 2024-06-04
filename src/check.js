@@ -17,11 +17,9 @@
 import _ from "lodash";
 import {
   clear,
-  setupUI,
   getErrors,
   logError,
   logSuccess,
-  showResult,
   _async,
 } from "./utils.js";
 import load from "./load.js";
@@ -31,12 +29,9 @@ import checkBallot from "./checkBallot.js";
 import checkEncryptedTally from "./checkEncryptedTally.js";
 import checkPartialDecryptions from "./checkPartialDecryptions.js";
 import checkResult from "./checkResult.js";
-import { setupGenerateBallotCallback } from "./generateBallot.js";
 
 export default async function (fileEntries) {
   clear();
-  setupGenerateBallotCallback();
-  setupUI();
   try {
     const state = load(fileEntries);
 

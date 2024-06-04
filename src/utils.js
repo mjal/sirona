@@ -57,10 +57,6 @@ export function clear() {
   logSuccess("top", "In progress...");
 }
 
-export function setupUI() {
-  // TODO: Delete
-}
-
 export function showResult(state) {
   if (errors === 0) {
     logAlertSuccess("Finished. All checks passed.");
