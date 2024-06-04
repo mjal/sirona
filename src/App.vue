@@ -49,7 +49,6 @@ const onUploadedFile = (event) => {
       </div>
     </div>
 
-    <!-- show spinner if loading -->
     <div id="spinner" class="uk-text-center uk-margin" v-if="loading">
       <span uk-spinner="ratio: 4.5" class="uk-margin-auto"></span>
     </div>
