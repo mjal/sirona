@@ -26,7 +26,7 @@
 <template>
 
     <div class="uk-container uk-container-xsmall uk-padding">
-      <h1 class="uk-h2 uk-text-center">Belenios Election Verifier</h1>
+      <h1 class="uk-h2 uk-text-center">Belenios election verifier</h1>
 
       <div id="import" class="uk-card uk-card-body uk-width-medium uk-margin uk-margin-auto">
         <h3 class="uk-card-title">Import your .bel file</h3>
