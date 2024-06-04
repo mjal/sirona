@@ -29,9 +29,9 @@ export default function (fileEntries) {
     .map((entry) => {
       const ballot = entry[2];
       ballot.payloadHash = ballot.payload;
-      ballot.tracker = sjcl.codec.base64.fromBits(
-        sjcl.codec.hex.toBits(ballot.payloadHash),
-      ).replace(/=+$/, "");
+      ballot.tracker = sjcl.codec.base64
+        .fromBits(sjcl.codec.hex.toBits(ballot.payloadHash))
+        .replace(/=+$/, "");
       ballot.payload = findData(state.files, ballot.payload);
       return ballot;
     });

@@ -34,7 +34,6 @@ export function logAlertError(message) {
   logAlert(message, "uk-alert-danger");
 }
 
-
 export function check(section, message, test, log = false) {
   if (test) {
     if (log) {
@@ -66,7 +65,7 @@ export function setupUI() {
   document.getElementById("spinner").classList.remove("uk-hidden");
 
   document.getElementById("find-your-ballot").addEventListener("click", () => {
-    UIkit.tab(document.querySelector('.uk-tab')).show(2);
+    UIkit.tab(document.querySelector(".uk-tab")).show(2);
   });
 }
 
@@ -80,7 +79,9 @@ export function showResult(state) {
   document.getElementById("spinner").classList.add("uk-hidden");
   document.getElementById("actions").classList.remove("uk-hidden");
 
-  const electionInfoTemplate = document.getElementById("election-info-template").innerHTML;
+  const electionInfoTemplate = document.getElementById(
+    "election-info-template",
+  ).innerHTML;
   const electionInfoCompiled = _.template(electionInfoTemplate)({
     name: state.setup.payload.election.name,
     description: state.setup.payload.election.description,
@@ -90,27 +91,31 @@ export function showResult(state) {
   });
   document.getElementById("election-info").innerHTML = electionInfoCompiled;
 
-  const generateBallotFormTemplate = document.getElementById("generate-ballot-form-template").innerHTML;
+  const generateBallotFormTemplate = document.getElementById(
+    "generate-ballot-form-template",
+  ).innerHTML;
   const generateBallotFormCompiled = _.template(generateBallotFormTemplate)({
     questions: state.setup.payload.election.questions,
   });
-  document.getElementById("generate-ballot-form").innerHTML = generateBallotFormCompiled;
+  document.getElementById("generate-ballot-form").innerHTML =
+    generateBallotFormCompiled;
 
   // Show election infos
-  UIkit.tab(document.querySelector('.uk-tab')).show(1);
+  UIkit.tab(document.querySelector(".uk-tab")).show(1);
 
   const renderBallots = (ballots) => {
     document.getElementById("ballot-list").innerHTML = "";
     for (let i = 0; i < ballots.length; i++) {
-      const ballotCardTemplate =
-        document.getElementById("election-ballot-template").innerHTML;
+      const ballotCardTemplate = document.getElementById(
+        "election-ballot-template",
+      ).innerHTML;
       const ballotCardCompiled = _.template(ballotCardTemplate)({
         state: state,
-        ballot: ballots[i]
+        ballot: ballots[i],
       });
       document.getElementById("ballot-list").innerHTML += ballotCardCompiled;
     }
-  }
+  };
   renderBallots(state.ballots);
 
   document.getElementById("ballot-search").addEventListener("input", () => {
@@ -121,7 +126,9 @@ export function showResult(state) {
   });
 
   if (state.result) {
-    const resultsCardTemplate = document.getElementById("election-results-template").innerHTML;
+    const resultsCardTemplate = document.getElementById(
+      "election-results-template",
+    ).innerHTML;
     const resultsCardCompiled = _.template(resultsCardTemplate)({
       result: state.result.payload.result,
       questions: state.setup.payload.election.questions,
