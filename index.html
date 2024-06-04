@@ -63,23 +63,11 @@
       </ul>
     </div>
 
+    <!-- Generate ballot modal -->
     <div class="uk-modal p-6" id="generate-ballot-modal" uk-modal>
       <div class="uk-modal-body uk-modal-dialog">
         <h2 class="uk-modal-title">Generate a ballot</h2>
-        <form class="uk-form-stacked uk-margin">
-          <div class="uk-margin">
-            <label class="uk-form-label" for="generate-ballot-private-key">
-              Code de vote
-            </label>
-            <div class="uk-form-controls">
-              <input
-              class="uk-input generate-ballot-input"
-              id="generate-ballot-private-key"
-              type="text"
-              placeholder="Paste your code"
-              />
-            </div>
-          </div>
+        <div class="uk-form-stacked uk-margin">
           <div id="generate-ballot-form">
           </div>
 
@@ -95,7 +83,7 @@
               readonly
               ></textarea>
           </div>
-        </form>
+        </div>
         <button class="uk-modal-close uk-button uk-button-default" type="button">Close</button>
       </div>
     </div>
@@ -154,7 +142,22 @@
     </script>
 
     <script type="text/template" id="generate-ballot-form-template">
-      <form onsubmit="generateBallot(); return false;">
+      <form onsubmit="generateBallot(event); event.preventDefault();return false;">
+        <div class="uk-margin">
+          <label class="uk-form-label" for="generate-ballot-private-key">
+            Code de vote
+          </label>
+          <div class="uk-form-controls">
+            <input
+            class="uk-input generate-ballot-input"
+            id="credential"
+            name="credential"
+            type="text"
+            placeholder="Paste your code"
+            />
+          </div>
+        </div>
+
         <div class="uk-margin">
           <% for (let i = 0; i < questions.length; i++) { %>
             <div class="uk-margin">
@@ -162,7 +165,7 @@
                 <%- questions[i].question %>
               </label>
               <div class="uk-form-controls">
-                <select class="uk-select generate-ballot-input" id="q-<%- i %>">
+                <select class="uk-select generate-ballot-input" id="q-<%- i %>" name="q-<%- i %>">
                   <option value="">Select an answer</option>
                   <% for (let j = 0; j < questions[i].answers.length; j++) { %>
                     <option value="<%- j %>"><%- questions[i].answers[j] %></option>
