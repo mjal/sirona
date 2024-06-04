@@ -58,9 +58,11 @@ export default async function (fileEntries) {
     if (state.result) {
       await _async(checkResult, state);
     }
-    showResult(state);
+    return state;
+    //showResult(state);
   } catch (e) {
     logError("top", "Something wrong happened.");
     console.error(e);
   }
+  return null;
 }

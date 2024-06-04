@@ -1,13 +1,23 @@
 <script setup>
   import { ref } from 'vue';
-
-  import check from "./check.js";
   import untar from "js-untar";
+  import check from "./check.js";
+
+  const state = ref({});
+  const loading = ref(false);
+  const loaded = ref(false);
 
   const onUploadedFile = (event) => {
     const reader = new window.FileReader();
     reader.onload = function () {
-      untar(reader.result).then(check);
+      loading.value = true;
+      untar(reader.result)
+      .then(async (files) => {
+        state.value = await check(files);
+        loaded.value = true;
+        loading.value = false;
+        return state;
+      });
     };
     reader.readAsArrayBuffer(event.target.files[0]);
   }
@@ -29,7 +39,8 @@
         </div>
       </div>
 
-      <div id="spinner" class="uk-text-center uk-margin uk-hidden">
+      <!-- show spinner if loading -->
+      <div id="spinner" class="uk-text-center uk-margin" v-if="loading">
         <span uk-spinner="ratio: 4.5" class="uk-margin-auto"></span>
       </div>
 
