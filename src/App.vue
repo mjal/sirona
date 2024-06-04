@@ -1,4 +1,16 @@
 <script setup>
+  import { ref } from 'vue';
+
+  import check from "./check.js";
+  import untar from "js-untar";
+
+  const onUploadedFile = (event) => {
+    const reader = new window.FileReader();
+    reader.onload = function () {
+      untar(reader.result).then(check);
+    };
+    reader.readAsArrayBuffer(event.target.files[0]);
+  }
 </script>
 
 <template>
@@ -10,7 +22,7 @@
         <h3 class="uk-card-title">Import your .bel file</h3>
 
         <div class="js-upload" uk-form-custom>
-          <input type="file" id="file" placeholder="Import your .bel file" />
+          <input type="file" id="file" placeholder="Import your .bel file" @change="onUploadedFile" />
           <button class="uk-button uk-button-default uk-margin-top" type="button" tabindex="-1">
             Import
           </button>
