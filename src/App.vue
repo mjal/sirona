@@ -3,6 +3,7 @@ import { ref } from "vue";
 import untar from "js-untar";
 import check from "./check.js";
 import ElectionInfo from "./ElectionInfo.vue";
+import ElectionResult from "./ElectionResult.vue";
 
 const state = ref({});
 const loading = ref(false);
@@ -84,9 +85,7 @@ const onUploadedFile = (event) => {
       <li>
         <div v-if="!loaded">Not loaded yet.</div>
         <ElectionInfo :state="state" v-if="loaded" />
-        <!-- ElectionResult state v-if="loaded" /-->
-        <div id="election-info"></div>
-        <div id="election-results"></div>
+        <ElectionResult :state="state" v-if="loaded && state.result"/>
       </li>
       <li>
         <input
