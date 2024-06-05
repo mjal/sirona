@@ -10,12 +10,15 @@ export default function (state, credential, choices) {
   const { nPrivateCredential } = deriveCredential(state, credential);
 
   const H = "AlZ/yv4k5MY0H9VlAi+zQ1iWRlATlt+FWOEmrBMxnfU"
+  console.log(signature(nPrivateCredential, H));
+}
 
+export function signature(nPrivateCredential, hash) {
   const w = rand();
   const pA = g.multiply(w);
 
   const hashSignature = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(`sig|${H}|${rev(pA.toHex())}`),
+    sjcl.hash.sha256.hash(`sig|${hash}|${rev(pA.toHex())}`),
   );
   const nChallenge = mod(
     BigInt("0x" + hashSignature),
@@ -23,9 +26,13 @@ export default function (state, credential, choices) {
   );
   const nResponse = mod(w - nPrivateCredential * nChallenge, L);
 
-  console.log(nPrivateCredential);
-  console.log(nChallenge);
-  console.log(nResponse);
+  return {
+    hash: hash,
+    proof: {
+      challenge: nChallenge.toString(),
+      response: nResponse.toString()
+    }
+  };
 }
 
 export function deriveCredential(state, credential) {
