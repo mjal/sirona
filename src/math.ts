@@ -2,12 +2,8 @@ import sjcl from "sjcl";
 import { ed25519 } from "@noble/curves/ed25519";
 import type { ExtPointType } from "@noble/curves/abstract/edwards.js";
 
-export const g = ed25519.ExtendedPoint.BASE;
 export const zero = ed25519.ExtendedPoint.ZERO;
-//export const one = ed25519.ExtendedPoint.fromHex(
-//  "0100000000000000000000000000000000000000000000000000000000000000",
-//);
-
+export const g = ed25519.ExtendedPoint.BASE;
 export const q = 2n ** 255n - 19n;
 export const L = BigInt(
   "0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed",
