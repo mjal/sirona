@@ -1,6 +1,7 @@
 import sjcl from "sjcl";
 import { ed25519 } from "@noble/curves/ed25519";
 import type { ExtPointType } from "@noble/curves/abstract/edwards.js";
+type point = ExtPointType
 
 export const zero = ed25519.ExtendedPoint.ZERO;
 export const g = ed25519.ExtendedPoint.BASE;
@@ -26,7 +27,7 @@ export const mod = (a: bigint, b: bigint) => {
   return remainder;
 };
 
-export const isValidPoint = (point: ExtPointType) => {
+export const isValidPoint = (point: point) => {
   try {
     point.assertValidity();
   } catch (e) {
@@ -64,9 +65,9 @@ export function rand() : bigint {
 //A = g**response * alpha**challenge
 //B = y**response * (beta / (g**m))**challenge
 export function formula1(
-  pY: ExtPointType,
-  pAlpha: ExtPointType,
-  pBeta: ExtPointType,
+  pY: point,
+  pAlpha: point,
+  pBeta: point,
   nChallenge: bigint,
   nResponse: bigint,
   m: number
@@ -82,7 +83,7 @@ export function formula1(
 
 function H(
   prefix: string,
-  ...commitments: Array<ExtPointType>
+  ...commitments: Array<point>
 ) {
   const str = `${prefix}|${commitments.map((p)=>rev(p.toHex())).join(",")}`;
   const h = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(str));
@@ -91,22 +92,22 @@ function H(
 
 export function Hiprove(
   S: string,
-  alpha: ExtPointType,
-  beta: ExtPointType,
-  ...commitments: Array<ExtPointType>
+  alpha: point,
+  beta: point,
+  ...commitments: Array<point>
 ) {
   const prefix = `prove|${S}|${rev(alpha.toHex())},${rev(beta.toHex())}`;
   return H(prefix, ...commitments);
 }
 
-export function Hbproof0(S: string, ...commitments: Array<ExtPointType>) {
+export function Hbproof0(S: string, ...commitments: Array<point>) {
   return H(`bproof0|${S}`, ...commitments);
 }
 
-export function Hbproof1(S: string, ...commitments: Array<ExtPointType>) {
+export function Hbproof1(S: string, ...commitments: Array<point>) {
   return H(`bproof1|${S}`, ...commitments);
 }
 
-export function Hsignature(h: string, A: ExtPointType) {
+export function Hsignature(h: string, A: point) {
   return H(`sig|${h}`, A);
 }
