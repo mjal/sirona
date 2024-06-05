@@ -27,7 +27,7 @@
     return false;
   }
 
-  const credential = ref("eAwCm-Gbihc8-pYTF1-uEChaS");
+  const credential = ref("");
   const checkCode = () => {
     if (checkVotingCode(props.state, credential.value.trim())) {
       alert("Code is valid");
