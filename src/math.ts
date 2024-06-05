@@ -64,3 +64,22 @@ export function rand() : bigint {
   const hNumber = sjcl.codec.hex.fromBits(bitArray);
   return mod(BigInt("0x" + hNumber), L);
 }
+
+//A = g**response * alpha**challenge
+//B = y**response * (beta / (g**m))**challenge
+export function formula1(
+  pY: ExtPointType,
+  pAlpha: ExtPointType,
+  pBeta: ExtPointType,
+  nChallenge: bigint,
+  nResponse: bigint,
+  m: number
+) {
+
+  const pA = g.multiply(nResponse).add(pAlpha.multiply(nChallenge));
+  const gPowerM = m === 0 ? zero : g.multiply(BigInt(m));
+  const pBDivGPowerM = pBeta.add(gPowerM.negate());
+  const pB = pY.multiply(nResponse).add(pBDivGPowerM.multiply(nChallenge));
+
+  return [pA, pB];
+}

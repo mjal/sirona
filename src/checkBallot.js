@@ -1,6 +1,6 @@
 import sjcl from "sjcl";
 import { check, logError } from "./utils.js";
-import { g, L, rev, mod, isValidPoint, parsePoint, zero } from "./math";
+import { g, L, rev, mod, isValidPoint, parsePoint, zero, formula1 } from "./math";
 import { canonicalSerialization } from "./serializeBallot";
 
 export default function (state, ballot) {
@@ -52,28 +52,6 @@ function checkMisc(state, ballot) {
       ballot.payloadHash,
     true,
   );
-}
-
-function valuesForProofOfIntervalMembership(y, alpha, beta, transcripts, ms) {
-  const values = [];
-
-  for (let i = 0; i < transcripts.length; i++) {
-    const m = ms[i];
-
-    const nChallenge = BigInt(transcripts[i].challenge);
-    const nResponse = BigInt(transcripts[i].response);
-
-    const a = g.multiply(nResponse).add(alpha.multiply(nChallenge));
-    const gPowerM = m === 0 ? zero : g.multiply(BigInt(m));
-    const b = y
-      .multiply(nResponse)
-      .add(beta.add(gPowerM.negate()).multiply(nChallenge));
-
-    values.push(a);
-    values.push(b);
-  }
-
-  return values;
 }
 
 function hashWithoutSignature(ballot) {
@@ -181,13 +159,15 @@ export function checkIndividualProofs(state, ballot, idx) {
       nSumChallenges = mod(nSumChallenges + challenge, L);
     }
 
-    const values = valuesForProofOfIntervalMembership(
-      pY,
-      pAlpha,
-      pBeta,
-      individualProofs[j],
-      [0, 1],
-    );
+    const [pA0, pB0] = formula1(pY, pAlpha, pBeta,
+      BigInt(individualProofs[j][0].challenge),
+      BigInt(individualProofs[j][0].response),
+    0);
+    const [pA1, pB1] = formula1(pY, pAlpha, pBeta,
+      BigInt(individualProofs[j][1].challenge),
+      BigInt(individualProofs[j][1].response),
+    1);
+    const values = [pA0, pB0, pA1, pB1];
 
     const S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
     let sChallenge = `prove|${S}|${choices[j].alpha},${choices[j].beta}|`;
@@ -230,19 +210,14 @@ export function checkOverallProofWithoutBlank(state, ballot, idx) {
     nSumChallenges = mod(nSumChallenges + challenge, L);
   }
 
-  const min = question.min;
-  const max = question.max;
-  const ms = [];
-  for (let j = min; j <= max; j++) {
-    ms.push(j);
+  let values = [];
+  for (let j = question.min; j <= question.max; j++) {
+    const [pA, pB] = formula1(pY, sumc.alpha, sumc.beta,
+      BigInt(answer.overall_proof[j - question.min].challenge),
+      BigInt(answer.overall_proof[j - question.min].response),
+      j);
+    values.push(pA, pB);
   }
-  const values = valuesForProofOfIntervalMembership(
-    pY,
-    sumc.alpha,
-    sumc.beta,
-    answer.overall_proof,
-    ms,
-  );
 
   let sChallenge = "prove|";
   sChallenge += `${state.setup.fingerprint}|${ballot.payload.credential}|`;
@@ -331,11 +306,6 @@ export function checkOverallProofWithBlank(state, ballot, idx) {
   const question = state.setup.payload.election.questions[idx];
   const answer = ballot.payload.answers[idx];
 
-  const nChallenge0 = BigInt(answer.overall_proof[0].challenge);
-  const nResponse0 = BigInt(answer.overall_proof[0].response);
-  const pAlpha0 = parsePoint(answer.choices[0].alpha);
-  const pBeta0 = parsePoint(answer.choices[0].beta);
-
   let pAlphaS = zero;
   let pBetaS = zero;
   for (let j = 1; j < answer.choices.length; j++) {
@@ -344,21 +314,23 @@ export function checkOverallProofWithBlank(state, ballot, idx) {
   }
 
   let pABs = [];
-  const pA = g.multiply(nResponse0).add(pAlpha0.multiply(nChallenge0));
-  const pBDivGPowerM = pBeta0.add(g.negate());
-  const pB = pY.multiply(nResponse0).add(pBDivGPowerM.multiply(nChallenge0));
-  pABs.push(pA);
-  pABs.push(pB);
+  const [pA, pB] =
+    formula1(pY,
+      parsePoint(answer.choices[0].alpha),
+      parsePoint(answer.choices[0].beta),
+      BigInt(answer.overall_proof[0].challenge),
+      BigInt(answer.overall_proof[0].response),
+      1
+    );
+  pABs.push(pA, pB);
   for (let j = 1; j < question.max - question.min + 2; j++) {
-    const challenge = BigInt(answer.overall_proof[j].challenge);
-    const response = BigInt(answer.overall_proof[j].response);
-    const pA = g.multiply(response).add(pAlphaS.multiply(challenge));
-    const m = question.min + j - 1;
-    const gPowerM = m === 0 ? one : g.multiply(BigInt(m));
-    const pBDivGPowerM = pBetaS.add(gPowerM.negate());
-    const pB = pY.multiply(response).add(pBDivGPowerM.multiply(challenge));
-    pABs.push(pA);
-    pABs.push(pB);
+    const [pA, pB] =
+      formula1(pY, pAlphaS, pBetaS,
+        BigInt(answer.overall_proof[j].challenge),
+        BigInt(answer.overall_proof[j].response),
+        (question.min + j - 1)
+      );
+    pABs.push(pA, pB);
   }
 
   const nSumChallenges = answer.overall_proof.reduce(
