@@ -98,12 +98,12 @@ export function checkSignature(ballot) {
 
   const pA = formula(g, nResponse,
     parsePoint(ballot.payload.credential), nChallenge);
-  const H = Hsignature(signature.hash, pA);
+  const nH = Hsignature(signature.hash, pA);
 
   check(
     "ballots",
     "Valid signature",
-    nChallenge.toString(16) === H.toString(16),
+    nChallenge.toString(16) === nH.toString(16),
     true,
   );
 }
@@ -165,12 +165,12 @@ export function checkIndividualProofs(state, ballot, idx) {
     const commitments = [pA0, pB0, pA1, pB1];
 
     let S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
-    const H = Hiprove(S, pAlpha, pBeta, ...commitments);
+    const nH = Hiprove(S, pAlpha, pBeta, ...commitments);
 
     check(
       "ballots",
       "Valid individual proof",
-      nSumChallenges.toString(16) === H.toString(16),
+      nSumChallenges.toString(16) === nH.toString(16),
       true,
     );
   }
@@ -209,12 +209,12 @@ export function checkOverallProofWithoutBlank(state, ballot, idx) {
 
   let S = `${state.setup.fingerprint}|${ballot.payload.credential}|`;
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
-  const H = Hiprove(S, sumc.alpha, sumc.beta, ...commitments);
+  const nH = Hiprove(S, sumc.alpha, sumc.beta, ...commitments);
 
   check(
     "ballots",
     "Valid overall proof (without blank vote)",
-    nSumChallenges.toString(16) === H.toString(16),
+    nSumChallenges.toString(16) === nH.toString(16),
     true,
   );
 }
@@ -253,12 +253,12 @@ export function checkBlankProof(state, ballot, idx) {
 
   let S = `${state.setup.fingerprint}|${ballot.payload.credential}|`;
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
-  const H = Hbproof0(S, ...[pA0, pB0, pAS, pBS]);
+  const nH = Hbproof0(S, ...[pA0, pB0, pAS, pBS]);
 
   check(
     "ballots",
     "Valid blank proof",
-    nSumChallenges.toString(16) === H.toString(16),
+    nSumChallenges.toString(16) === nH.toString(16),
     true,
   );
 }
@@ -302,12 +302,12 @@ export function checkOverallProofWithBlank(state, ballot, idx) {
 
   let S = `${state.setup.fingerprint}|${ballot.payload.credential}|`;
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
-  const H = Hbproof1(S, ...commitments);
+  const nH = Hbproof1(S, ...commitments);
 
   check(
     "ballots",
     "Valid overall proof (with blank vote)",
-    nSumChallenges.toString(16) === H.toString(16),
+    nSumChallenges.toString(16) === nH.toString(16),
     true,
   );
 }
