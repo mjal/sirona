@@ -1,5 +1,5 @@
 import sjcl from "sjcl";
-import { g, L, rev, mod, isValidPoint, parsePoint, zero } from "./math";
+import { g, L, rev, mod, rand } from "./math";
 
 export default function (state, credential, choices) {
 
@@ -11,8 +11,7 @@ export default function (state, credential, choices) {
 
   const H = "AlZ/yv4k5MY0H9VlAi+zQ1iWRlATlt+FWOEmrBMxnfU"
 
-  // TODO: Use random from math.ts
-  const w = mod(BigInt("0x"+ sjcl.codec.hex.fromBits(sjcl.random.randomWords(8))), L);
+  const w = rand();
   const pA = g.multiply(w);
 
   const hashSignature = sjcl.codec.hex.fromBits(

@@ -10,9 +10,10 @@
     "lint": "prettier --write ."
   },
   "devDependencies": {
+    "@types/sjcl": "^1.0.34",
+    "@vitejs/plugin-vue": "^5.0.4",
     "prettier": "3.2.5",
     "typescript": "^5.4.5",
-    "@vitejs/plugin-vue": "^5.0.4",
     "vite": "^5.2.0"
   },
   "dependencies": {
