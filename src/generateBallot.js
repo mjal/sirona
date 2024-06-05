@@ -12,7 +12,7 @@ export default function (state, credential, choices) {
   const H = "AlZ/yv4k5MY0H9VlAi+zQ1iWRlATlt+FWOEmrBMxnfU"
 
   // TODO: Use random from math.ts
-  const w = BigInt("0x"+ sjcl.codec.hex.fromBits(sjcl.random.randomWords(8)));
+  const w = mod(BigInt("0x"+ sjcl.codec.hex.fromBits(sjcl.random.randomWords(8))), L);
   const pA = g.multiply(w);
 
   const hashSignature = sjcl.codec.hex.fromBits(
