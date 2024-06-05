@@ -1,3 +1,4 @@
+import { sjcl } from "sjcl";
 import { ed25519 } from "@noble/curves/ed25519";
 import type { ExtPointType } from "@noble/curves/abstract/edwards.js";
 
@@ -56,4 +57,10 @@ export function modInverse(a: bigint, m: bigint): bigint {
     throw new Error(`${a} n'a pas d'inverse modulaire sous ${m}`);
   }
   return ((x % m) + m) % m;
+}
+
+export function random() : bigint {
+  const bitArray = sjcl.random.randomWords(8);
+  const hNumber = sjcl.codec.hex.fromBits(bitArray);
+  return BigInt("0x" + hNumber);
 }

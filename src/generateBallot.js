@@ -2,9 +2,31 @@ import sjcl from "sjcl";
 import { g, L, rev, mod, isValidPoint, parsePoint, zero } from "./math";
 
 export default function (state, credential, choices) {
-  //console.log(state);
-  //console.log(credential);
-  //console.log(choices);
+
+  if (!checkVotingCode(state, credential)) {
+    return false;
+  }
+
+  const { nPrivateCredential } = deriveCredential(state, credential);
+
+  const H = "AlZ/yv4k5MY0H9VlAi+zQ1iWRlATlt+FWOEmrBMxnfU"
+
+  // TODO: Use random from math.ts
+  const w = BigInt("0x"+ sjcl.codec.hex.fromBits(sjcl.random.randomWords(8)));
+  const pA = g.multiply(w);
+
+  const hashSignature = sjcl.codec.hex.fromBits(
+    sjcl.hash.sha256.hash(`sig|${H}|${rev(pA.toHex())}`),
+  );
+  const nChallenge = mod(
+    BigInt("0x" + hashSignature),
+    L,
+  );
+  const nResponse = mod(w - nPrivateCredential * nChallenge, L);
+
+  console.log(nPrivateCredential);
+  console.log(nChallenge);
+  console.log(nResponse);
 }
 
 export function deriveCredential(state, credential) {
@@ -31,21 +53,19 @@ export function deriveCredential(state, credential) {
 export function checkVotingCode(state, credential) {
   if (!/[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}/.test(credential)) {
     alert("Invalid credential format");
-    return ;
+    return false;
   }
 
-  const {
-    nPrivateCredential,
-    hPublicCredential
-  } = deriveCredential(state, credential);
+  const { hPublicCredential } = deriveCredential(state, credential);
 
   const electionPublicCredentials =
     state.credentialsWeights.map((c) => c.credential);
 
   if (electionPublicCredentials.includes(hPublicCredential)) {
-    alert("Correct voting code");
+    return true;
   } else {
     alert("Incorrect voting code");
+    return false;
   }
 }
 
