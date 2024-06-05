@@ -3,12 +3,7 @@ import { g, L, rev, mod, isValidPoint, parsePoint, zero } from "./math";
 
 export default function (state) {}
 
-export function checkVotingCode(state, credential) {
-  if (!/[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}/.test(credential)) {
-    alert("Invalid credential format");
-    return ;
-  }
-
+export function deriveCredential(state, credential) {
   const prefix = `derive_credential|${state.setup.payload.election.uuid}`;
 
   const x0 = sjcl.codec.hex.fromBits(
@@ -19,9 +14,27 @@ export function checkVotingCode(state, credential) {
     sjcl.hash.sha256.hash(`${prefix}|1|${credential}`),
   );
 
-  const x = mod(BigInt("0x" + x0 + x1), L);
-  const publicCredential = g.multiply(x);
-  const hPublicCredential = rev(publicCredential.toHex());
+  const nPrivateCredential = mod(BigInt("0x" + x0 + x1), L);
+  const pPublicCredential = g.multiply(nPrivateCredential);
+  const hPublicCredential = rev(pPublicCredential.toHex());
+
+  return {
+    nPrivateCredential,
+    hPublicCredential
+  };
+}
+
+export function checkVotingCode(state, credential) {
+  if (!/[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}/.test(credential)) {
+    alert("Invalid credential format");
+    return ;
+  }
+
+  const {
+    nPrivateCredential,
+    hPublicCredential
+  } = deriveCredential(state, credential);
+
   const electionPublicCredentials =
     state.credentialsWeights.map((c) => c.credential);
 
