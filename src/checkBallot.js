@@ -168,23 +168,15 @@ export function checkIndividualProofs(state, ballot, idx) {
       BigInt(individualProofs[j][1].challenge),
       BigInt(individualProofs[j][1].response),
     1);
-    const values = [pA0, pB0, pA1, pB1];
+    const commitments = [pA0, pB0, pA1, pB1];
 
-    const S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
-    let sChallenge = `prove|${S}|${choices[j].alpha},${choices[j].beta}|`;
-    sChallenge += values.map((v) => rev(v.toHex())).join(",");
-
-    const hVerification = sjcl.codec.hex.fromBits(
-      sjcl.hash.sha256.hash(sChallenge),
-    );
-    const hReducedVerification = mod(BigInt("0x" + hVerification), L).toString(
-      16,
-    );
+    let S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
+    const H = Hiprove(S, pAlpha, pBeta, ...commitments);
 
     check(
       "ballots",
       "Valid individual proof",
-      nSumChallenges.toString(16) === hReducedVerification,
+      nSumChallenges.toString(16) === H.toString(16),
       true,
     );
   }
