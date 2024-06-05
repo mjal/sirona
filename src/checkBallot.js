@@ -1,7 +1,7 @@
 import sjcl from "sjcl";
 import { check, logError } from "./utils.js";
 import { g, L, rev, mod, isValidPoint, parsePoint, zero,
-  formula1, Hiprove, Hbproof0, Hbproof1 } from "./math";
+  formula1, Hiprove, Hbproof0, Hbproof1, Hsignature } from "./math";
 import { canonicalSerialization } from "./serializeBallot";
 
 export default function (state, ballot) {
@@ -93,23 +93,18 @@ export function checkSignature(ballot) {
   );
 
   const credential = parsePoint(ballot.payload.credential);
+  // TODO Refactor (as formula?)
   const signature = ballot.payload.signature;
   const nChallenge = BigInt(signature.proof.challenge);
   const nResponse = BigInt(signature.proof.response);
   const pA = g.multiply(nResponse).add(credential.multiply(nChallenge));
-  const verificationHash = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(`sig|${signature.hash}|${rev(pA.toHex())}`),
-  );
 
-  const hexReducedVerificationHash = mod(
-    BigInt("0x" + verificationHash),
-    L,
-  ).toString(16);
+  const H = Hsignature(signature.hash, pA);
 
   check(
     "ballots",
     "Valid signature",
-    nChallenge.toString(16) === hexReducedVerificationHash,
+    nChallenge.toString(16) === H.toString(16),
     true,
   );
 }

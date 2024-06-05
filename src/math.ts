@@ -110,3 +110,7 @@ export function Hbproof0(S: string, ...commitments: Array<ExtPointType>) {
 export function Hbproof1(S: string, ...commitments: Array<ExtPointType>) {
   return H(`bproof1|${S}`, ...commitments);
 }
+
+export function Hsignature(h: string, A: ExtPointType) {
+  return H(`sig|${h}`, A);
+}

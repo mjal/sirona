@@ -70,6 +70,8 @@ export function signature(nPrivateCredential, hash) {
   const w = rand();
   const pA = g.multiply(w);
 
+  // TODO: Refactor using Hsignature
+  // TODO: nChallenge = Hsignature(hash, pA);
   const hashSignature = sjcl.codec.hex.fromBits(
     sjcl.hash.sha256.hash(`sig|${hash}|${rev(pA.toHex())}`),
   );
