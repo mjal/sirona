@@ -80,6 +80,13 @@ const goToBallotList = () => {
       >
         Generate a ballot
       </button>
+      <button
+        class="uk-button uk-button-default"
+        type="button"
+        onclick="window.location.reload();"
+      >
+        Upload another file
+      </button>
     </div>
 
     <ul uk-tab>
