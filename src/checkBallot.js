@@ -1,7 +1,7 @@
 import sjcl from "sjcl";
 import { check, logError } from "./utils.js";
 import { g, L, rev, mod, isValidPoint, parsePoint, zero,
-  formula1, Hiprove } from "./math";
+  formula1, Hiprove, Hbproof0, Hbproof1 } from "./math";
 import { canonicalSerialization } from "./serializeBallot";
 
 export default function (state, ballot) {
@@ -258,26 +258,13 @@ export function checkBlankProof(state, ballot, idx) {
   const pBS = pY.multiply(nResponseS).add(pBetaS.multiply(nChallengeS));
 
   let S = `${state.setup.fingerprint}|${ballot.payload.credential}|`;
-  const alphasBetas = [];
-  for (let j = 0; j < answer.choices.length; j++) {
-    alphasBetas.push(`${answer.choices[j].alpha},${answer.choices[j].beta}`);
-  }
-  S = S + alphasBetas.join(",");
-  let sChallenge = `bproof0|${S}|`;
-  sChallenge += `${rev(pA0.toHex())},${rev(pB0.toHex())},`;
-  sChallenge += `${rev(pAS.toHex())},${rev(pBS.toHex())}`;
-
-  const hVerification = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(sChallenge),
-  );
-  const hReducedVerification = mod(BigInt("0x" + hVerification), L).toString(
-    16,
-  );
+  S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
+  const H = Hbproof0(S, ...[pA0, pB0, pAS, pBS]);
 
   check(
     "ballots",
     "Valid blank proof",
-    nSumChallenges.toString(16) === hReducedVerification,
+    nSumChallenges.toString(16) === H.toString(16),
     true,
   );
 }
@@ -294,7 +281,7 @@ export function checkOverallProofWithBlank(state, ballot, idx) {
     pBetaS = pBetaS.add(parsePoint(answer.choices[j].beta));
   }
 
-  let pABs = [];
+  let commitments = [];
   const [pA, pB] =
     formula1(pY,
       parsePoint(answer.choices[0].alpha),
@@ -303,7 +290,7 @@ export function checkOverallProofWithBlank(state, ballot, idx) {
       BigInt(answer.overall_proof[0].response),
       1
     );
-  pABs.push(pA, pB);
+  commitments.push(pA, pB);
   for (let j = 1; j < question.max - question.min + 2; j++) {
     const [pA, pB] =
       formula1(pY, pAlphaS, pBetaS,
@@ -311,7 +298,7 @@ export function checkOverallProofWithBlank(state, ballot, idx) {
         BigInt(answer.overall_proof[j].response),
         (question.min + j - 1)
       );
-    pABs.push(pA, pB);
+    commitments.push(pA, pB);
   }
 
   const nSumChallenges = answer.overall_proof.reduce(
@@ -320,25 +307,13 @@ export function checkOverallProofWithBlank(state, ballot, idx) {
   );
 
   let S = `${state.setup.fingerprint}|${ballot.payload.credential}|`;
-  const alphasBetas = [];
-  for (let j = 0; j < answer.choices.length; j++) {
-    alphasBetas.push(`${answer.choices[j].alpha},${answer.choices[j].beta}`);
-  }
-  S = S + alphasBetas.join(",");
-  let sChallenge = `bproof1|${S}|`;
-  sChallenge += pABs.map((p) => rev(p.toHex())).join(",");
-
-  const hVerification = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(sChallenge),
-  );
-  const hReducedVerification = mod(BigInt("0x" + hVerification), L).toString(
-    16,
-  );
+  S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
+  const H = Hbproof1(S, ...commitments);
 
   check(
     "ballots",
     "Valid overall proof (with blank vote)",
-    nSumChallenges.toString(16) === hReducedVerification,
+    nSumChallenges.toString(16) === H.toString(16),
     true,
   );
 }
