@@ -1,5 +1,5 @@
 <script setup>
-  import { checkVotingCode } from "../generateBallot.js";
+  import generateBallot, { checkVotingCode } from "../generateBallot.js";
   import { ref, computed } from "vue";
 
   const props = defineProps(["state", "loaded"]);
@@ -9,14 +9,22 @@
       : [];
   });
 
-  const generateBallot = (event) => {
+  const submitForm = (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const data = {};
     formData.forEach((value, key) => {
       data[key] = value;
     });
-    console.log(data);
+    const choices = questions.value.map((question, i) => {
+      const answer = Number(data[`q-${i}`]);
+      console.log("answer", answer);
+      return question.answers.map((_answerName, j) => {
+        return (j === answer) ? 1 : 0;
+      });
+    });
+    generateBallot(props.state, credential.value.trim(), choices);
+    return false;
   }
 
   const credential = ref("");
@@ -34,7 +42,7 @@
         <div id="generate-ballot-form">
 
         </div>
-          <form @submit="generateBallot">
+          <form @submit.prevent="submitForm">
             <div class="uk-margin">
               <label class="uk-form-label" for="generate-ballot-private-key">
                 Code de vote
@@ -60,7 +68,6 @@
                 </label>
                 <div class="uk-form-controls">
                   <select class="uk-select generate-ballot-input" v-bind:name="'q-'+i">
-                    <option value="">Select an answer</option>
                     <option v-bind:value="j" v-for="(answer, j) in question.answers" v-bind:key="j">
                       {{ answer }}
                     </option>

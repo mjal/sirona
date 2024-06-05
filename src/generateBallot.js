@@ -1,7 +1,11 @@
 import sjcl from "sjcl";
 import { g, L, rev, mod, isValidPoint, parsePoint, zero } from "./math";
 
-export default function (state) {}
+export default function (state, credential, choices) {
+  //console.log(state);
+  //console.log(credential);
+  //console.log(choices);
+}
 
 export function deriveCredential(state, credential) {
   const prefix = `derive_credential|${state.setup.payload.election.uuid}`;
@@ -44,3 +48,10 @@ export function checkVotingCode(state, credential) {
     alert("Incorrect voting code");
   }
 }
+
+
+  //w = 5767426717320278105808180679191610987036363809609081470436789699505614842079
+  //commitment = 0c55ad407fa71d15d99dd5dd3fcd925626bc4198fa12e4aa15ce310ffe2d710d
+  //prefix = w2c7YUcZPGFr49kk4Rjcl9IInG2C9Wasc5XJQVTN/7M
+  //challenge = 1453655888106430541245856700560483286523540041418339004856777176507583806003
+  //response = 6788297434139194963839331309087347281187156414064677162784244285442555274408
