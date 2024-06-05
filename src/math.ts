@@ -84,14 +84,29 @@ export function formula1(
   return [pA, pB];
 }
 
+function H(
+  prefix: string,
+  ...commitments: Array<ExtPointType>
+) {
+  const str = `${prefix}|${commitments.map((p)=>rev(p.toHex())).join(",")}`;
+  const h = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(str));
+  return mod(BigInt("0x" + h), L);
+}
+
 export function Hiprove(
   S: string,
   alpha: ExtPointType,
   beta: ExtPointType,
   ...commitments: Array<ExtPointType>
 ) {
-  const str = `prove|${S}|${rev(alpha.toHex())},${rev(beta.toHex())}|${commitments.map((p)=>rev(p.toHex())).join(",")}`;
-  console.log(str);
-  const h = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(str));
-  return mod(BigInt("0x" + h), L);
+  const prefix = `prove|${S}|${rev(alpha.toHex())},${rev(beta.toHex())}`;
+  return H(prefix, ...commitments);
+}
+
+export function Hbproof0(S: string, ...commitments: Array<ExtPointType>) {
+  return H(`bproof0|${S}`, ...commitments);
+}
+
+export function Hbproof1(S: string, ...commitments: Array<ExtPointType>) {
+  return H(`bproof1|${S}`, ...commitments);
 }
