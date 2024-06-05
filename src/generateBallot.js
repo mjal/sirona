@@ -1,5 +1,5 @@
 import sjcl from "sjcl";
-import { g, L, rev, mod, rand } from "./math";
+import { g, L, rev, mod, rand, formula2 } from "./math";
 
 export default function (state, credential, choices) {
 
@@ -33,7 +33,7 @@ export function encrypt(state, plaintext) {
   }
 
   for (let i = 0; i < 2; i++) {
-    const [pA, pB] = formula1(pY, pAlpha, pBeta,
+    const [pA, pB] = formula2(pY, pAlpha, pBeta,
       BigInt(iproof[i].challenge),
       BigInt(iproof[i].response), i);
     commitments.push([pA, pB]);

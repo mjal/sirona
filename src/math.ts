@@ -62,9 +62,13 @@ export function rand() : bigint {
   return mod(BigInt("0x" + hNumber), L);
 }
 
+export function formula(p1: point, e1: bigint, p2: point, e2: bigint) {
+  return p1.multiply(e1).add(p2.multiply(e2));
+}
+
 //A = g**response * alpha**challenge
 //B = y**response * (beta / (g**m))**challenge
-export function formula1(
+export function formula2(
   pY: point,
   pAlpha: point,
   pBeta: point,
@@ -72,11 +76,10 @@ export function formula1(
   nResponse: bigint,
   m: number
 ) {
-
-  const pA = g.multiply(nResponse).add(pAlpha.multiply(nChallenge));
+  const pA = formula(g,  nResponse, pAlpha, nChallenge);
   const gPowerM = m === 0 ? zero : g.multiply(BigInt(m));
   const pBDivGPowerM = pBeta.add(gPowerM.negate());
-  const pB = pY.multiply(nResponse).add(pBDivGPowerM.multiply(nChallenge));
+  const pB = formula(pY, nResponse, pBDivGPowerM, nChallenge);
 
   return [pA, pB];
 }
