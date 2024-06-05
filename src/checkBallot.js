@@ -1,6 +1,7 @@
 import sjcl from "sjcl";
 import { check, logError } from "./utils.js";
-import { g, L, rev, mod, isValidPoint, parsePoint, zero, formula1 } from "./math";
+import { g, L, rev, mod, isValidPoint, parsePoint, zero,
+  formula1, Hiprove } from "./math";
 import { canonicalSerialization } from "./serializeBallot";
 
 export default function (state, ballot) {
@@ -210,36 +211,24 @@ export function checkOverallProofWithoutBlank(state, ballot, idx) {
     nSumChallenges = mod(nSumChallenges + challenge, L);
   }
 
-  let values = [];
+  let commitments = [];
+  // TODO: j = 0; j <= (question.max - question.min)
   for (let j = question.min; j <= question.max; j++) {
     const [pA, pB] = formula1(pY, sumc.alpha, sumc.beta,
       BigInt(answer.overall_proof[j - question.min].challenge),
       BigInt(answer.overall_proof[j - question.min].response),
       j);
-    values.push(pA, pB);
+    commitments.push(pA, pB);
   }
 
-  let sChallenge = "prove|";
-  sChallenge += `${state.setup.fingerprint}|${ballot.payload.credential}|`;
-  const alphasBetas = [];
-  for (let j = 0; j < answer.choices.length; j++) {
-    alphasBetas.push(`${answer.choices[j].alpha},${answer.choices[j].beta}`);
-  }
-  sChallenge += alphasBetas.join(",");
-  sChallenge += `|${rev(sumc.alpha.toHex())},${rev(sumc.beta.toHex())}|`;
-  sChallenge += values.map((v) => rev(v.toHex())).join(",");
-
-  const hVerification = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(sChallenge),
-  );
-  const hReducedVerification = mod(BigInt("0x" + hVerification), L).toString(
-    16,
-  );
+  let S = `${state.setup.fingerprint}|${ballot.payload.credential}|`;
+  S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
+  const H = Hiprove(S, sumc.alpha, sumc.beta, ...commitments);
 
   check(
     "ballots",
     "Valid overall proof (without blank vote)",
-    nSumChallenges.toString(16) === hReducedVerification,
+    nSumChallenges.toString(16) === H.toString(16),
     true,
   );
 }

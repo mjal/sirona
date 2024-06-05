@@ -83,3 +83,15 @@ export function formula1(
 
   return [pA, pB];
 }
+
+export function Hiprove(
+  S: string,
+  alpha: ExtPointType,
+  beta: ExtPointType,
+  ...commitments: Array<ExtPointType>
+) {
+  const str = `prove|${S}|${rev(alpha.toHex())},${rev(beta.toHex())}|${commitments.map((p)=>rev(p.toHex())).join(",")}`;
+  console.log(str);
+  const h = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(str));
+  return mod(BigInt("0x" + h), L);
+}
