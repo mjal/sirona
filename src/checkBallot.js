@@ -45,7 +45,7 @@ function checkMisc(state, ballot) {
     true,
   );
 
-  const sSerializedBallot = canonicalSerialization(ballot);
+  const sSerializedBallot = canonicalSerialization(ballot.payload);
   check(
     "ballots",
     "Is canonical",

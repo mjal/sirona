@@ -4,10 +4,10 @@ export function canonicalSerialization(ballot) {
   // is not guaranteed by the JSON standard, but it is guaranteed
   // by JSON.stringify in most implementations.
   const obj = {
-    election_uuid: ballot.payload.election_uuid,
-    election_hash: ballot.payload.election_hash,
-    credential: ballot.payload.credential,
-    answers: ballot.payload.answers.map((answer) => {
+    election_uuid: ballot.election_uuid,
+    election_hash: ballot.election_hash,
+    credential: ballot.credential,
+    answers: ballot.answers.map((answer) => {
       let obj = {};
       if (Array.isArray(answer.choices)) {
         obj.choices = answer.choices.map((choice) => {
@@ -63,7 +63,7 @@ export function canonicalSerialization(ballot) {
       }
       return obj;
     }),
-    signature: ballot.payload.signature,
+    signature: ballot.signature,
   };
   return JSON.stringify(obj);
 }
