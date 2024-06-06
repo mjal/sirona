@@ -55,7 +55,7 @@ function checkMisc(state, ballot) {
   );
 }
 
-function hashWithoutSignature(ballot) {
+export function hashWithoutSignature(ballot) {
   const copy = Object.assign({}, ballot.payload);
   delete copy.signature;
   const serialized = JSON.stringify(copy);
