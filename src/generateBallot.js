@@ -72,7 +72,6 @@ export function encrypt(state, nPrivateCredential, choices) {
       }
     }
 
-    console.log(pAlpha.toHex(), pBeta.toHex(), iproof);
     ciphertexts.push({
       alpha: pAlpha.toHex(),
       beta: pBeta.toHex(),
