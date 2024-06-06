@@ -1,22 +1,42 @@
 import sjcl from "sjcl";
 import { g, L, rev, mod, rand, formula2, parsePoint, Hiprove, zero } from "./math";
+import { hashWithoutSignature } from "./checkBallot";
+import { canonicalSerialization } from "./serializeBallot";
 
-export default function (state, credential, choicess) {
+export default function (state, credential, choices) {
 
   if (!checkVotingCode(state, credential)) {
     return false;
   }
 
-  const { nPrivateCredential } = deriveCredential(state, credential);
+  const {
+    hPublicCredential,
+    nPrivateCredential
+  } = deriveCredential(state, credential);
 
-  for (let i = 0; i < choicess.length; i++) {
-    const choices = choicess[i];
-    console.log(encrypt(state, nPrivateCredential, choices));
+  let answers = [];
+  for (let i = 0; i < choices.length; i++) {
+    const question = state.setup.payload.election.questions[i];
+    answers.push(generateAnswer(state, question, nPrivateCredential, choices[i]));
   }
 
-  const hH = "AlZ/yv4k5MY0H9VlAi+zQ1iWRlATlt+FWOEmrBMxnfU"
+  const ballotWithoutSignature = {
+    answers,
+    credential: hPublicCredential,
+    election_hash: state.setup.fingerprint,
+    election_uuid: state.setup.payload.election.uuid,
+  };
 
-  console.log(signature(nPrivateCredential, hH));
+  const hH = hashWithoutSignature(ballotWithoutSignature);
+
+  const ballot = {
+    ...ballotWithoutSignature,
+    signature: signature(nPrivateCredential, hH),
+  };
+
+  console.log("Ballot");
+  console.log(ballot);
+  console.log(canonicalSerialization(ballot));
 }
 
 export function checkVotingCode(state, credential) {
@@ -38,73 +58,91 @@ export function checkVotingCode(state, credential) {
   }
 }
 
-function encrypt(state, nPrivateCredential, choices) {
+function iproof(prefix, pY, pAlpha, pBeta, r, m, M) {
+  const w = rand();
+  let commitments = [];
+  let proofs = [];
+
+  for (let i = 0; i < M.length; i++) {
+    if (m !== M[i]) {
+      const nChallenge = rand();
+      const nResponse  = rand();
+      proofs.push({ nChallenge, nResponse });
+      const [pA, pB] = formula2(pY, pAlpha, pBeta, nChallenge, nResponse, M[i]);
+      commitments.push(pA, pB);
+    } else { // m === M[i]
+      proofs.push({ nChallenge: BigInt(0), nResponse: BigInt(0) });
+      const pA = g.multiply(w);
+      const pB = pY.multiply(w);
+      commitments.push(pA, pB);
+    }
+  }
+
+  const nH = Hiprove(prefix, pAlpha, pBeta, ...commitments);
+
+  const nSumChallenge = proofs.reduce((acc, proof) => {
+    return mod(acc + proof.nChallenge, L);
+  }, BigInt(0));
+
+  for (let i = 0; i < M.length; i++) {
+    if (m === M[i]) {
+      proofs[i].nChallenge = mod(nH - nSumChallenge, L);
+      proofs[i].nResponse = mod(w - r * proofs[i].nChallenge, L);
+    }
+  }
+
+  return proofs.map((proof) => {
+    return {
+      challenge: proof.nChallenge.toString(),
+      response: proof.nResponse.toString(),
+    };
+  });
+}
+
+function generateAnswer(state, question, nPrivateCredential, choices) {
   const pY = parsePoint(state.setup.payload.election.public_key);
   const { hPublicCredential } = deriveCredential(state, nPrivateCredential);
 
-  let ciphertexts = [];
-  let individual_proofs = [];
+  let anR = [];
+  let aCiphertexts = [];
+  let aIndividualProofs = [];
 
   for (let i = 0; i < choices.length; i++) {
-    const r = rand();
-    const w = rand();
-    const gPowerM = (choices[i] === 0 ? zero : g); // TODO: Try g.multiply(choices[i]) ?
-    const pAlpha = g.multiply(r);
-    const pBeta = pY.multiply(r).add(gPowerM);
-    let iproof = [];
-    let commitments = [];
+    const nR = rand();
+    const gPowerM = (choices[i] === 0)
+      ? zero
+      : g.multiply(BigInt(choices[i]));
+    const pAlpha = g.multiply(nR);
+    const pBeta = pY.multiply(nR).add(gPowerM);
 
-    for (let j = 0; j < 2; j++) {
-      iproof.push({
-        challenge: rand(),
-        response: rand(),
-      });
-    }
+    const S = `${state.setup.fingerprint}|${hPublicCredential}`;
+    const proof = iproof(S, pY, pAlpha, pBeta, nR, choices[i], [0, 1]);
 
-    for (let j = 0; j < 2; j++) {
-      if (j === choices[i]) {
-        const pA = g.multiply(w);
-        const pB = pY.multiply(w);
-        commitments.push(pA, pB);
-      } else {
-        const [pA, pB] = formula2(pY, pAlpha, pBeta,
-          iproof[j].challenge, iproof[j].response, i);
-        commitments.push(pA, pB);
-      }
-    }
-
-    let nSumChallenge = BigInt(0);
-    for (let j = 0; j < 2; j++) {
-      if (j !== choices[i]) {
-        nSumChallenge = mod(nSumChallenge + BigInt(iproof[j].challenge), L);
-      }
-    }
-
-    let S = `${state.setup.fingerprint}|${hPublicCredential}|`;
-    S += choices.map((c) => `${c.alpha},${c.beta}`).join(",");
-    const nH = Hiprove(S, pAlpha, pBeta, ...commitments);
-
-    for (let j = 0; j < 2; j++) {
-      if (j === choices[i]) {
-        iproof[j].challenge = mod(nH - nSumChallenge, L);
-        iproof[j].response = mod(w - r * iproof[j].challenge, L);
-      }
-    }
-
-    ciphertexts.push({
-      alpha: pAlpha.toHex(),
-      beta: pBeta.toHex(),
-    });
-    individual_proofs.push(iproof);
+    aCiphertexts.push({ pAlpha, pBeta, });
+    aIndividualProofs.push(proof);
+    anR.push(nR);
   }
 
-  //let S = `${state.setup.fingerprint}|${hPublicCredential}|`;
-  //S += choices.map((c) => `${c.alpha},${c.beta}`).join(",");
-  //const nH = Hiprove(
+  const pSumAlpha = aCiphertexts.reduce((acc, c) => acc.add(c.pAlpha), zero);
+  const pSumBeta = aCiphertexts.reduce((acc, c) => acc.add(c.pBeta), zero);
+  const m = choices.reduce((acc, c) => c + acc, 0);
+  const M = Array.from({ length: question.max - question.min + 1 })
+    .map((_, i) => i + question.min);
+  const nR = anR.reduce((acc, r) => mod(acc + r, L), BigInt(0));
+
+  let S = `${state.setup.fingerprint}|${hPublicCredential}|`;
+  S += aCiphertexts.map((c) => `${rev(c.pAlpha.toHex())},${rev(c.pBeta.toHex())}`).join(",");
+  const overallProof = iproof(S, pY, pSumAlpha, pSumBeta, nR, m, M);
 
   return {
-    ciphertexts,
-    individual_proofs,
+    choices: aCiphertexts.map((c) => {
+      return {
+        alpha: rev(c.pAlpha.toHex()),
+        beta: rev(c.pBeta.toHex()),
+      };
+    }),
+    individual_proofs: aIndividualProofs,
+    overall_proof: overallProof,
   };
 }
 
