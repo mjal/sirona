@@ -198,12 +198,11 @@ export function checkOverallProofWithoutBlank(state, ballot, idx) {
   }
 
   let commitments = [];
-  // TODO: j = 0; j <= (question.max - question.min)
-  for (let j = question.min; j <= question.max; j++) {
+  for (let j = 0; j <= (question.max - question.min); j++) {
     const [pA, pB] = formula2(pY, sumc.alpha, sumc.beta,
-      BigInt(answer.overall_proof[j - question.min].challenge),
-      BigInt(answer.overall_proof[j - question.min].response),
-      j);
+      BigInt(answer.overall_proof[j].challenge),
+      BigInt(answer.overall_proof[j].response),
+      question.min + j);
     commitments.push(pA, pB);
   }
 
