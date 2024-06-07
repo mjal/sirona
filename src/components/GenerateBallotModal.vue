@@ -76,8 +76,8 @@
                   </select>
                 </div>
               </div>
-              <input type="submit" class="uk-button uk-button-default" value="Generate ballot" />
             </div>
+            <input type="submit" class="uk-button uk-button-default" value="Generate ballot" />
           </form>
         <div class="uk-margin">
           <label class="uk-form-label" for="generate-ballot-ballot"
