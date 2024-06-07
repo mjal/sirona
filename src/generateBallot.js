@@ -28,7 +28,7 @@ export default function (state, sPriv, choices) {
     election_uuid: state.setup.payload.election.uuid,
   };
 
-  const hH = hashWithoutSignature(ballotWithoutSignature);
+  const hH = hashWithoutSignature({payload: ballotWithoutSignature});
 
   const ballot = {
     ...ballotWithoutSignature,
