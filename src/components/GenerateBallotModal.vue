@@ -4,13 +4,16 @@
   import canonicalBallot from "../canonicalBallot.js";
 
   const props = defineProps(["state", "loaded"]);
+
   const questions = computed(() => {
     return props.state.setup
       ? props.state.setup.payload.election.questions
       : [];
   });
 
+  const credential = ref("");
   const serializedGeneratedBallot = ref("");
+
   const submitForm = (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
@@ -18,21 +21,40 @@
     formData.forEach((value, key) => {
       data[key] = value;
     });
-    const choices = questions.value.map((question, i) => {
-      const answer = Number(data[`q-${i}`]);
-      console.log("answer", answer);
-      return question.answers.map((_answerName, j) => {
-        return (j === answer) ? 1 : 0;
+
+    let answers = [];
+    for (let i = 0; i < questions.value.length; i++) {
+      const question = questions.value[i];
+      const answer = question.answers.map((_answerName, j) => {
+        return (data[`q-${i}-${j}`] === 'on') ? 1 : 0;
       });
-    });
+      const blank = (data[`q-${i}-blank`] === 'on') ? 1 : 0;
+      const nbAnswers = answer.reduce((a, b) => a + b);
+
+      if (nbAnswers < question.min || nbAnswers > question.max) {
+        alert(`Question ${i + 1} must have between ${question.min} and ${question.max} answers`);
+        return false;
+      }
+
+      if (blank && nbAnswers > 0) {
+        alert(`Question ${i + 1} cannot have both answers and blank`);
+        return false;
+      }
+
+      if (question.blank) {
+        answers.push([blank, ...answer]);
+      } else {
+        answers.push(answer);
+      }
+    }
+
     const oBallot =
-      generateBallot(props.state, credential.value.trim(), choices);
+      generateBallot(props.state, credential.value.trim(), answers);
     const sBallot = JSON.stringify(canonicalBallot(oBallot));
     serializedGeneratedBallot.value = sBallot;
     return false;
   }
 
-  const credential = ref("");
   const checkCode = () => {
     if (checkVotingCode(props.state, credential.value.trim())) {
       alert("Code is valid");
@@ -71,15 +93,28 @@
             <div class="uk-margin" v-for="(question, i) in questions" v-bind:key="i">
               <div class="uk-margin">
                 <label class="uk-form-label" v-bind:for="'q-'+i">
-                  {{ question.question }}
+                  {{ question.question }} (Between {{ question.min }} and {{ question.max }} answers)
                 </label>
+
                 <div class="uk-form-controls">
-                  <select class="uk-select generate-ballot-input" v-bind:name="'q-'+i">
-                    <option v-bind:value="j" v-for="(answer, j) in question.answers" v-bind:key="j">
+                  <div v-for="(answer, j) in question.answers" v-bind:key="j">
+                    <label>
+                      <input
+                        type="checkbox"
+                        v-bind:name="'q-'+i+'-'+j"
+                      />
                       {{ answer }}
-                    </option>
-                  </select>
+                    </label>
+                  </div>
+                  <div v-if="question.blank" class="uk-margin">
+                    <label>
+                      <input type="checkbox" v-bind:name="'q-'+i+'-blank'" />
+                      Blank
+                    </label>
+                  </div>
+                  <hr class="uk-margin" />
                 </div>
+
               </div>
             </div>
             <input type="submit" class="uk-button uk-button-default" value="Generate ballot" />
