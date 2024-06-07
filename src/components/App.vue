@@ -100,10 +100,10 @@ const goToBallotList = () => {
       <li>
         <div v-if="!loaded">Not loaded yet.</div>
         <ElectionInfo :state="state" v-if="loaded" />
-        <ElectionResult :state="state" v-if="loaded && state.result"/>
+        <ElectionResult :state="state" v-if="loaded && state.result" />
       </li>
       <li>
-        <ElectionBallotList :state="state" v-if="loaded"/>
+        <ElectionBallotList :state="state" v-if="loaded" />
       </li>
       <li>
         <h3 id="top"></h3>
@@ -120,5 +120,4 @@ const goToBallotList = () => {
   <GenerateBallotModal :state="state" v-if="loaded" />
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

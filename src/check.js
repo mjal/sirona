@@ -1,11 +1,5 @@
 import _ from "lodash";
-import {
-  clear,
-  getErrors,
-  logError,
-  logSuccess,
-  _async,
-} from "./utils.js";
+import { clear, getErrors, logError, logSuccess, _async } from "./utils.js";
 import load from "./load.js";
 import checkFiles from "./checkFiles.js";
 import checkSetup from "./checkSetup.js";

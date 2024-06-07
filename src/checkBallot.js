@@ -1,7 +1,20 @@
 import sjcl from "sjcl";
 import { check, logError } from "./utils.js";
-import { g, L, rev, mod, isValidPoint, parsePoint, zero,
-  formula, formula2, Hiprove, Hbproof0, Hbproof1, Hsignature } from "./math";
+import {
+  g,
+  L,
+  rev,
+  mod,
+  isValidPoint,
+  parsePoint,
+  zero,
+  formula,
+  formula2,
+  Hiprove,
+  Hbproof0,
+  Hbproof1,
+  Hsignature,
+} from "./math";
 import canonicalBallot from "./canonicalBallot.js";
 
 export default function (state, ballot) {
@@ -96,8 +109,12 @@ export function checkSignature(ballot) {
   const nChallenge = BigInt(signature.proof.challenge);
   const nResponse = BigInt(signature.proof.response);
 
-  const pA = formula(g, nResponse,
-    parsePoint(ballot.payload.credential), nChallenge);
+  const pA = formula(
+    g,
+    nResponse,
+    parsePoint(ballot.payload.credential),
+    nChallenge,
+  );
   const nH = Hsignature(signature.hash, pA);
 
   check(
@@ -154,14 +171,22 @@ export function checkIndividualProofs(state, ballot, idx) {
       nSumChallenges = mod(nSumChallenges + challenge, L);
     }
 
-    const [pA0, pB0] = formula2(pY, pAlpha, pBeta,
+    const [pA0, pB0] = formula2(
+      pY,
+      pAlpha,
+      pBeta,
       BigInt(individualProofs[j][0].challenge),
       BigInt(individualProofs[j][0].response),
-    0);
-    const [pA1, pB1] = formula2(pY, pAlpha, pBeta,
+      0,
+    );
+    const [pA1, pB1] = formula2(
+      pY,
+      pAlpha,
+      pBeta,
       BigInt(individualProofs[j][1].challenge),
       BigInt(individualProofs[j][1].response),
-    1);
+      1,
+    );
     const commitments = [pA0, pB0, pA1, pB1];
 
     let S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
@@ -198,11 +223,15 @@ export function checkOverallProofWithoutBlank(state, ballot, idx) {
   }
 
   let commitments = [];
-  for (let j = 0; j <= (question.max - question.min); j++) {
-    const [pA, pB] = formula2(pY, sumc.alpha, sumc.beta,
+  for (let j = 0; j <= question.max - question.min; j++) {
+    const [pA, pB] = formula2(
+      pY,
+      sumc.alpha,
+      sumc.beta,
       BigInt(answer.overall_proof[j].challenge),
       BigInt(answer.overall_proof[j].response),
-      question.min + j);
+      question.min + j,
+    );
     commitments.push(pA, pB);
   }
 
@@ -275,22 +304,24 @@ export function checkOverallProofWithBlank(state, ballot, idx) {
   }
 
   let commitments = [];
-  const [pA, pB] =
-    formula2(pY,
-      parsePoint(answer.choices[0].alpha),
-      parsePoint(answer.choices[0].beta),
-      BigInt(answer.overall_proof[0].challenge),
-      BigInt(answer.overall_proof[0].response),
-      1
-    );
+  const [pA, pB] = formula2(
+    pY,
+    parsePoint(answer.choices[0].alpha),
+    parsePoint(answer.choices[0].beta),
+    BigInt(answer.overall_proof[0].challenge),
+    BigInt(answer.overall_proof[0].response),
+    1,
+  );
   commitments.push(pA, pB);
   for (let j = 1; j < question.max - question.min + 2; j++) {
-    const [pA, pB] =
-      formula2(pY, pAlphaS, pBetaS,
-        BigInt(answer.overall_proof[j].challenge),
-        BigInt(answer.overall_proof[j].response),
-        (question.min + j - 1)
-      );
+    const [pA, pB] = formula2(
+      pY,
+      pAlphaS,
+      pBetaS,
+      BigInt(answer.overall_proof[j].challenge),
+      BigInt(answer.overall_proof[j].response),
+      question.min + j - 1,
+    );
     commitments.push(pA, pB);
   }
 

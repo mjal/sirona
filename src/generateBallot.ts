@@ -1,46 +1,60 @@
 import sjcl from "sjcl";
-import { g, L, rev, mod, rand, formula2, parsePoint, Hiprove, zero, point } from "./math";
+import {
+  g,
+  L,
+  rev,
+  mod,
+  rand,
+  formula2,
+  parsePoint,
+  Hiprove,
+  zero,
+  point,
+} from "./math";
 import { hashWithoutSignature } from "./checkBallot";
 import canonicalBallot from "./canonicalBallot";
 import checkBallot from "./checkBallot";
 
-type tProof = { nChallenge: bigint, nResponse: bigint };
-type tSerializedProof = { challenge: string, response: string };
-type tCiphertext = { pAlpha: point, pBeta: point };
-type tSerializedCiphertext = { alpha: string, beta: string }
+type tProof = { nChallenge: bigint; nResponse: bigint };
+type tSerializedProof = { challenge: string; response: string };
+type tCiphertext = { pAlpha: point; pBeta: point };
+type tSerializedCiphertext = { alpha: string; beta: string };
 
 type tAnswerWithoutBlank = {
-  choices: Array<tSerializedCiphertext>,
-  individual_proofs: Array<Array<tSerializedProof>>,
-  overall_proof: Array<tSerializedProof>
-}
+  choices: Array<tSerializedCiphertext>;
+  individual_proofs: Array<Array<tSerializedProof>>;
+  overall_proof: Array<tSerializedProof>;
+};
 
 type tAnswerWithBlank = {
-  choices: Array<tSerializedCiphertext>,
-  individual_proofs: Array<Array<tSerializedProof>>,
-  blank_proof: Array<tSerializedProof>,
-  overall_proof: Array<tSerializedProof>
-}
+  choices: Array<tSerializedCiphertext>;
+  individual_proofs: Array<Array<tSerializedProof>>;
+  blank_proof: Array<tSerializedProof>;
+  overall_proof: Array<tSerializedProof>;
+};
 
 type tAnswer = tAnswerWithoutBlank | tAnswerWithBlank;
 
-export default function (state: any, sPriv: string, choices: Array<Array<number>>) {
-
+export default function (
+  state: any,
+  sPriv: string,
+  choices: Array<Array<number>>,
+) {
   if (!checkVotingCode(state, sPriv)) {
     return false;
   }
 
-  const {
-    hPublicCredential,
-    nPrivateCredential
-  } = deriveCredential(state, sPriv);
+  const { hPublicCredential, nPrivateCredential } = deriveCredential(
+    state,
+    sPriv,
+  );
 
-  let answers : Array<tAnswer> = [];
+  let answers: Array<tAnswer> = [];
   for (let i = 0; i < choices.length; i++) {
     const question = state.setup.payload.election.questions[i];
-    const f = (question.blank)
+    const f = question.blank
       ? generateAnswerWithBlank
-      : generateAnswerWithoutBlank
+      : generateAnswerWithoutBlank;
     const answer = f(state, question, sPriv, choices[i]);
     answers.push(answer);
   }
@@ -52,7 +66,7 @@ export default function (state: any, sPriv: string, choices: Array<Array<number>
     election_uuid: state.setup.payload.election.uuid,
   };
 
-  const hH = hashWithoutSignature({payload: ballotWithoutSignature});
+  const hH = hashWithoutSignature({ payload: ballotWithoutSignature });
 
   const ballot = {
     ...ballotWithoutSignature,
@@ -70,15 +84,18 @@ export default function (state: any, sPriv: string, choices: Array<Array<number>
 }
 
 export function checkVotingCode(state: any, sPriv: string) {
-  if (!/[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}/.test(sPriv)) {
+  if (
+    !/[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}/.test(sPriv)
+  ) {
     alert("Invalid credential format");
     return false;
   }
 
   const { hPublicCredential } = deriveCredential(state, sPriv);
 
-  const electionPublicCredentials =
-    state.credentialsWeights.map((c: any) => c.credential);
+  const electionPublicCredentials = state.credentialsWeights.map(
+    (c: any) => c.credential,
+  );
 
   if (electionPublicCredentials.includes(hPublicCredential)) {
     return true;
@@ -89,21 +106,27 @@ export function checkVotingCode(state: any, sPriv: string) {
 }
 
 function iproof(
-  prefix: string, pY: point, pAlpha: point, pBeta: point,
-  r: bigint, m: number, M: Array<number>
+  prefix: string,
+  pY: point,
+  pAlpha: point,
+  pBeta: point,
+  r: bigint,
+  m: number,
+  M: Array<number>,
 ) {
   const w = rand();
-  let commitments : Array<point> = [];
-  let proofs : Array<tProof> = [];
+  let commitments: Array<point> = [];
+  let proofs: Array<tProof> = [];
 
   for (let i = 0; i < M.length; i++) {
     if (m !== M[i]) {
       const nChallenge = rand();
-      const nResponse  = rand();
+      const nResponse = rand();
       proofs.push({ nChallenge, nResponse });
       const [pA, pB] = formula2(pY, pAlpha, pBeta, nChallenge, nResponse, M[i]);
       commitments.push(pA, pB);
-    } else { // m === M[i]
+    } else {
+      // m === M[i]
       proofs.push({ nChallenge: BigInt(0), nResponse: BigInt(0) });
       const pA = g.multiply(w);
       const pB = pY.multiply(w);
@@ -136,24 +159,22 @@ function generateEncryptions(
   state: any,
   pY: point,
   hPublicCredential: string,
-  choices: Array<number>
+  choices: Array<number>,
 ) {
-  let anR : Array<bigint> = [];
-  let aCiphertexts : Array<tCiphertext> = [];
-  let aIndividualProofs : Array<Array<tSerializedProof>> = [];
+  let anR: Array<bigint> = [];
+  let aCiphertexts: Array<tCiphertext> = [];
+  let aIndividualProofs: Array<Array<tSerializedProof>> = [];
 
   for (let i = 0; i < choices.length; i++) {
     const nR = rand();
-    const gPowerM = (choices[i] === 0)
-      ? zero
-      : g.multiply(BigInt(choices[i]));
+    const gPowerM = choices[i] === 0 ? zero : g.multiply(BigInt(choices[i]));
     const pAlpha = g.multiply(nR);
     const pBeta = pY.multiply(nR).add(gPowerM);
 
     const S = `${state.setup.fingerprint}|${hPublicCredential}`;
     const proof = iproof(S, pY, pAlpha, pBeta, nR, choices[i], [0, 1]);
 
-    aCiphertexts.push({ pAlpha, pBeta, });
+    aCiphertexts.push({ pAlpha, pBeta });
     aIndividualProofs.push(proof);
     anR.push(nR);
   }
@@ -165,22 +186,29 @@ function generateAnswerWithBlank(
   state: any,
   question: any,
   sPriv: string,
-  choices: Array<number>
-) : tAnswerWithoutBlank {
+  choices: Array<number>,
+): tAnswerWithoutBlank {
   const pY = parsePoint(state.setup.payload.election.public_key);
   const { hPublicCredential } = deriveCredential(state, sPriv);
-  const { anR, aCiphertexts, aIndividualProofs }
-    = generateEncryptions(state, pY, hPublicCredential, choices);
+  const { anR, aCiphertexts, aIndividualProofs } = generateEncryptions(
+    state,
+    pY,
+    hPublicCredential,
+    choices,
+  );
 
   const pSumAlpha = aCiphertexts.reduce((acc, c) => acc.add(c.pAlpha), zero);
   const pSumBeta = aCiphertexts.reduce((acc, c) => acc.add(c.pBeta), zero);
   const m = choices.reduce((acc, c) => c + acc, 0);
-  const M = Array.from({ length: question.max - question.min + 1 })
-    .map((_, i) => i + question.min);
+  const M = Array.from({ length: question.max - question.min + 1 }).map(
+    (_, i) => i + question.min,
+  );
   const nR = anR.reduce((acc, r) => mod(acc + r, L), BigInt(0));
 
   let S = `${state.setup.fingerprint}|${hPublicCredential}|`;
-  S += aCiphertexts.map((c) => `${rev(c.pAlpha.toHex())},${rev(c.pBeta.toHex())}`).join(",");
+  S += aCiphertexts
+    .map((c) => `${rev(c.pAlpha.toHex())},${rev(c.pBeta.toHex())}`)
+    .join(",");
   const overallProof = iproof(S, pY, pSumAlpha, pSumBeta, nR, m, M);
 
   return {
@@ -199,12 +227,16 @@ function generateAnswerWithoutBlank(
   state: any,
   question: any,
   sPriv: string,
-  choices: Array<number>
-) : tAnswerWithBlank {
+  choices: Array<number>,
+): tAnswerWithBlank {
   const pY = parsePoint(state.setup.payload.election.public_key);
   const { hPublicCredential } = deriveCredential(state, sPriv);
-  const { anR, aCiphertexts, aIndividualProofs }
-    = generateEncryptions(state, pY, hPublicCredential, choices);
+  const { anR, aCiphertexts, aIndividualProofs } = generateEncryptions(
+    state,
+    pY,
+    hPublicCredential,
+    choices,
+  );
 
   return {
     choices: aCiphertexts.map((c) => {
@@ -228,18 +260,15 @@ function signature(nPriv: bigint, sHash: string) {
   const hashSignature = sjcl.codec.hex.fromBits(
     sjcl.hash.sha256.hash(`sig|${sHash}|${rev(pA.toHex())}`),
   );
-  const nChallenge = mod(
-    BigInt("0x" + hashSignature),
-    L,
-  );
+  const nChallenge = mod(BigInt("0x" + hashSignature), L);
   const nResponse = mod(w - nPriv * nChallenge, L);
 
   return {
     hash: sHash,
     proof: {
       challenge: nChallenge.toString(),
-      response: nResponse.toString()
-    }
+      response: nResponse.toString(),
+    },
   };
 }
 
@@ -260,7 +289,6 @@ function deriveCredential(state: any, sPriv: string) {
 
   return {
     nPrivateCredential,
-    hPublicCredential
+    hPublicCredential,
   };
 }
-

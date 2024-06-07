@@ -18,4 +18,3 @@ Roadmap:
 - [ ] B.1.2 Verify shuffleds questions with blank vote
 
 - [x] T.1 Pedersen trustees
-

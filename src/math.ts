@@ -2,7 +2,7 @@ import sjcl from "sjcl";
 import { ed25519 } from "@noble/curves/ed25519";
 import type { ExtPointType } from "@noble/curves/abstract/edwards.js";
 
-export type point = ExtPointType
+export type point = ExtPointType;
 export const zero = ed25519.ExtendedPoint.ZERO;
 export const g = ed25519.ExtendedPoint.BASE;
 export const q = 2n ** 255n - 19n;
@@ -56,7 +56,7 @@ export function modInverse(a: bigint, m: bigint): bigint {
   return ((x % m) + m) % m;
 }
 
-export function rand() : bigint {
+export function rand(): bigint {
   const bitArray = sjcl.random.randomWords(8);
   const hNumber = sjcl.codec.hex.fromBits(bitArray);
   return mod(BigInt("0x" + hNumber), L);
@@ -74,9 +74,9 @@ export function formula2(
   pBeta: point,
   nChallenge: bigint,
   nResponse: bigint,
-  m: number
+  m: number,
 ) {
-  const pA = formula(g,  nResponse, pAlpha, nChallenge);
+  const pA = formula(g, nResponse, pAlpha, nChallenge);
   const gPowerM = m === 0 ? zero : g.multiply(BigInt(m));
   const pBDivGPowerM = pBeta.add(gPowerM.negate());
   const pB = formula(pY, nResponse, pBDivGPowerM, nChallenge);
@@ -84,11 +84,8 @@ export function formula2(
   return [pA, pB];
 }
 
-function H(
-  prefix: string,
-  ...commitments: Array<point>
-) {
-  const str = `${prefix}|${commitments.map((p)=>rev(p.toHex())).join(",")}`;
+function H(prefix: string, ...commitments: Array<point>) {
+  const str = `${prefix}|${commitments.map((p) => rev(p.toHex())).join(",")}`;
   const h = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(str));
   return mod(BigInt("0x" + h), L);
 }

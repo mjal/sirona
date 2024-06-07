@@ -1,31 +1,28 @@
 <script setup>
-  import { ref, computed } from "vue";
-  import ElectionBallot from "./ElectionBallot.vue";
+import { ref, computed } from "vue";
+import ElectionBallot from "./ElectionBallot.vue";
 
-  const props = defineProps(["state"]);
-  const ballots   = props.state.ballots;
-  const search = ref("");
+const props = defineProps(["state"]);
+const ballots = props.state.ballots;
+const search = ref("");
 
-  const filteredBallots = computed(() => {
-    return ballots.filter(ballot =>
-      ballot.tracker.includes(search.value)
-    );
-  });
+const filteredBallots = computed(() => {
+  return ballots.filter((ballot) => ballot.tracker.includes(search.value));
+});
 </script>
 
 <template>
   <input
     v-model="search"
-      id="ballot-search"
-      placeholder="Search a ballot by smart tracker id"
-      class="uk-input uk-margin"
-      type="text"
-      @change="filerBallots"
-      />
+    id="ballot-search"
+    placeholder="Search a ballot by smart tracker id"
+    class="uk-input uk-margin"
+    type="text"
+    @change="filerBallots"
+  />
   <ul id="ballot-list" class="uk-list uk-list-disc">
     <div v-for="(ballot, index) in filteredBallots" :key="index">
       <ElectionBallot :state="state" :ballot="ballot" />
     </div>
   </ul>
 </template>
-

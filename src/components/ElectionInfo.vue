@@ -1,9 +1,9 @@
 <script setup>
-  import { computed } from "vue";
+import { computed } from "vue";
 
-  const props = defineProps(["state"]);
-  const election = props.state.setup.payload.election;
-  const countBallots = props.state.ballots.length;
+const props = defineProps(["state"]);
+const election = props.state.setup.payload.election;
+const countBallots = props.state.ballots.length;
 </script>
 
 <template>
