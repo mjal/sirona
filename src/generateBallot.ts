@@ -15,7 +15,7 @@ type tAnswerWithoutBlank = {
   overall_proof: Array<tSerializedProof>
 }
 
-export default function (state, sPriv: string, choices: Array<Array<number>>) {
+export default function (state: any, sPriv: string, choices: Array<Array<number>>) {
 
   if (!checkVotingCode(state, sPriv)) {
     return false;
@@ -56,7 +56,7 @@ export default function (state, sPriv: string, choices: Array<Array<number>>) {
   return ballot;
 }
 
-export function checkVotingCode(state, sPriv: string) {
+export function checkVotingCode(state: any, sPriv: string) {
   if (!/[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}/.test(sPriv)) {
     alert("Invalid credential format");
     return false;
@@ -65,7 +65,7 @@ export function checkVotingCode(state, sPriv: string) {
   const { hPublicCredential } = deriveCredential(state, sPriv);
 
   const electionPublicCredentials =
-    state.credentialsWeights.map((c) => c.credential);
+    state.credentialsWeights.map((c: any) => c.credential);
 
   if (electionPublicCredentials.includes(hPublicCredential)) {
     return true;
@@ -120,8 +120,8 @@ function iproof(
 }
 
 function generateAnswer(
-  state,
-  question,
+  state: any,
+  question: any,
   sPriv: string,
   choices: Array<number>
 ) : tAnswerWithoutBlank {
@@ -195,7 +195,7 @@ function signature(nPriv: bigint, sHash: string) {
   };
 }
 
-function deriveCredential(state, sPriv: string) {
+function deriveCredential(state: any, sPriv: string) {
   const prefix = `derive_credential|${state.setup.payload.election.uuid}`;
 
   const x0 = sjcl.codec.hex.fromBits(
