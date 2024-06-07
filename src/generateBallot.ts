@@ -6,8 +6,11 @@ import {
   mod,
   rand,
   formula2,
+  formula,
   parsePoint,
   Hiprove,
+  Hbproof0,
+  Hbproof1,
   zero,
   point,
 } from "./math";
@@ -34,6 +37,20 @@ type tAnswerWithBlank = {
 };
 
 type tAnswer = tAnswerWithoutBlank | tAnswerWithBlank;
+
+function serializeProof(proof: tProof): tSerializedProof {
+  return {
+    challenge: proof.nChallenge.toString(),
+    response: proof.nResponse.toString(),
+  };
+}
+
+function serializeCiphertext(c: tCiphertext): tSerializedCiphertext {
+  return {
+    alpha: rev(c.pAlpha.toHex()),
+    beta: rev(c.pBeta.toHex()),
+  };
+}
 
 export default function (
   state: any,
@@ -147,12 +164,7 @@ function iproof(
     }
   }
 
-  return proofs.map((proof) => {
-    return {
-      challenge: proof.nChallenge.toString(),
-      response: proof.nResponse.toString(),
-    };
-  });
+  return proofs.map(serializeProof);
 }
 
 function generateEncryptions(
@@ -182,7 +194,7 @@ function generateEncryptions(
   return { anR, aCiphertexts, aIndividualProofs };
 }
 
-function generateAnswerWithBlank(
+function generateAnswerWithoutBlank(
   state: any,
   question: any,
   sPriv: string,
@@ -212,18 +224,41 @@ function generateAnswerWithBlank(
   const overallProof = iproof(S, pY, pSumAlpha, pSumBeta, nR, m, M);
 
   return {
-    choices: aCiphertexts.map((c) => {
-      return {
-        alpha: rev(c.pAlpha.toHex()),
-        beta: rev(c.pBeta.toHex()),
-      };
-    }),
+    choices: aCiphertexts.map(serializeCiphertext),
     individual_proofs: aIndividualProofs,
     overall_proof: overallProof,
   };
 }
 
-function generateAnswerWithoutBlank(
+function blankProofs(
+  state: any,
+  hPub: string,
+  pY: point,
+  choices: Array<tCiphertext>,
+  pAlphaS: point,
+  pBetaS: point,
+  nR0: bigint,
+): Array<tProof> {
+  const nChallengeP = rand();
+  const nResponseP = rand();
+  const pAS = formula(g,  nResponseP, pAlphaS, nChallengeP);
+  const pBS = formula(pY, nResponseP, pBetaS, nChallengeP);
+  const nW = rand();
+  const pA0 = g.multiply(nW);
+  const pB0 = pY.multiply(nW);
+
+  let S = `${state.setup.fingerprint}|${hPub}|`;
+  S += choices.map((c) => `${rev(c.pAlpha.toHex())},${rev(c.pBeta.toHex())}`).join(",");
+  const nChallenge0 = Hbproof0(state.setup.fingerprint, pA0, pB0, pAS, pBS);
+  const nResponse0 = mod(nW - nChallenge0 * nR0, L);
+
+  return [
+    { nChallenge: nChallenge0, nResponse: nResponse0 },
+    { nChallenge: nChallengeP, nResponse: nResponseP },
+  ];
+}
+
+function generateAnswerWithBlank(
   state: any,
   question: any,
   sPriv: string,
@@ -238,16 +273,30 @@ function generateAnswerWithoutBlank(
     choices,
   );
 
+  const pAlphaS = aCiphertexts.slice(1).reduce((acc, c) => acc.add(c.pAlpha), zero);
+  const pBetaS = aCiphertexts.slice(1).reduce((acc, c) => acc.add(c.pBeta), zero);
+  const pAlpha0 = aCiphertexts[0].pAlpha;
+  const pBeta0 = aCiphertexts[0].pBeta;
+  const m = choices.slice(1).reduce((acc, c) => c + acc, 0);
+  const M = Array.from({ length: question.max - question.min + 1 }).map(
+    (_, i) => i + question.min,
+  );
+  const nRS = anR.slice(1).reduce((acc, r) => mod(acc + r, L), BigInt(0));
+  const nR0 = anR[0];
+
+  let azBlankProof : Array<tProof> = [];
+  if (m[0] === 0) {
+    azBlankProof = blankProofs(state, hPublicCredential, pY, aCiphertexts, pAlphaS, pBetaS, nR0);
+  } else {
+    azBlankProof = blankProofs(state, hPublicCredential, pY, aCiphertexts, pAlpha0, pBeta0, nRS);
+  }
+
+
   return {
-    choices: aCiphertexts.map((c) => {
-      return {
-        alpha: rev(c.pAlpha.toHex()),
-        beta: rev(c.pBeta.toHex()),
-      };
-    }),
+    choices: aCiphertexts.map(serializeCiphertext),
     individual_proofs: aIndividualProofs,
     overall_proof: [],
-    blank_proof: [],
+    blank_proof: azBlankProof.map(serializeProof)
   };
 }
 
@@ -265,10 +314,7 @@ function signature(nPriv: bigint, sHash: string) {
 
   return {
     hash: sHash,
-    proof: {
-      challenge: nChallenge.toString(),
-      response: nResponse.toString(),
-    },
+    proof: serializeProof({ nChallenge, nResponse }),
   };
 }
 
