@@ -57,9 +57,10 @@ export function modInverse(a: bigint, m: bigint): bigint {
 }
 
 export function rand() : bigint {
-  const bitArray = sjcl.random.randomWords(8);
-  const hNumber = sjcl.codec.hex.fromBits(bitArray);
-  return mod(BigInt("0x" + hNumber), L);
+  return mod(BigInt("0x133"), L);
+  //const bitArray = sjcl.random.randomWords(8);
+  //const hNumber = sjcl.codec.hex.fromBits(bitArray);
+  //return mod(BigInt("0x" + hNumber), L);
 }
 
 export function formula(p1: point, e1: bigint, p2: point, e2: bigint) {

@@ -2,7 +2,7 @@ import sjcl from "sjcl";
 import { check, logError } from "./utils.js";
 import { g, L, rev, mod, isValidPoint, parsePoint, zero,
   formula, formula2, Hiprove, Hbproof0, Hbproof1, Hsignature } from "./math";
-import { canonicalSerialization } from "./serializeBallot";
+import canonicalBallot from "./canonicalBallot.js";
 
 export default function (state, ballot) {
   checkMisc(state, ballot);
@@ -45,7 +45,7 @@ function checkMisc(state, ballot) {
     true,
   );
 
-  const sSerializedBallot = canonicalSerialization(ballot.payload);
+  const sSerializedBallot = JSON.stringify(canonicalBallot(ballot.payload));
   check(
     "ballots",
     "Is canonical",
@@ -56,7 +56,7 @@ function checkMisc(state, ballot) {
 }
 
 export function hashWithoutSignature(ballot) {
-  const copy = Object.assign({}, ballot.payload);
+  const copy = Object.assign({}, canonicalBallot(ballot.payload));
   delete copy.signature;
   const serialized = JSON.stringify(copy);
   const hash = sjcl.codec.base64.fromBits(sjcl.hash.sha256.hash(serialized));

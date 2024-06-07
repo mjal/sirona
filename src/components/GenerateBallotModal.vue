@@ -1,7 +1,7 @@
 <script setup>
   import generateBallot, { checkVotingCode } from "../generateBallot.js";
   import { ref, computed } from "vue";
-  import { canonicalSerialization } from "../serializeBallot.js";
+  import canonicalBallot from "../canonicalBallot.js";
 
   const props = defineProps(["state", "loaded"]);
   const questions = computed(() => {
@@ -27,7 +27,7 @@
     });
     const oBallot =
       generateBallot(props.state, credential.value.trim(), choices);
-    const sBallot = canonicalSerialization(oBallot);
+    const sBallot = JSON.stringify(canonicalBallot(oBallot));
     serializedGeneratedBallot.value = sBallot;
     return false;
   }

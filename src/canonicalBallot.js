@@ -1,4 +1,4 @@
-export function canonicalSerialization(ballot) {
+export default function (ballot) {
   // On most implementations, the order of the fields in the
   // serialization correspond to the order of insertion. This
   // is not guaranteed by the JSON standard, but it is guaranteed
@@ -65,5 +65,5 @@ export function canonicalSerialization(ballot) {
     }),
     signature: ballot.signature,
   };
-  return JSON.stringify(obj);
+  return obj;
 }

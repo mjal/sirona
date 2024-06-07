@@ -1,7 +1,7 @@
 import sjcl from "sjcl";
 import { g, L, rev, mod, rand, formula2, parsePoint, Hiprove, zero } from "./math";
 import { hashWithoutSignature } from "./checkBallot";
-import { canonicalSerialization } from "./serializeBallot";
+import canonicalBallot from "./canonicalBallot";
 import checkBallot from "./checkBallot";
 
 export default function (state, sPriv, choices) {
@@ -38,7 +38,7 @@ export default function (state, sPriv, choices) {
   // TODO: Remove
   console.log("Generated ballot");
   console.log(ballot);
-  console.log(canonicalSerialization(ballot));
+  console.log(canonicalBallot(ballot));
 
   checkBallot(state, { payload: ballot });
 
