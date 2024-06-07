@@ -1,5 +1,5 @@
 <script setup>
-  import generateBallot, { checkVotingCode } from "../generateBallot.js";
+  import generateBallot, { checkVotingCode } from "../generateBallot";
   import { ref, computed } from "vue";
   import canonicalBallot from "../canonicalBallot.js";
 

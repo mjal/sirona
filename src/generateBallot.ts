@@ -1,10 +1,21 @@
 import sjcl from "sjcl";
-import { g, L, rev, mod, rand, formula2, parsePoint, Hiprove, zero } from "./math";
+import { g, L, rev, mod, rand, formula2, parsePoint, Hiprove, zero, point } from "./math";
 import { hashWithoutSignature } from "./checkBallot";
 import canonicalBallot from "./canonicalBallot";
 import checkBallot from "./checkBallot";
 
-export default function (state, sPriv, choices) {
+type tProof = { nChallenge: bigint, nResponse: bigint };
+type tSerializedProof = { challenge: string, response: string };
+type tCiphertext = { pAlpha: point, pBeta: point };
+type tSerializedCiphertext = { alpha: string, beta: string }
+
+type tAnswerWithoutBlank = {
+  choices: Array<tSerializedCiphertext>,
+  individual_proofs: Array<Array<tSerializedProof>>,
+  overall_proof: Array<tSerializedProof>
+}
+
+export default function (state, sPriv: string, choices: Array<Array<number>>) {
 
   if (!checkVotingCode(state, sPriv)) {
     return false;
@@ -15,7 +26,7 @@ export default function (state, sPriv, choices) {
     nPrivateCredential
   } = deriveCredential(state, sPriv);
 
-  let answers = [];
+  let answers : Array<tAnswerWithoutBlank> = [];
   for (let i = 0; i < choices.length; i++) {
     const question = state.setup.payload.election.questions[i];
     answers.push(generateAnswer(state, question, sPriv, choices[i]));
@@ -45,13 +56,13 @@ export default function (state, sPriv, choices) {
   return ballot;
 }
 
-export function checkVotingCode(state, credential) {
-  if (!/[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}/.test(credential)) {
+export function checkVotingCode(state, sPriv: string) {
+  if (!/[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}/.test(sPriv)) {
     alert("Invalid credential format");
     return false;
   }
 
-  const { hPublicCredential } = deriveCredential(state, credential);
+  const { hPublicCredential } = deriveCredential(state, sPriv);
 
   const electionPublicCredentials =
     state.credentialsWeights.map((c) => c.credential);
@@ -64,10 +75,13 @@ export function checkVotingCode(state, credential) {
   }
 }
 
-function iproof(prefix, pY, pAlpha, pBeta, r, m, M) {
+function iproof(
+  prefix: string, pY: point, pAlpha: point, pBeta: point,
+  r: bigint, m: number, M: Array<number>
+) {
   const w = rand();
-  let commitments = [];
-  let proofs = [];
+  let commitments : Array<point> = [];
+  let proofs : Array<tProof> = [];
 
   for (let i = 0; i < M.length; i++) {
     if (m !== M[i]) {
@@ -105,13 +119,18 @@ function iproof(prefix, pY, pAlpha, pBeta, r, m, M) {
   });
 }
 
-function generateAnswer(state, question, nPrivateCredential, choices) {
+function generateAnswer(
+  state,
+  question,
+  sPriv: string,
+  choices: Array<number>
+) : tAnswerWithoutBlank {
   const pY = parsePoint(state.setup.payload.election.public_key);
-  const { hPublicCredential } = deriveCredential(state, nPrivateCredential);
+  const { hPublicCredential } = deriveCredential(state, sPriv);
 
-  let anR = [];
-  let aCiphertexts = [];
-  let aIndividualProofs = [];
+  let anR : Array<bigint> = [];
+  let aCiphertexts : Array<tCiphertext> = [];
+  let aIndividualProofs : Array<Array<tSerializedProof>> = [];
 
   for (let i = 0; i < choices.length; i++) {
     const nR = rand();
@@ -152,23 +171,23 @@ function generateAnswer(state, question, nPrivateCredential, choices) {
   };
 }
 
-function signature(nPrivateCredential, hash) {
+function signature(nPriv: bigint, sHash: string) {
   const w = rand();
   const pA = g.multiply(w);
 
   // TODO: Refactor using Hsignature
   // TODO: nChallenge = Hsignature(hash, pA);
   const hashSignature = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(`sig|${hash}|${rev(pA.toHex())}`),
+    sjcl.hash.sha256.hash(`sig|${sHash}|${rev(pA.toHex())}`),
   );
   const nChallenge = mod(
     BigInt("0x" + hashSignature),
     L,
   );
-  const nResponse = mod(w - nPrivateCredential * nChallenge, L);
+  const nResponse = mod(w - nPriv * nChallenge, L);
 
   return {
-    hash: hash,
+    hash: sHash,
     proof: {
       challenge: nChallenge.toString(),
       response: nResponse.toString()
@@ -176,7 +195,7 @@ function signature(nPrivateCredential, hash) {
   };
 }
 
-function deriveCredential(state, sPriv) {
+function deriveCredential(state, sPriv: string) {
   const prefix = `derive_credential|${state.setup.payload.election.uuid}`;
 
   const x0 = sjcl.codec.hex.fromBits(
