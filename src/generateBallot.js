@@ -3,21 +3,21 @@ import { g, L, rev, mod, rand, formula2, parsePoint, Hiprove, zero } from "./mat
 import { hashWithoutSignature } from "./checkBallot";
 import { canonicalSerialization } from "./serializeBallot";
 
-export default function (state, credential, choices) {
+export default function (state, sPriv, choices) {
 
-  if (!checkVotingCode(state, credential)) {
+  if (!checkVotingCode(state, sPriv)) {
     return false;
   }
 
   const {
     hPublicCredential,
     nPrivateCredential
-  } = deriveCredential(state, credential);
+  } = deriveCredential(state, sPriv);
 
   let answers = [];
   for (let i = 0; i < choices.length; i++) {
     const question = state.setup.payload.election.questions[i];
-    answers.push(generateAnswer(state, question, nPrivateCredential, choices[i]));
+    answers.push(generateAnswer(state, question, sPriv, choices[i]));
   }
 
   const ballotWithoutSignature = {
@@ -170,15 +170,15 @@ function signature(nPrivateCredential, hash) {
   };
 }
 
-function deriveCredential(state, credential) {
+function deriveCredential(state, sPriv) {
   const prefix = `derive_credential|${state.setup.payload.election.uuid}`;
 
   const x0 = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(`${prefix}|0|${credential}`),
+    sjcl.hash.sha256.hash(`${prefix}|0|${sPriv}`),
   );
 
   const x1 = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(`${prefix}|1|${credential}`),
+    sjcl.hash.sha256.hash(`${prefix}|1|${sPriv}`),
   );
 
   const nPrivateCredential = mod(BigInt("0x" + x0 + x1), L);
