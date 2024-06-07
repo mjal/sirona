@@ -35,10 +35,14 @@ export default function (state: any, sPriv: string, choices: Array<Array<number>
     nPrivateCredential
   } = deriveCredential(state, sPriv);
 
-  let answers : Array<tAnswerWithoutBlank> = [];
+  let answers : Array<tAnswer> = [];
   for (let i = 0; i < choices.length; i++) {
     const question = state.setup.payload.election.questions[i];
-    answers.push(generateAnswer(state, question, sPriv, choices[i]));
+    const f = (question.blank)
+      ? generateAnswerWithBlank
+      : generateAnswerWithoutBlank
+    const answer = f(state, question, sPriv, choices[i]);
+    answers.push(answer);
   }
 
   const ballotWithoutSignature = {
@@ -128,15 +132,12 @@ function iproof(
   });
 }
 
-function generateAnswer(
+function generateEncryptions(
   state: any,
-  question: any,
-  sPriv: string,
+  pY: point,
+  hPublicCredential: string,
   choices: Array<number>
-) : tAnswerWithoutBlank {
-  const pY = parsePoint(state.setup.payload.election.public_key);
-  const { hPublicCredential } = deriveCredential(state, sPriv);
-
+) {
   let anR : Array<bigint> = [];
   let aCiphertexts : Array<tCiphertext> = [];
   let aIndividualProofs : Array<Array<tSerializedProof>> = [];
@@ -156,6 +157,20 @@ function generateAnswer(
     aIndividualProofs.push(proof);
     anR.push(nR);
   }
+
+  return { anR, aCiphertexts, aIndividualProofs };
+}
+
+function generateAnswerWithBlank(
+  state: any,
+  question: any,
+  sPriv: string,
+  choices: Array<number>
+) : tAnswerWithoutBlank {
+  const pY = parsePoint(state.setup.payload.election.public_key);
+  const { hPublicCredential } = deriveCredential(state, sPriv);
+  const { anR, aCiphertexts, aIndividualProofs }
+    = generateEncryptions(state, pY, hPublicCredential, choices);
 
   const pSumAlpha = aCiphertexts.reduce((acc, c) => acc.add(c.pAlpha), zero);
   const pSumBeta = aCiphertexts.reduce((acc, c) => acc.add(c.pBeta), zero);
@@ -177,6 +192,30 @@ function generateAnswer(
     }),
     individual_proofs: aIndividualProofs,
     overall_proof: overallProof,
+  };
+}
+
+function generateAnswerWithoutBlank(
+  state: any,
+  question: any,
+  sPriv: string,
+  choices: Array<number>
+) : tAnswerWithBlank {
+  const pY = parsePoint(state.setup.payload.election.public_key);
+  const { hPublicCredential } = deriveCredential(state, sPriv);
+  const { anR, aCiphertexts, aIndividualProofs }
+    = generateEncryptions(state, pY, hPublicCredential, choices);
+
+  return {
+    choices: aCiphertexts.map((c) => {
+      return {
+        alpha: rev(c.pAlpha.toHex()),
+        beta: rev(c.pBeta.toHex()),
+      };
+    }),
+    individual_proofs: aIndividualProofs,
+    overall_proof: [],
+    blank_proof: [],
   };
 }
 
