@@ -15,6 +15,15 @@ type tAnswerWithoutBlank = {
   overall_proof: Array<tSerializedProof>
 }
 
+type tAnswerWithBlank = {
+  choices: Array<tSerializedCiphertext>,
+  individual_proofs: Array<Array<tSerializedProof>>,
+  blank_proof: Array<tSerializedProof>,
+  overall_proof: Array<tSerializedProof>
+}
+
+type tAnswer = tAnswerWithoutBlank | tAnswerWithBlank;
+
 export default function (state: any, sPriv: string, choices: Array<Array<number>>) {
 
   if (!checkVotingCode(state, sPriv)) {
