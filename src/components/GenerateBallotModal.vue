@@ -32,7 +32,7 @@
     return false;
   }
 
-  const credential = ref("ZtVLk-EuYZmC-EHYpx-vcLxdh");
+  const credential = ref("");
   const checkCode = () => {
     if (checkVotingCode(props.state, credential.value.trim())) {
       alert("Code is valid");
