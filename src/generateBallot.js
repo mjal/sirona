@@ -2,6 +2,7 @@ import sjcl from "sjcl";
 import { g, L, rev, mod, rand, formula2, parsePoint, Hiprove, zero } from "./math";
 import { hashWithoutSignature } from "./checkBallot";
 import { canonicalSerialization } from "./serializeBallot";
+import checkBallot from "./checkBallot";
 
 export default function (state, sPriv, choices) {
 
@@ -34,9 +35,14 @@ export default function (state, sPriv, choices) {
     signature: signature(nPrivateCredential, hH),
   };
 
-  console.log("Ballot");
+  // TODO: Remove
+  console.log("Generated ballot");
   console.log(ballot);
   console.log(canonicalSerialization(ballot));
+
+  checkBallot(state, { payload: ballot });
+
+  return ballot;
 }
 
 export function checkVotingCode(state, credential) {

@@ -1,6 +1,7 @@
 <script setup>
   import generateBallot, { checkVotingCode } from "../generateBallot.js";
   import { ref, computed } from "vue";
+  import { canonicalSerialization } from "../serializeBallot.js";
 
   const props = defineProps(["state", "loaded"]);
   const questions = computed(() => {
@@ -9,6 +10,7 @@
       : [];
   });
 
+  const serializedGeneratedBallot = ref("");
   const submitForm = (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
@@ -23,11 +25,14 @@
         return (j === answer) ? 1 : 0;
       });
     });
-    generateBallot(props.state, credential.value.trim(), choices);
+    const oBallot =
+      generateBallot(props.state, credential.value.trim(), choices);
+    const sBallot = canonicalSerialization(oBallot);
+    serializedGeneratedBallot.value = sBallot;
     return false;
   }
 
-  const credential = ref("");
+  const credential = ref("ZtVLk-EuYZmC-EHYpx-vcLxdh");
   const checkCode = () => {
     if (checkVotingCode(props.state, credential.value.trim())) {
       alert("Code is valid");
@@ -84,7 +89,7 @@
             >Your ballot</label
           >
           <textarea
-            id="generate-ballot-ballot"
+            v-model="serializedGeneratedBallot"
             class="uk-textarea"
             rows="5"
             placeholder="Textarea"
