@@ -238,24 +238,33 @@ function blankProof(
   pAlphaS: point,
   pBetaS: point,
   nR0: bigint,
+  bNonBlank: boolean
 ): Array<tProof> {
-  const nChallengeP = rand();
-  const nResponseP = rand();
-  const pAS = formula(g,  nResponseP, pAlphaS, nChallengeP);
-  const pBS = formula(pY, nResponseP, pBetaS, nChallengeP);
+  const nChallengeS = rand();
+  const nResponseS = rand();
+  const pAS = formula(g,  nResponseS, pAlphaS, nChallengeS);
+  const pBS = formula(pY, nResponseS, pBetaS, nChallengeS);
   const nW = rand();
   const pA0 = g.multiply(nW);
   const pB0 = pY.multiply(nW);
 
   let S = `${state.setup.fingerprint}|${hPub}|`;
-  S += choices.map((c) => `${rev(c.pAlpha.toHex())},${rev(c.pBeta.toHex())}`).join(",");
-  const nChallenge0 = Hbproof0(state.setup.fingerprint, pA0, pB0, pAS, pBS);
+  S += choices.map(serializeCiphertext).map((c) => `${c.alpha},${c.beta}`).join(",");
+  const nH = (bNonBlank) ? Hbproof0(S, pA0, pB0, pAS, pBS) : Hbproof0(S, pAS, pBS, pA0, pB0)
+  const nChallenge0 = mod(nH - nChallengeS, L);
   const nResponse0 = mod(nW - nChallenge0 * nR0, L);
 
-  return [
-    { nChallenge: nChallenge0, nResponse: nResponse0 },
-    { nChallenge: nChallengeP, nResponse: nResponseP },
-  ];
+  if (bNonBlank) {
+    return [
+      { nChallenge: nChallenge0, nResponse: nResponse0 },
+      { nChallenge: nChallengeS, nResponse: nResponseS },
+    ];
+  } else {
+    return [
+      { nChallenge: nChallengeS, nResponse: nResponseS },
+      { nChallenge: nChallenge0, nResponse: nResponse0 },
+    ];
+  }
 }
 
 function overallProofBlank(
@@ -375,10 +384,10 @@ function generateAnswerWithBlank(
   const nR0 = anR[0];
 
   let azBlankProof : Array<tProof> = [];
-  if (m[0] === 0) {
-    azBlankProof = blankProof(state, hPublicCredential, pY, aCiphertexts, pAlphaS, pBetaS, nR0);
+  if (choices[0] === 0) {
+    azBlankProof = blankProof(state, hPublicCredential, pY, aCiphertexts, pAlphaS, pBetaS, nR0, true);
   } else {
-    azBlankProof = blankProof(state, hPublicCredential, pY, aCiphertexts, pAlpha0, pBeta0, nRS);
+    azBlankProof = blankProof(state, hPublicCredential, pY, aCiphertexts, pAlpha0, pBeta0, nRS, false);
   }
 
   let overall_proof = overallProofBlank(state, question, choices,
