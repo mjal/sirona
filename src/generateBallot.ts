@@ -230,7 +230,7 @@ function generateAnswerWithoutBlank(
   };
 }
 
-function blankProofs(
+function blankProof(
   state: any,
   hPub: string,
   pY: point,
@@ -256,6 +256,96 @@ function blankProofs(
     { nChallenge: nChallenge0, nResponse: nResponse0 },
     { nChallenge: nChallengeP, nResponse: nResponseP },
   ];
+}
+
+function overallProofBlank(
+  state: any,
+  question: any,
+  anChoices: Array<number>,
+  aeCiphertexts: Array<tCiphertext>,
+  hPub: string,
+  anR: Array<bigint>
+): Array<tProof> {
+  const pAlphaS = aeCiphertexts.slice(1).reduce((acc, c) => acc.add(c.pAlpha), zero);
+  const pBetaS = aeCiphertexts.slice(1).reduce((acc, c) => acc.add(c.pBeta), zero);
+  const pY = parsePoint(state.setup.payload.election.public_key);
+  const mS = anChoices.slice(1).reduce((acc, c) => c + acc, 0);
+  const M = Array.from({ length: question.max - question.min + 1 }).map(
+    (_, i) => i + question.min,
+  );
+  const nRS = anR.slice(1).reduce((acc, r) => mod(acc + r, L), BigInt(0));
+  const nW = rand();
+
+  if (anChoices[0] === 0) {
+    const nChallenge0 = rand();
+    const nResponse0 = rand();
+    const [pA0, pB0] = formula2(pY, aeCiphertexts[0].pAlpha, aeCiphertexts[0].pBeta, nChallenge0, nResponse0, 1);
+
+    let azProofs : Array<tProof> = [{
+      nChallenge: nChallenge0,
+      nResponse: nResponse0
+    }];
+    let commitments = [pA0, pB0];
+    let nChallengeS = nChallenge0;
+
+    for (let j = 0; j < M.length; j++) {
+      const nChallenge = rand();
+      const nResponse = rand();
+      azProofs.push({ nChallenge, nResponse });
+      if (M[j] === mS) {
+        //5. Compute Ai = g^w and Bi = y^w.
+        const pA = g.multiply(nW);
+        const pB = pY.multiply(nW);
+        commitments.push(pA, pB);
+      } else {
+        const [pA, pB] = formula2(pY, pAlphaS, pBetaS, nChallenge, nResponse, M[j]);
+        nChallengeS = mod(nChallengeS + nChallenge, L);
+        commitments.push(pA, pB);
+      }
+    }
+
+    let S = `${state.setup.fingerprint}|${hPub}|`;
+    S += aeCiphertexts.map(serializeCiphertext).map((c) => `${c.alpha},${c.beta}`).join(",");
+    const nH = Hbproof1(S, ...commitments);
+
+    for (let j = 0; j < M.length; j++) {
+      if (M[j] === mS) {
+        azProofs[j+1].nChallenge = mod(nH - nChallengeS, L);
+        azProofs[j+1].nResponse = mod(nW - nRS * azProofs[j+1].nChallenge, L);
+      }
+    }
+
+    return azProofs;
+  } else { // anChoices[0] === 1 (Blank vote)
+    console.assert(mS === 0);
+    const pA0 = g.multiply(nW);
+    const pB0 = pY.multiply(nW);
+    let commitments = [pA0, pB0];
+
+    let azProofs : Array<tProof> = [{
+      nChallenge: BigInt(0),
+      nResponse: BigInt(0)
+    }];
+
+    let nChallengeS = BigInt(0);
+    for (let j = 0; j < M.length; j++) {
+      const nChallenge = rand();
+      const nResponse = rand();
+      azProofs.push({ nChallenge, nResponse });
+      const [pA, pB] = formula2(pY, pAlphaS, pBetaS, nChallenge, nResponse, M[j]);
+      nChallengeS = mod(nChallengeS + nChallenge, L);
+      commitments.push(pA, pB);
+    }
+
+    let S = `${state.setup.fingerprint}|${hPub}|`;
+    S += aeCiphertexts.map(serializeCiphertext).map((c) => `${c.alpha},${c.beta}`).join(",");
+    const nH = Hbproof1(S, ...commitments);
+
+    azProofs[0].nChallenge = mod(nH - nChallengeS, L);
+    azProofs[0].nResponse = mod(nW - anR[0] * azProofs[0].nChallenge, L);
+
+    return azProofs;
+  }
 }
 
 function generateAnswerWithBlank(
@@ -286,16 +376,18 @@ function generateAnswerWithBlank(
 
   let azBlankProof : Array<tProof> = [];
   if (m[0] === 0) {
-    azBlankProof = blankProofs(state, hPublicCredential, pY, aCiphertexts, pAlphaS, pBetaS, nR0);
+    azBlankProof = blankProof(state, hPublicCredential, pY, aCiphertexts, pAlphaS, pBetaS, nR0);
   } else {
-    azBlankProof = blankProofs(state, hPublicCredential, pY, aCiphertexts, pAlpha0, pBeta0, nRS);
+    azBlankProof = blankProof(state, hPublicCredential, pY, aCiphertexts, pAlpha0, pBeta0, nRS);
   }
 
+  let overall_proof = overallProofBlank(state, question, choices,
+                                        aCiphertexts, hPublicCredential, anR);
 
   return {
     choices: aCiphertexts.map(serializeCiphertext),
     individual_proofs: aIndividualProofs,
-    overall_proof: [],
+    overall_proof: overall_proof.map(serializeProof),
     blank_proof: azBlankProof.map(serializeProof)
   };
 }
