@@ -13,7 +13,7 @@ const isTallied = !!props.state.encryptedTally;
         <span class="uk-badge uk-badge-success" v-if="ballot.accepted"
           >Accepted</span
         >
-        <span class="uk-badge uk-badge-danger" v-else>Rejected</span>
+        <span class="uk-badge uk-badge-danger" v-else>Obselete</span>
       </template>
       <template v-else>
         <span class="uk-badge uk-badge-warning">Pending</span>
