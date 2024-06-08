@@ -9,7 +9,7 @@ const questions = computed(() => {
   return props.state.setup ? props.state.setup.payload.election.questions : [];
 });
 
-const credential = ref("");
+const credential = ref("yXSNB-E8tK7Z-wqffF-pSfWdP");
 const serializedGeneratedBallot = ref("");
 
 const submitForm = (event) => {
