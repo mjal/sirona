@@ -26,8 +26,7 @@ export default function (state, ballot) {
 
   for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
     const question = state.setup.payload.election.questions[i];
-    if (question.type === undefined) {
-      // question_h
+    if (question.type === undefined) { // question_h
       checkIndividualProofs(state, ballot, i);
       if (question.blank) {
         checkBlankProof(state, ballot, i);
@@ -35,6 +34,8 @@ export default function (state, ballot) {
       } else {
         checkOverallProofWithoutBlank(state, ballot, i);
       }
+    } else if (question.type === "Lists") {
+      checkIndividualProofs(state, ballot, i);
     } else if (question.type === "NonHomomorphic") {
       logError("ballots", "NonHomomorphic questions not implemented yet");
     } else {
@@ -146,6 +147,47 @@ export function checkValidPoints(ballot) {
   }
 }
 
+export function checkIndividualProof(
+  S,
+  individualProof,
+  pY,
+  pAlpha,
+  pBeta,
+) {
+  let nSumChallenges = individualProof.reduce(
+    (acc, proof) => mod(acc + BigInt(proof.challenge), L),
+    0n,
+  );
+
+  const [pA0, pB0] = formula2(
+    pY,
+    pAlpha,
+    pBeta,
+    BigInt(individualProof[0].challenge),
+    BigInt(individualProof[0].response),
+    0,
+  );
+  const [pA1, pB1] = formula2(
+    pY,
+    pAlpha,
+    pBeta,
+    BigInt(individualProof[1].challenge),
+    BigInt(individualProof[1].response),
+    1,
+  );
+  const commitments = [pA0, pB0, pA1, pB1];
+
+  const nH = Hiprove(S, pAlpha, pBeta, ...commitments);
+
+  check(
+    "ballots",
+    "Valid individual proof",
+    nSumChallenges.toString(16) === nH.toString(16),
+    true,
+  );
+  
+}
+
 export function checkIndividualProofs(state, ballot, idx) {
   const pY = parsePoint(state.setup.payload.election.public_key);
   const question = state.setup.payload.election.questions[idx];
@@ -153,51 +195,50 @@ export function checkIndividualProofs(state, ballot, idx) {
   const choices = answer.choices;
   const individualProofs = answer.individual_proofs;
 
-  check(
-    "ballots",
-    "Has a proof for every answer answers",
-    individualProofs.length ===
-      question.answers.length + (question.blank ? 1 : 0),
-    true,
-  );
 
-  for (let j = 0; j < individualProofs.length; j++) {
-    const pAlpha = parsePoint(choices[j].alpha);
-    const pBeta = parsePoint(choices[j].beta);
-
-    let nSumChallenges = 0n;
-    for (let k = 0; k < individualProofs[j].length; k++) {
-      const challenge = BigInt(individualProofs[j][k].challenge);
-      nSumChallenges = mod(nSumChallenges + challenge, L);
-    }
-
-    const [pA0, pB0] = formula2(
-      pY,
-      pAlpha,
-      pBeta,
-      BigInt(individualProofs[j][0].challenge),
-      BigInt(individualProofs[j][0].response),
-      0,
-    );
-    const [pA1, pB1] = formula2(
-      pY,
-      pAlpha,
-      pBeta,
-      BigInt(individualProofs[j][1].challenge),
-      BigInt(individualProofs[j][1].response),
-      1,
-    );
-    const commitments = [pA0, pB0, pA1, pB1];
-
-    let S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
-    const nH = Hiprove(S, pAlpha, pBeta, ...commitments);
-
+  if (question.type === undefined) { // question_h
     check(
       "ballots",
-      "Valid individual proof",
-      nSumChallenges.toString(16) === nH.toString(16),
+      "Has a proof for every answer",
+      individualProofs.length ===
+        question.answers.length + (question.blank ? 1 : 0),
       true,
     );
+  } else if (question.type === "Lists") {
+    for (let i = 0; i < question.value.answers.length; i++) {
+      check(
+        "ballots",
+        "Has a proof for every answer",
+        individualProofs[i].length === question.value.answers[i].length,
+        true,
+      );
+    }
+  }
+
+  const S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
+
+  if (question.type === undefined) { // question_h
+    for (let j = 0; j < individualProofs.length; j++) {
+      checkIndividualProof(S,
+        individualProofs[j],
+        pY,
+        parsePoint(choices[j].alpha),
+        parsePoint(choices[j].beta)
+      );
+    }
+  } else if (question.type === "Lists") {
+    for (let j = 0; j < individualProofs.length; j++) {
+      for (let k = 0; k < individualProofs[j].length; k++) {
+        checkIndividualProof(S,
+          individualProofs[j][k],
+          pY,
+          parsePoint(choices[j][k].alpha),
+          parsePoint(choices[j][k].beta)
+        );
+      }
+    }
+  } else {
+    logError("ballots", `Unknow question type (${question.type})`);
   }
 }
 
