@@ -30,10 +30,12 @@ const submitForm = (event) => {
     const nbAnswers = answer.reduce((a, b) => a + b);
 
     if (nbAnswers < question.min || nbAnswers > question.max) {
-      alert(
-        `Question ${i + 1} must have between ${question.min} and ${question.max} answers`,
-      );
-      return false;
+      if (!blank) {
+        alert(
+          `Question ${i + 1} must have between ${question.min} and ${question.max} answers`,
+        );
+        return false;
+      }
     }
 
     if (blank && nbAnswers > 0) {
