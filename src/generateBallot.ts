@@ -1,5 +1,14 @@
 import sjcl from "sjcl";
 import {
+  tProof,
+  tSerializedProof,
+  tCiphertext,
+  tSerializedCiphertext,
+  tAnswerWithoutBlank,
+  tAnswerWithBlank,
+  tAnswer,
+} from "./types";
+import {
   g,
   L,
   rev,
@@ -17,26 +26,6 @@ import {
 import { hashWithoutSignature } from "./checkBallot";
 import canonicalBallot from "./canonicalBallot";
 import checkBallot from "./checkBallot";
-
-type tProof = { nChallenge: bigint; nResponse: bigint };
-type tSerializedProof = { challenge: string; response: string };
-type tCiphertext = { pAlpha: point; pBeta: point };
-type tSerializedCiphertext = { alpha: string; beta: string };
-
-type tAnswerWithoutBlank = {
-  choices: Array<tSerializedCiphertext>;
-  individual_proofs: Array<Array<tSerializedProof>>;
-  overall_proof: Array<tSerializedProof>;
-};
-
-type tAnswerWithBlank = {
-  choices: Array<tSerializedCiphertext>;
-  individual_proofs: Array<Array<tSerializedProof>>;
-  blank_proof: Array<tSerializedProof>;
-  overall_proof: Array<tSerializedProof>;
-};
-
-type tAnswer = tAnswerWithoutBlank | tAnswerWithBlank;
 
 function serializeProof(proof: tProof): tSerializedProof {
   return {
