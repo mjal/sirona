@@ -128,8 +128,8 @@ export function showResult(state) {
 export async function _async(f, ...args) {
   return new Promise((resolve, reject) => {
     requestAnimationFrame(() => {
-      f(...args);
-      resolve();
+      const res = f(...args);
+      resolve(res);
     });
   });
 }
