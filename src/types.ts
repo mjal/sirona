@@ -1,7 +1,8 @@
-import { point } from './math';
+import type { ExtPointType } from "@noble/curves/abstract/edwards.js";
+export type tPoint = ExtPointType;
 export type tProof = { nChallenge: bigint; nResponse: bigint };
 export type tSerializedProof = { challenge: string; response: string };
-export type tCiphertext = { pAlpha: point; pBeta: point };
+export type tCiphertext = { pAlpha: tPoint; pBeta: tPoint };
 export type tSerializedCiphertext = { alpha: string; beta: string };
 export type tAnswerWithoutBlank = {
   choices: Array<tSerializedCiphertext>;

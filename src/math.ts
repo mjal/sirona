@@ -1,8 +1,8 @@
+import type { tPoint } from "./types";
+
 import sjcl from "sjcl";
 import { ed25519 } from "@noble/curves/ed25519";
-import type { ExtPointType } from "@noble/curves/abstract/edwards.js";
 
-export type point = ExtPointType;
 export const zero = ed25519.ExtendedPoint.ZERO;
 export const g = ed25519.ExtendedPoint.BASE;
 export const q = 2n ** 255n - 19n;
@@ -27,7 +27,7 @@ export const mod = (a: bigint, b: bigint) => {
   return remainder;
 };
 
-export const isValidPoint = (point: point) => {
+export const isValidPoint = (point: tPoint) => {
   try {
     point.assertValidity();
   } catch (e) {
@@ -62,16 +62,16 @@ export function rand(): bigint {
   return mod(BigInt("0x" + hNumber), L);
 }
 
-export function formula(p1: point, e1: bigint, p2: point, e2: bigint) {
+export function formula(p1: tPoint, e1: bigint, p2: tPoint, e2: bigint) {
   return p1.multiply(e1).add(p2.multiply(e2));
 }
 
 //A = g**response * alpha**challenge
 //B = y**response * (beta / (g**m))**challenge
 export function formula2(
-  pY: point,
-  pAlpha: point,
-  pBeta: point,
+  pY: tPoint,
+  pAlpha: tPoint,
+  pBeta: tPoint,
   nChallenge: bigint,
   nResponse: bigint,
   m: number,
@@ -84,7 +84,7 @@ export function formula2(
   return [pA, pB];
 }
 
-function H(prefix: string, ...commitments: Array<point>) {
+function H(prefix: string, ...commitments: Array<tPoint>) {
   const str = `${prefix}|${commitments.map((p) => rev(p.toHex())).join(",")}`;
   const h = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(str));
   return mod(BigInt("0x" + h), L);
@@ -92,26 +92,26 @@ function H(prefix: string, ...commitments: Array<point>) {
 
 export function Hiprove(
   S: string,
-  alpha: point,
-  beta: point,
-  ...commitments: Array<point>
+  alpha: tPoint,
+  beta: tPoint,
+  ...commitments: Array<tPoint>
 ) {
   const prefix = `prove|${S}|${rev(alpha.toHex())},${rev(beta.toHex())}`;
   return H(prefix, ...commitments);
 }
 
-export function Hbproof0(S: string, ...commitments: Array<point>) {
+export function Hbproof0(S: string, ...commitments: Array<tPoint>) {
   return H(`bproof0|${S}`, ...commitments);
 }
 
-export function Hbproof1(S: string, ...commitments: Array<point>) {
+export function Hbproof1(S: string, ...commitments: Array<tPoint>) {
   return H(`bproof1|${S}`, ...commitments);
 }
 
-export function Hsignature(S: string, A: point) {
+export function Hsignature(S: string, A: tPoint) {
   return H(`sig|${S}`, A);
 }
 
-export function Hpok(S: string, A: point) {
+export function Hpok(S: string, A: tPoint) {
   return H(`pok|${S}`, A);
 }
