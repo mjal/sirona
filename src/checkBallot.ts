@@ -3,7 +3,6 @@ import { logBallot } from "./logger";
 import {
   g,
   L,
-  rev,
   mod,
   isValidPoint,
   parsePoint,
@@ -15,9 +14,10 @@ import {
   Hbproof1,
   Hsignature,
 } from "./math";
+import { tPoint, tSerializedProof } from "./types";
 import canonicalBallot from "./canonicalBallot.js";
 
-export default function (state, ballot) {
+export default function (state: any, ballot: any) {
   checkMisc(state, ballot);
   checkCredential(state, ballot);
   checkIsUnique(ballot);
@@ -45,7 +45,7 @@ export default function (state, ballot) {
   }
 }
 
-function checkMisc(state, ballot) {
+function checkMisc(state: any, ballot: any) {
   const sSerializedBallot = JSON.stringify(canonicalBallot(ballot.payload));
 
   logBallot(
@@ -63,7 +63,7 @@ function checkMisc(state, ballot) {
   );
 }
 
-export function hashWithoutSignature(ballot) {
+export function hashWithoutSignature(ballot: any) {
   const copy = Object.assign({}, canonicalBallot(ballot.payload));
   delete copy.signature;
   const serialized = JSON.stringify(copy);
@@ -71,7 +71,7 @@ export function hashWithoutSignature(ballot) {
   return hash.replace(/=+$/, "");
 }
 
-function checkCredential(state, ballot) {
+function checkCredential(state: any, ballot: any) {
   const credentials = state.credentialsWeights.map((cw) => cw.credential);
 
   logBallot(
@@ -82,7 +82,7 @@ function checkCredential(state, ballot) {
 }
 
 const processedBallots = {};
-function checkIsUnique(ballot) {
+function checkIsUnique(ballot: any) {
   logBallot(
     ballot.tracker,
     processedBallots[ballot.payloadHash] === undefined,
@@ -92,7 +92,7 @@ function checkIsUnique(ballot) {
   processedBallots[ballot.payloadHash] = ballot;
 }
 
-export function checkSignature(ballot) {
+export function checkSignature(ballot: any) {
   logBallot(
     ballot.tracker,
     ballot.payload.signature.hash === hashWithoutSignature(ballot),
@@ -118,7 +118,7 @@ export function checkSignature(ballot) {
   );
 }
 
-export function checkValidPoints(ballot) {
+export function checkValidPoints(ballot: any) {
   const answers = ballot.payload.answers;
   for (let i = 0; i < answers.length; i++) {
     for (let j = 0; j < answers[i].choices.length; j++) {
@@ -140,11 +140,11 @@ export function checkValidPoints(ballot) {
 }
 
 export function checkIndividualProof(
-  S,
-  individualProof,
-  pY,
-  pAlpha,
-  pBeta,
+  S: string,
+  individualProof: any,
+  pY: tPoint,
+  pAlpha: tPoint,
+  pBeta: tPoint,
 ) {
   let nSumChallenges = individualProof.reduce(
     (acc, proof) => mod(acc + BigInt(proof.challenge), L),
@@ -174,13 +174,12 @@ export function checkIndividualProof(
   return nSumChallenges.toString(16) === nH.toString(16);
 }
 
-export function checkIndividualProofs(state, ballot, idx) {
+export function checkIndividualProofs(state: any, ballot: any, idx: number) {
   const pY = parsePoint(state.setup.payload.election.public_key);
   const question = state.setup.payload.election.questions[idx];
   const answer = ballot.payload.answers[idx];
   const choices = answer.choices;
   const individualProofs = answer.individual_proofs;
-
 
   if (question.type === undefined) { // question_h
     logBallot(
@@ -233,7 +232,7 @@ export function checkIndividualProofs(state, ballot, idx) {
   }
 }
 
-export function checkOverallProofWithoutBlank(state, ballot, idx) {
+export function checkOverallProofWithoutBlank(state: any, ballot: any, idx: number) {
   const pY = parsePoint(state.setup.payload.election.public_key);
   const question = state.setup.payload.election.questions[idx];
   const answer = ballot.payload.answers[idx];
@@ -278,9 +277,8 @@ export function checkOverallProofWithoutBlank(state, ballot, idx) {
   );
 }
 
-export function checkBlankProof(state, ballot, idx) {
+export function checkBlankProof(state: any, ballot: any, idx: number) {
   const pY = parsePoint(state.setup.payload.election.public_key);
-  const question = state.setup.payload.election.questions[idx];
   const answer = ballot.payload.answers[idx];
 
   const nChallenge0 = BigInt(answer.blank_proof[0].challenge);
@@ -300,7 +298,7 @@ export function checkBlankProof(state, ballot, idx) {
   }
 
   const nSumChallenges = answer.blank_proof.reduce(
-    (acc, proof) => mod(acc + BigInt(proof.challenge), L),
+    (acc: bigint, proof: tSerializedProof) => mod(acc + BigInt(proof.challenge), L),
     0n,
   );
 
@@ -321,7 +319,7 @@ export function checkBlankProof(state, ballot, idx) {
   );
 }
 
-export function checkOverallProofWithBlank(state, ballot, idx) {
+export function checkOverallProofWithBlank(state: any, ballot: any, idx: number) {
   const pY = parsePoint(state.setup.payload.election.public_key);
   const question = state.setup.payload.election.questions[idx];
   const answer = ballot.payload.answers[idx];
@@ -356,7 +354,7 @@ export function checkOverallProofWithBlank(state, ballot, idx) {
   }
 
   const nSumChallenges = answer.overall_proof.reduce(
-    (acc, proof) => mod(acc + BigInt(proof.challenge), L),
+    (acc: bigint, proof: tSerializedProof) => mod(acc + BigInt(proof.challenge), L),
     BigInt(0),
   );
 

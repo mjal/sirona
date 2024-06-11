@@ -4,7 +4,7 @@ import { _async } from "./utils.js";
 import load from "./load.js";
 import checkFiles from "./checkFiles.js";
 import checkSetup from "./checkSetup.js";
-import checkBallot from "./checkBallot.js";
+import checkBallot from "./checkBallot";
 import checkEncryptedTally from "./checkEncryptedTally.js";
 import checkPartialDecryptions from "./checkPartialDecryptions.js";
 import checkResult from "./checkResult.js";
