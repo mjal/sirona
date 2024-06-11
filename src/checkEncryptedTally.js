@@ -61,7 +61,7 @@ export default function (state) {
 
 
   log("encryptedTally",
-    total_weight === state.encryptedTally.payload.total_weight,
+    total_weight === Number(state.encryptedTally.payload.total_weight),
     "total_weight is correct",
   );
 
