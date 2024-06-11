@@ -4,6 +4,7 @@ import { computed } from "vue";
 const props = defineProps(["state"]);
 const election = props.state.setup?.payload.election;
 const countBallots = props.state.ballots?.length;
+const fingerprint = props.state.setup?.fingerprint;
 </script>
 
 <template>
@@ -11,7 +12,7 @@ const countBallots = props.state.ballots?.length;
     <h3 class="uk-card-title">{{ election.name }}</h3>
     <p>{{ election.description }}</p>
     <p>Election UUID: {{ election.uuid }}</p>
-    <p>Election fingerprint: {{ election.fingerprint }}</p>
+    <p>Election fingerprint: {{ fingerprint }}</p>
     <p>Number of ballots: {{ countBallots }}</p>
   </div>
 </template>
