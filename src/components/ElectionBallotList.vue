@@ -7,6 +7,9 @@ const ballots = props.state.ballots;
 const search = ref("");
 
 const filteredBallots = computed(() => {
+  if (!ballots) {
+    return [];
+  }
   return ballots.filter((ballot) => ballot.tracker.includes(search.value));
 });
 </script>

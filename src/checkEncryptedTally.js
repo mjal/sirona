@@ -1,4 +1,4 @@
-import { check } from "./utils.js";
+import { log } from "./logger";
 import { rev, zero, parsePoint } from "./math";
 
 export default function (state) {
@@ -38,17 +38,16 @@ export default function (state) {
 
   const et = state.encryptedTally.payload.encrypted_tally;
   for (let i = 0; i < et.length; i++) {
-    if (questions[i].type === undefined) {
-      // question_h
+    if (questions[i].type === undefined) { // question_h
       for (let j = 0; j < et[i].length; j++) {
-        check(
-          "encryptedTally",
-          "Encrypted tally microballot correspond to the weighted sum of all ballots",
+        log("encryptedTally",
           et[i][j].alpha === rev(encryptedTally[i][j].alpha.toHex()) &&
             et[i][j].beta === rev(encryptedTally[i][j].beta.toHex()),
+          "Encrypted tally microballot correspond to the weighted sum of all ballots",
         );
       }
     } else {
+      log("encryptedTally", false, "Unsupported question type");
       continue; // TODO
     }
   }
@@ -60,23 +59,14 @@ export default function (state) {
     return weight + acc;
   }, 0);
 
-  check(
-    "encryptedTally",
-    "total_weight is correct",
+
+  log("encryptedTally",
     total_weight === state.encryptedTally.payload.total_weight,
+    "total_weight is correct",
   );
 
-  check(
-    "encryptedTally",
-    "num_tallied is correct",
+  log("encryptedTally",
     ballots.length === state.encryptedTally.payload.num_tallied,
+    "num_tallied is correct",
   );
-}
-
-function keepLastBallotByCredentials(ballots) {
-  const ballotsByCredential = {};
-  for (let i = 0; i < ballots.length; i++) {
-    ballotsByCredential[ballots[i].payload.credential] = ballots[i];
-  }
-  return Object.values(ballotsByCredential);
 }

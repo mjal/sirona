@@ -1,5 +1,4 @@
-import { ed25519 } from "@noble/curves/ed25519";
-import { assert, check } from "./utils.js";
+import { log } from "./logger";
 import { g, L, rev, mod, zero, isValidPoint, parsePoint } from "./math";
 import sjcl from "sjcl";
 
@@ -27,10 +26,10 @@ function checkElectionPublicKey(state) {
   const pElectionPublicKey = parsePoint(
     state.setup.payload.election.public_key,
   );
-  check(
+  log(
     "setup",
-    `Election Public Key is a valid curve point`,
     isValidPoint(pElectionPublicKey),
+    `Election Public Key is a valid curve point`
   );
 
   let pJointPublicKey = zero;
@@ -52,17 +51,17 @@ function checkElectionPublicKey(state) {
     }
   }
 
-  check(
+  log(
     "setup",
-    "Election Public Key correspond to trustees",
     rev(pJointPublicKey.toHex()) === state.setup.payload.election.public_key,
+    "Election Public Key correspond to trustees",
   );
 }
 
 function checkTrusteePublicKey(state, trustee) {
   const pX = parsePoint(trustee.public_key);
 
-  check("setup", `Trustee public key is a valid curve point`, isValidPoint(pX));
+  log("setup", isValidPoint(pX), `Trustee public key is a valid curve point`);
 
   const nChallenge = BigInt(trustee.pok.challenge);
   const nResponse = BigInt(trustee.pok.response);
@@ -81,19 +80,19 @@ function checkTrusteePublicKey(state, trustee) {
     L,
   ).toString(16);
 
-  check(
+  log(
     "setup",
-    `Trustee POK is valid`,
     nChallenge.toString(16) === hexReducedVerificationHash,
+    `Trustee POK is valid`
   );
 }
 
 function checkCredentials(state) {
   for (let i = 0; i < state.credentialsWeights.length; i++) {
-    check(
+    log(
       "setup",
-      `Credential ${i} is valid`,
       isValidPoint(parsePoint(state.credentialsWeights[i].credential)),
+      `Credential ${i} is valid`,
     );
   }
 }

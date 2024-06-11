@@ -1,4 +1,4 @@
-import { check } from "./utils.js";
+import { log } from "./logger";
 import { g, L, zero, mod, modInverse, parsePoint } from "./math";
 
 export default function (state) {
@@ -12,14 +12,12 @@ export default function (state) {
         const pBeta = parsePoint(et[i][j].beta);
         const pResult = pBeta.add(df[i][j].negate());
         const nAnswer = BigInt(res[i][j]);
-
-        check(
+        log(
           "result",
-          `Result ${i},${j} correspond to the log of the sum of partial decryptions`,
           (res[i][j] === 0 && pResult.toHex() === zero.toHex()) ||
             (res[i][j] !== 0 &&
               pResult.toHex() === g.multiply(nAnswer).toHex()),
-          true,
+          `Result ${i},${j} correspond to the log of the sum of partial decryptions`,
         );
       }
     } else {
@@ -50,11 +48,11 @@ function getDecryptionFactors(state) {
           partialDecryption = state.partialDecryptions[j];
         }
       }
-      check(
+
+      log(
         "result",
-        `Partial decryption found for trustee ${i}`,
         partialDecryption !== null,
-        true,
+        `Partial decryption found for trustee ${i}`,
       );
       df = multiplyDfPow(df, parseDf(partialDecryption), 1);
     } else {
@@ -68,11 +66,10 @@ function getDecryptionFactors(state) {
       ]; // Unique by owner
       pds = pds.slice(0, content.threshold); // Remove useless shares
 
-      check(
+      log(
         "result",
-        `Enough partial decryptions for Pedersen trustee ${i}`,
         pds.length === content.threshold,
-        true,
+        `Enough partial decryptions for Pedersen trustee ${i}`,
       );
 
       // INIT PERDERSON DF

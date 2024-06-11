@@ -1,10 +1,14 @@
 import sjcl from "sjcl";
-import { check } from "./utils.js";
+import { log } from "./logger";
 
 export default function (fileEntries) {
   const state = {};
 
   state.files = fileEntries.map(readFile);
+
+  for (let i = 0; i < state.files.length; i++) {
+    log("database", (state.files[i] !== null), `File ${i + 1} loaded`);
+  }
 
   state.setup = findEvent(state.files, "Setup");
   state.setup = {
@@ -124,7 +128,9 @@ function readFile(file) {
     sjcl.hash.sha256.hash(textContent),
   );
 
-  check("database", "File hash is correct", hash === hashContent);
+  if (hash !== hashContent) {
+    return null;
+  }
 
   return [hash, type, jsonContent];
 }

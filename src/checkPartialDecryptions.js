@@ -1,4 +1,4 @@
-import { assert, check } from "./utils.js";
+import { log } from "./logger";
 import { rev, g, L, mod, parsePoint } from "./math";
 import sjcl from "sjcl";
 
@@ -65,11 +65,10 @@ export default function (state) {
             L,
           ).toString(16);
 
-          check(
+          log(
             "partialDecryptions",
-            "Valid decryption proof",
             nChallenge.toString(16) === hReducedVerificationHash,
-            true,
+            "Valid decryption proof"
           );
         }
       } else {

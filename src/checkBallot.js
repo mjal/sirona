@@ -1,5 +1,5 @@
 import sjcl from "sjcl";
-import { check, logError } from "./utils.js";
+import { logBallot } from "./logger";
 import {
   g,
   L,
@@ -35,37 +35,31 @@ export default function (state, ballot) {
         checkOverallProofWithoutBlank(state, ballot, i);
       }
     } else if (question.type === "Lists") {
+      logBallot(ballot.tracker, false, `Ballot of type 'Lists' not yet supported`);
       checkIndividualProofs(state, ballot, i);
     } else if (question.type === "NonHomomorphic") {
-      logError("ballots", "NonHomomorphic questions not implemented yet");
+      logBallot(ballot.tracker, false, "NonHomomorphic questions not implemented yet");
     } else {
-      logError("ballots", `Unknow question type (${question.type})`);
+      logBallot(ballot.tracker, false, `Unknow question type (${question.type})`);
     }
   }
 }
 
 function checkMisc(state, ballot) {
-  check(
-    "ballots",
-    "election.uuid correspond to election uuid",
-    state.setup.payload.election.uuid === ballot.payload.election_uuid,
-    true,
-  );
-
-  check(
-    "ballots",
-    "election.hash correspond to election hash",
-    state.setup.fingerprint === ballot.payload.election_hash,
-    true,
-  );
-
   const sSerializedBallot = JSON.stringify(canonicalBallot(ballot.payload));
-  check(
-    "ballots",
-    "Is canonical",
+
+  logBallot(
+    ballot.tracker, 
+    state.setup.payload.election.uuid === ballot.payload.election_uuid &&
+    state.setup.fingerprint === ballot.payload.election_hash,
+    "election.uuid correspond to election uuid"
+  );
+
+  logBallot(
+    ballot.tracker,
     sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(sSerializedBallot)) ===
       ballot.payloadHash,
-    true,
+    "Is canonical"
   );
 }
 
@@ -79,31 +73,30 @@ export function hashWithoutSignature(ballot) {
 
 function checkCredential(state, ballot) {
   const credentials = state.credentialsWeights.map((cw) => cw.credential);
-  check(
-    "ballots",
-    "Has a valid credential",
+
+  logBallot(
+    ballot.tracker,
     credentials.indexOf(ballot.payload.credential) !== -1,
-    true,
+    "Has a valid credential",
   );
 }
 
 const processedBallots = {};
 function checkIsUnique(ballot) {
-  check(
-    "ballots",
-    "Is unique",
+  logBallot(
+    ballot.tracker,
     processedBallots[ballot.payloadHash] === undefined,
-    true,
+    "Is unique",
   );
+
   processedBallots[ballot.payloadHash] = ballot;
 }
 
 export function checkSignature(ballot) {
-  check(
-    "ballots",
-    "Hash without signature is correct",
+  logBallot(
+    ballot.tracker,
     ballot.payload.signature.hash === hashWithoutSignature(ballot),
-    true,
+    "Hash without signature is correct",
   );
 
   const signature = ballot.payload.signature;
@@ -118,11 +111,10 @@ export function checkSignature(ballot) {
   );
   const nH = Hsignature(signature.hash, pA);
 
-  check(
-    "ballots",
-    "Valid signature",
+  logBallot(
+    ballot.tracker,
     nChallenge.toString(16) === nH.toString(16),
-    true,
+    "Valid signature",
   );
 }
 
@@ -136,11 +128,11 @@ export function checkValidPoints(ballot) {
       for (let k = 0; k < choices.length; k++) {
         const pAlpha = parsePoint(choices[k].alpha);
         const pBeta = parsePoint(choices[k].beta);
-        check(
-          "ballots",
-          "Encrypted choices alpha,beta are valid curve points",
+
+        logBallot(
+          ballot.tracker,
           isValidPoint(pAlpha) && isValidPoint(pBeta),
-          true,
+          "Encrypted choices alpha,beta are valid curve points",
         );
       }
     }
@@ -179,13 +171,7 @@ export function checkIndividualProof(
 
   const nH = Hiprove(S, pAlpha, pBeta, ...commitments);
 
-  check(
-    "ballots",
-    "Valid individual proof",
-    nSumChallenges.toString(16) === nH.toString(16),
-    true,
-  );
-  
+  return nSumChallenges.toString(16) === nH.toString(16);
 }
 
 export function checkIndividualProofs(state, ballot, idx) {
@@ -197,20 +183,18 @@ export function checkIndividualProofs(state, ballot, idx) {
 
 
   if (question.type === undefined) { // question_h
-    check(
-      "ballots",
+    logBallot(
+      ballot.tracker,
+        individualProofs.length ===
+          question.answers.length + (question.blank ? 1 : 0),
       "Has a proof for every answer",
-      individualProofs.length ===
-        question.answers.length + (question.blank ? 1 : 0),
-      true,
     );
   } else if (question.type === "Lists") {
     for (let i = 0; i < question.value.answers.length; i++) {
-      check(
-        "ballots",
-        "Has a proof for every answer",
+      logBallot(
+        ballot.tracker,
         individualProofs[i].length === question.value.answers[i].length,
-        true,
+        "Has a proof for every answer",
       );
     }
   }
@@ -219,26 +203,33 @@ export function checkIndividualProofs(state, ballot, idx) {
 
   if (question.type === undefined) { // question_h
     for (let j = 0; j < individualProofs.length; j++) {
-      checkIndividualProof(S,
+      let bCheckResult = checkIndividualProof(S,
         individualProofs[j],
         pY,
         parsePoint(choices[j].alpha),
         parsePoint(choices[j].beta)
       );
+
+      logBallot(ballot.tracker, bCheckResult, "Valid individual proof");
     }
   } else if (question.type === "Lists") {
     for (let j = 0; j < individualProofs.length; j++) {
       for (let k = 0; k < individualProofs[j].length; k++) {
-        checkIndividualProof(S,
+        let bCheckResult = checkIndividualProof(S,
           individualProofs[j][k],
           pY,
           parsePoint(choices[j][k].alpha),
           parsePoint(choices[j][k].beta)
         );
+        logBallot(ballot.tracker, bCheckResult, "Valid individual proof");
       }
     }
   } else {
-    logError("ballots", `Unknow question type (${question.type})`);
+    logBallot(
+      ballot.tracker,
+      false,
+      `Unknow question type (${question.type})`
+    );
   }
 }
 
@@ -280,11 +271,10 @@ export function checkOverallProofWithoutBlank(state, ballot, idx) {
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
   const nH = Hiprove(S, sumc.alpha, sumc.beta, ...commitments);
 
-  check(
-    "ballots",
-    "Valid overall proof (without blank vote)",
+  logBallot(
+    ballot.tracker,
     nSumChallenges.toString(16) === nH.toString(16),
-    true,
+    "Valid overall proof (without blank vote)",
   );
 }
 
@@ -324,11 +314,10 @@ export function checkBlankProof(state, ballot, idx) {
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
   const nH = Hbproof0(S, ...[pA0, pB0, pAS, pBS]);
 
-  check(
-    "ballots",
-    "Valid blank proof",
+  logBallot(
+    ballot.tracker,
     nSumChallenges.toString(16) === nH.toString(16),
-    true,
+    "Valid blank proof",
   );
 }
 
@@ -375,10 +364,9 @@ export function checkOverallProofWithBlank(state, ballot, idx) {
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
   const nH = Hbproof1(S, ...commitments);
 
-  check(
-    "ballots",
-    "Valid overall proof (with blank vote)",
+  logBallot(
+    ballot.tracker,
     nSumChallenges.toString(16) === nH.toString(16),
-    true,
+    "Valid overall proof (with blank vote)",
   );
 }

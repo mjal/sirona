@@ -1,13 +1,17 @@
 <script setup>
-import { ref } from "vue";
+import { ref, reactive, computed } from "vue";
 import untar from "js-untar";
 import check from "../check.js";
+import LogSection from "./LogSection.vue";
 import ElectionInfo from "./ElectionInfo.vue";
 import ElectionResult from "./ElectionResult.vue";
 import ElectionBallotList from "./ElectionBallotList.vue";
 import GenerateBallotModal from "./GenerateBallotModal.vue";
+import { getLogs, getBallotLogs } from "../logger";
 
 const state = ref({});
+const logs = ref([]);
+const ballotLogs = ref({});
 const loading = ref(false);
 const loaded = ref(false);
 
@@ -19,6 +23,8 @@ const onUploadedFile = (event) => {
       state.value = await check(files);
       loaded.value = true;
       loading.value = false;
+      logs.value = getLogs();
+      ballotLogs.value = getBallotLogs();
       return state;
     });
   };
@@ -28,6 +34,7 @@ const onUploadedFile = (event) => {
 const goToBallotList = () => {
   UIkit.tab(document.querySelector(".uk-tab")).show(1);
 };
+
 </script>
 
 <template>
@@ -92,7 +99,7 @@ const goToBallotList = () => {
     <ul uk-tab>
       <li><a href="#">Election infos</a></li>
       <li><a href="#">Ballots</a></li>
-      <li><a href="#">Log</a></li>
+      <li><a href="#">Verification summary</a></li>
     </ul>
 
     <!-- Tab Contents -->
@@ -113,6 +120,23 @@ const goToBallotList = () => {
         <div id="encryptedTally"></div>
         <div id="partialDecryptions"></div>
         <div id="result"></div>
+        <div id="check2">
+          <ul uk-accordion>
+            <LogSection v-if="logs.top"
+              title="General" :logs="logs.top" />
+            <LogSection v-if="logs.database"
+              title="Database" :logs="logs.database" />
+            <LogSection v-if="logs.setup"
+              title="Setup" :logs="logs.setup" />
+            <template v-for="(ballotLogEntry, key) in ballotLogs" :key="key">
+              <LogSection :title="'Ballot ' + key" :logs="ballotLogEntry" />
+            </template>
+            <LogSection v-if="logs.encryptedTally"
+              title="Encrypted Tally" :logs="logs.encryptedTally" />
+            <LogSection v-if="logs.result"
+              title="Result" :logs="logs.result" />
+          </ul>
+        </div>
       </li>
     </ul>
   </div>

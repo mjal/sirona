@@ -1,5 +1,6 @@
 import _ from "lodash";
-import { clear, getErrors, logError, logSuccess, _async } from "./utils.js";
+import { log } from "./logger";
+import { _async } from "./utils.js";
 import load from "./load.js";
 import checkFiles from "./checkFiles.js";
 import checkSetup from "./checkSetup.js";
@@ -9,16 +10,10 @@ import checkPartialDecryptions from "./checkPartialDecryptions.js";
 import checkResult from "./checkResult.js";
 
 export default async function (fileEntries) {
-  clear();
   try {
-    const state = load(fileEntries);
-
+    let state = load(fileEntries);
     await _async(checkFiles, state);
     await _async(checkSetup, state);
-    if (!getErrors()) {
-      logSuccess("top", "Database valid.");
-    }
-
     for (let i = 0; i < state.ballots.length; i++) {
       await _async(checkBallot, state, state.ballots[i]);
     }
@@ -31,10 +26,10 @@ export default async function (fileEntries) {
     if (state.result) {
       await _async(checkResult, state);
     }
+    log("top", true, "Verification done.");
     return state;
-    //showResult(state);
   } catch (e) {
-    logError("top", "Something wrong happened.");
+    log("top", false, "Something wrong happened.");
     console.error(e);
   }
   return null;
