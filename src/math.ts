@@ -108,6 +108,10 @@ export function Hbproof1(S: string, ...commitments: Array<point>) {
   return H(`bproof1|${S}`, ...commitments);
 }
 
-export function Hsignature(h: string, A: point) {
-  return H(`sig|${h}`, A);
+export function Hsignature(S: string, A: point) {
+  return H(`sig|${S}`, A);
+}
+
+export function Hpok(S: string, A: point) {
+  return H(`pok|${S}`, A);
 }

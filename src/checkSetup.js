@@ -1,5 +1,5 @@
 import { log } from "./logger";
-import { g, L, rev, mod, zero, isValidPoint, parsePoint } from "./math";
+import { g, rev, zero, isValidPoint, parsePoint, Hpok } from "./math";
 import sjcl from "sjcl";
 
 export default function (state) {
@@ -68,21 +68,12 @@ function checkTrusteePublicKey(state, trustee) {
 
   const pA = g.multiply(nResponse).add(pX.multiply(nChallenge));
 
-  let hashedStr = `pok|${state.setup.payload.election.group}|`;
-  hashedStr += `${trustee.public_key}|`;
-  hashedStr += `${rev(pA.toHex())}`;
-
-  const verificationHash = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(hashedStr),
-  );
-  const hexReducedVerificationHash = mod(
-    BigInt("0x" + verificationHash),
-    L,
-  ).toString(16);
+  const S = `${state.setup.payload.election.group}|${trustee.public_key}`
+  let nH = Hpok(S, pA);
 
   log(
     "setup",
-    nChallenge.toString(16) === hexReducedVerificationHash,
+    nChallenge.toString(16) === nH.toString(16),
     `Trustee POK is valid`
   );
 }
