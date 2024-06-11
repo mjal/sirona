@@ -6,17 +6,45 @@ const election = props.state.setup?.payload.election;
 const countBallots = props.state.ballots?.length;
 const fingerprint = props.state.setup?.fingerprint;
 
-console.log(election);
+const hasResult = props.state.result ? true : false;
 </script>
 
 <template>
-  <div class="uk-card uk-card-default uk-card-body uk-margin" v-if="election">
-    <h3 class="uk-card-title">{{ election.name }}</h3>
-    <p>{{ election.description }}</p>
-    <p>Election UUID: {{ election.uuid }}</p>
-    <p>Election fingerprint: {{ fingerprint }}</p>
-    <p>Number of ballots: {{ countBallots }}</p>
-  </div>
+    <table class="uk-table uk-table-striped">
+      <caption>Election infos</caption>
+      <tbody>
+        <tr>
+          <td>Status</td>
+          <td>
+            <span v-if="hasResult" class="uk-label uk-label-success">Finished</span>
+            <span v-else class="uk-label">In progress</span>
+          </td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td>{{ election.name }}</td>
+        </tr>
+        <tr>
+          <td>Description</td>
+          <td>{{ election.description }}</td>
+        </tr>
+        <tr>
+          <td>UUID</td>
+          <td>{{ election.uuid }}</td>
+        </tr>
+        <tr>
+          <td>Fingerprint</td>
+          <td>{{ fingerprint }}</td>
+        </tr>
+        <tr>
+          <td>Number of ballots</td>
+          <td>{{ countBallots }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+  <!--div class="uk-card uk-card-default uk-card-body uk-margin" v-if="election">
+  </div-->
 
   <template v-if="election">
     <template v-for="(question, index) in election.questions" v-bind:key="index">
