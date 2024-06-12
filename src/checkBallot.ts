@@ -15,7 +15,6 @@ import {
   Hsignature,
 } from "./math";
 import { Point } from "./types";
-import * as Serialized from "./serialized";
 import canonicalBallot from "./canonicalBallot.js";
 
 import {
@@ -23,9 +22,8 @@ import {
   Ciphertext,
   parseProof,
   parseCiphertext,
-  IsAnswerH,
-  IsAnswerNH,
-  IsAnswerL,
+  Serialized,
+  parseAnswerH,
 } from "./types";
 
 export default function (state: any, ballot: any) {
@@ -184,18 +182,18 @@ export function checkIndividualProofs(state: any, ballot: any, idx: number) {
 
   const S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
 
-  if (IsAnswerH(answer, question)) {
-    const aeChoices = answer.choices.map(parseCiphertext);
-    const aazIndividualProofs = answer.individual_proofs.map((a) => a.map(parseProof));
+  if (Serialized.IsAnswerH(answer, question)) {
+    const a = parseAnswerH(answer);
     for (let j = 0; j < question.answers.length + (question.blank ? 1 : 0); j++) {
       let bCheckResult = checkIndividualProof(S,
-        aazIndividualProofs[j],
+        a.aazIndividualProofs[j],
         pY,
-        aeChoices[j]
+        a.aeChoices[j]
       );
       logBallot(ballot.tracker, bCheckResult, "Valid individual proof");
     }
-  } else if (IsAnswerL(answer, question)) {
+  } else if (Serialized.IsAnswerL(answer, question)) {
+    // TODO: parseAnswerL
     const aaeChoices = answer.choices.map((a) => a.map(parseCiphertext));
     const aaazIndividualProofs = answer.individual_proofs.map((a) => a.map((a) => a.map(parseProof)));
     for (let j = 0; j < question.value.answers.length; j++) {
@@ -208,7 +206,7 @@ export function checkIndividualProofs(state: any, ballot: any, idx: number) {
         logBallot(ballot.tracker, bCheckResult, "Valid individual proof");
       }
     }
-  } else if (IsAnswerNH(answer, question)) {
+  } else if (Serialized.IsAnswerNH(answer, question)) {
     logBallot(
       ballot.tracker,
       false,
@@ -227,31 +225,28 @@ export function checkOverallProofWithoutBlank(state: any, ballot: any, idx: numb
   const pY = parsePoint(state.setup.payload.election.public_key);
   const question = state.setup.payload.election.questions[idx];
   const answer = ballot.payload.answers[idx];
+  const a = parseAnswerH(answer);
 
-  const sumc = {
-    alpha: zero,
-    beta: zero,
-  };
+  const sumc = a.aeChoices.reduce((acc, c) => {
+    return {
+      pAlpha: acc.pAlpha.add(c.pAlpha),
+      pBeta: acc.pBeta.add(c.pBeta),
+    };
+  }, { pAlpha: zero, pBeta: zero });
 
-  for (let j = 0; j < answer.choices.length; j++) {
-    sumc.alpha = sumc.alpha.add(parsePoint(answer.choices[j].alpha));
-    sumc.beta = sumc.beta.add(parsePoint(answer.choices[j].beta));
-  }
-
-  let nSumChallenges = 0n;
-  for (let k = 0; k < answer.overall_proof.length; k++) {
-    const challenge = BigInt(answer.overall_proof[k].challenge);
-    nSumChallenges = mod(nSumChallenges + challenge, L);
-  }
+  const nSumChallenges = a.azOverallProof.reduce(
+    (acc: bigint, proof: Proof) => mod(acc + proof.nChallenge, L),
+    0n,
+  );
 
   let commitments = [];
   for (let j = 0; j <= question.max - question.min; j++) {
     const [pA, pB] = formula2(
       pY,
-      sumc.alpha,
-      sumc.beta,
-      BigInt(answer.overall_proof[j].challenge),
-      BigInt(answer.overall_proof[j].response),
+      sumc.pAlpha,
+      sumc.pBeta,
+      a.azOverallProof[j].nChallenge,
+      a.azOverallProof[j].nResponse,
       question.min + j,
     );
     commitments.push(pA, pB);
@@ -259,7 +254,7 @@ export function checkOverallProofWithoutBlank(state: any, ballot: any, idx: numb
 
   let S = `${state.setup.fingerprint}|${ballot.payload.credential}|`;
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
-  const nH = Hiprove(S, sumc.alpha, sumc.beta, ...commitments);
+  const nH = Hiprove(S, sumc.pAlpha, sumc.pBeta, ...commitments);
 
   logBallot(
     ballot.tracker,
@@ -271,33 +266,20 @@ export function checkOverallProofWithoutBlank(state: any, ballot: any, idx: numb
 export function checkBlankProof(state: any, ballot: any, idx: number) {
   const pY = parsePoint(state.setup.payload.election.public_key);
   const answer = ballot.payload.answers[idx];
+  const a = parseAnswerH(answer);
 
-  const nChallenge0 = BigInt(answer.blank_proof[0].challenge);
-  const nResponse0 = BigInt(answer.blank_proof[0].response);
-  const nChallengeS = BigInt(answer.blank_proof[1].challenge);
-  const nResponseS = BigInt(answer.blank_proof[1].response);
+  const pAlphaS = a.aeChoices.slice(1).reduce((acc, c) => acc.add(c.pAlpha), zero);
+  const pBetaS = a.aeChoices.slice(1).reduce((acc, c) => acc.add(c.pBeta), zero);
 
-  const pAlpha0 = parsePoint(answer.choices[0].alpha);
-  const pBeta0 = parsePoint(answer.choices[0].beta);
-
-  let pAlphaS = zero;
-  let pBetaS = zero;
-
-  for (let j = 1; j < answer.choices.length; j++) {
-    pAlphaS = pAlphaS.add(parsePoint(answer.choices[j].alpha));
-    pBetaS = pBetaS.add(parsePoint(answer.choices[j].beta));
-  }
-
-  const nSumChallenges = answer.blank_proof.reduce(
-    (acc: bigint, proof: Serialized.Proof) => mod(acc + BigInt(proof.challenge), L),
+  const nSumChallenges = a.azBlankProof.reduce(
+    (acc, proof) => mod(acc + BigInt(proof.nChallenge), L),
     0n,
   );
 
-  const pA0 = formula(g, nResponse0, pAlpha0, nChallenge0);
-  const pB0 = formula(pY, nResponse0, pBeta0, nChallenge0);
-
-  const pAS = formula(g, nResponseS, pAlphaS, nChallengeS);
-  const pBS = formula(pY, nResponseS, pBetaS, nChallengeS);
+  const [pA0, pB0] = formula2(pY, a.aeChoices[0].pAlpha, a.aeChoices[0].pBeta,
+                              a.azBlankProof[0].nChallenge, a.azBlankProof[0].nResponse, 0);
+  const [pAS, pBS] = formula2(pY, pAlphaS, pBetaS,
+                              a.azBlankProof[1].nChallenge, a.azBlankProof[1].nResponse, 0);
 
   let S = `${state.setup.fingerprint}|${ballot.payload.credential}|`;
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
@@ -314,21 +296,18 @@ export function checkOverallProofWithBlank(state: any, ballot: any, idx: number)
   const pY = parsePoint(state.setup.payload.election.public_key);
   const question = state.setup.payload.election.questions[idx];
   const answer = ballot.payload.answers[idx];
+  const a = parseAnswerH(answer);
 
-  let pAlphaS = zero;
-  let pBetaS = zero;
-  for (let j = 1; j < answer.choices.length; j++) {
-    pAlphaS = pAlphaS.add(parsePoint(answer.choices[j].alpha));
-    pBetaS = pBetaS.add(parsePoint(answer.choices[j].beta));
-  }
+  const pAlphaS = a.aeChoices.slice(1).reduce((acc, c) => acc.add(c.pAlpha), zero);
+  const pBetaS = a.aeChoices.slice(1).reduce((acc, c) => acc.add(c.pBeta), zero);
 
   let commitments = [];
   const [pA, pB] = formula2(
     pY,
-    parsePoint(answer.choices[0].alpha),
-    parsePoint(answer.choices[0].beta),
-    BigInt(answer.overall_proof[0].challenge),
-    BigInt(answer.overall_proof[0].response),
+    a.aeChoices[0].pAlpha,
+    a.aeChoices[0].pBeta,
+    a.azOverallProof[0].nChallenge,
+    a.azOverallProof[0].nResponse,
     1,
   );
   commitments.push(pA, pB);
@@ -337,16 +316,16 @@ export function checkOverallProofWithBlank(state: any, ballot: any, idx: number)
       pY,
       pAlphaS,
       pBetaS,
-      BigInt(answer.overall_proof[j].challenge),
-      BigInt(answer.overall_proof[j].response),
+      a.azOverallProof[j].nChallenge,
+      a.azOverallProof[j].nResponse,
       question.min + j - 1,
     );
     commitments.push(pA, pB);
   }
 
-  const nSumChallenges = answer.overall_proof.reduce(
-    (acc: bigint, proof: Serialized.Proof) => mod(acc + BigInt(proof.challenge), L),
-    BigInt(0),
+  const nSumChallenges = a.azOverallProof.reduce(
+    (acc, proof) => mod(acc + BigInt(proof.nChallenge), L),
+    0n,
   );
 
   let S = `${state.setup.fingerprint}|${ballot.payload.credential}|`;

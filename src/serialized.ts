@@ -29,4 +29,17 @@ export type AnswerL = {
   //nonzero_proof: Array<tSerializedNonZeroProof>;
 };
 
+export type Answer = AnswerH | AnswerNH | AnswerL;
 
+// Type guards
+export function IsAnswerH(answer: any, question: any) : answer is AnswerH {
+  return (question.type === undefined);
+}
+
+export function IsAnswerNH(answer: any, question: any) : answer is AnswerNH {
+  return (question.type === "NonHomomorphic");
+}
+
+export function IsAnswerL(answer: any, question: any) : answer is AnswerL {
+  return (question.type === "Lists");
+}
