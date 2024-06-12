@@ -14,8 +14,19 @@ import {
   Hbproof1,
   Hsignature,
 } from "./math";
-import { tPoint, tSerializedProof } from "./types";
+import { Point } from "./types";
+import * as Serialized from "./serialized";
 import canonicalBallot from "./canonicalBallot.js";
+
+import {
+  Proof,
+  Ciphertext,
+  parseProof,
+  parseCiphertext,
+  IsAnswerH,
+  IsAnswerNH,
+  IsAnswerL,
+} from "./types";
 
 export default function (state: any, ballot: any) {
   checkMisc(state, ballot);
@@ -141,88 +152,68 @@ export function checkValidPoints(ballot: any) {
 
 export function checkIndividualProof(
   S: string,
-  individualProof: any,
-  pY: tPoint,
-  pAlpha: tPoint,
-  pBeta: tPoint,
+  zIndividualProof: Array<Proof>,
+  pY: Point,
+  eCiphertext: Ciphertext,
 ) {
-  let nSumChallenges = individualProof.reduce(
-    (acc, proof) => mod(acc + BigInt(proof.challenge), L),
-    0n,
-  );
-
+  const nSumChallenges = mod(zIndividualProof[0].nChallenge + zIndividualProof[1].nChallenge, L);
   const [pA0, pB0] = formula2(
     pY,
-    pAlpha,
-    pBeta,
-    BigInt(individualProof[0].challenge),
-    BigInt(individualProof[0].response),
+    eCiphertext.pAlpha,
+    eCiphertext.pBeta,
+    zIndividualProof[0].nChallenge,
+    zIndividualProof[0].nResponse,
     0,
   );
   const [pA1, pB1] = formula2(
     pY,
-    pAlpha,
-    pBeta,
-    BigInt(individualProof[1].challenge),
-    BigInt(individualProof[1].response),
+    eCiphertext.pAlpha,
+    eCiphertext.pBeta,
+    zIndividualProof[1].nChallenge,
+    zIndividualProof[1].nResponse,
     1,
   );
-  const commitments = [pA0, pB0, pA1, pB1];
-
-  const nH = Hiprove(S, pAlpha, pBeta, ...commitments);
-
+  const nH = Hiprove(S, eCiphertext.pAlpha, eCiphertext.pBeta, pA0, pB0, pA1, pB1);
   return nSumChallenges.toString(16) === nH.toString(16);
 }
 
 export function checkIndividualProofs(state: any, ballot: any, idx: number) {
   const pY = parsePoint(state.setup.payload.election.public_key);
   const question = state.setup.payload.election.questions[idx];
-  const answer = ballot.payload.answers[idx];
-  const choices = answer.choices;
-  const individualProofs = answer.individual_proofs;
-
-  if (question.type === undefined) { // question_h
-    logBallot(
-      ballot.tracker,
-        individualProofs.length ===
-          question.answers.length + (question.blank ? 1 : 0),
-      "Has a proof for every answer",
-    );
-  } else if (question.type === "Lists") {
-    for (let i = 0; i < question.value.answers.length; i++) {
-      logBallot(
-        ballot.tracker,
-        individualProofs[i].length === question.value.answers[i].length,
-        "Has a proof for every answer",
-      );
-    }
-  }
+  const answer = ballot.payload.answers[idx]
 
   const S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
 
-  if (question.type === undefined) { // question_h
-    for (let j = 0; j < individualProofs.length; j++) {
+  if (IsAnswerH(answer, question)) {
+    const aeChoices = answer.choices.map(parseCiphertext);
+    const aazIndividualProofs = answer.individual_proofs.map((a) => a.map(parseProof));
+    for (let j = 0; j < question.answers.length + (question.blank ? 1 : 0); j++) {
       let bCheckResult = checkIndividualProof(S,
-        individualProofs[j],
+        aazIndividualProofs[j],
         pY,
-        parsePoint(choices[j].alpha),
-        parsePoint(choices[j].beta)
+        aeChoices[j]
       );
-
       logBallot(ballot.tracker, bCheckResult, "Valid individual proof");
     }
-  } else if (question.type === "Lists") {
-    for (let j = 0; j < individualProofs.length; j++) {
-      for (let k = 0; k < individualProofs[j].length; k++) {
+  } else if (IsAnswerL(answer, question)) {
+    const aaeChoices = answer.choices.map((a) => a.map(parseCiphertext));
+    const aaazIndividualProofs = answer.individual_proofs.map((a) => a.map((a) => a.map(parseProof)));
+    for (let j = 0; j < question.value.answers.length; j++) {
+      for (let k = 0; k < question.value.answers[j].length; k++) {
         let bCheckResult = checkIndividualProof(S,
-          individualProofs[j][k],
+          aaazIndividualProofs[j][k],
           pY,
-          parsePoint(choices[j][k].alpha),
-          parsePoint(choices[j][k].beta)
+          aaeChoices[j][k]
         );
         logBallot(ballot.tracker, bCheckResult, "Valid individual proof");
       }
     }
+  } else if (IsAnswerNH(answer, question)) {
+    logBallot(
+      ballot.tracker,
+      false,
+      `Question type "NonHomomorphic" not supported`
+    );
   } else {
     logBallot(
       ballot.tracker,
@@ -298,7 +289,7 @@ export function checkBlankProof(state: any, ballot: any, idx: number) {
   }
 
   const nSumChallenges = answer.blank_proof.reduce(
-    (acc: bigint, proof: tSerializedProof) => mod(acc + BigInt(proof.challenge), L),
+    (acc: bigint, proof: Serialized.Proof) => mod(acc + BigInt(proof.challenge), L),
     0n,
   );
 
@@ -354,7 +345,7 @@ export function checkOverallProofWithBlank(state: any, ballot: any, idx: number)
   }
 
   const nSumChallenges = answer.overall_proof.reduce(
-    (acc: bigint, proof: tSerializedProof) => mod(acc + BigInt(proof.challenge), L),
+    (acc: bigint, proof: Serialized.Proof) => mod(acc + BigInt(proof.challenge), L),
     BigInt(0),
   );
 

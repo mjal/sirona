@@ -7,6 +7,9 @@ import {
   tAnswerWithoutBlank,
   tAnswerWithBlank,
   tAnswer,
+
+  serializeProof,
+  serializeCiphertext,
 } from "./types";
 import {
   g,
@@ -27,19 +30,6 @@ import { hashWithoutSignature } from "./checkBallot";
 import canonicalBallot from "./canonicalBallot";
 import checkBallot from "./checkBallot";
 
-function serializeProof(proof: tProof): tSerializedProof {
-  return {
-    challenge: proof.nChallenge.toString(),
-    response: proof.nResponse.toString(),
-  };
-}
-
-function serializeCiphertext(c: tCiphertext): tSerializedCiphertext {
-  return {
-    alpha: rev(c.pAlpha.toHex()),
-    beta: rev(c.pBeta.toHex()),
-  };
-}
 
 export default function (
   state: any,
