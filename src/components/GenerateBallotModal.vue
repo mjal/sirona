@@ -1,5 +1,5 @@
 <script setup>
-import generateBallot, { checkVotingCode } from "../generateBallot";
+import generateBallot from "../generateBallot";
 import { ref, computed } from "vue";
 import canonicalBallot from "../canonicalBallot.js";
 
@@ -55,12 +55,6 @@ const submitForm = (event) => {
   serializedGeneratedBallot.value = sBallot;
   return false;
 };
-
-const checkCode = () => {
-  if (checkVotingCode(props.state, credential.value.trim())) {
-    alert("Code is valid");
-  }
-};
 </script>
 
 <template>
@@ -82,14 +76,6 @@ const checkCode = () => {
                 placeholder="Paste your code"
               />
             </div>
-
-            <button
-              class="uk-button uk-button-default"
-              type="button"
-              @click="checkCode"
-            >
-              Check
-            </button>
           </div>
 
           <div

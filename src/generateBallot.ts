@@ -104,21 +104,16 @@ export default function (
     signature: signature(nPrivateCredential, hH),
   };
 
-  // TODO: Remove
-  console.log("Generated ballot");
-  console.log(ballot);
-  console.log(canonicalBallot(ballot));
-
   checkBallot(state, { payload: ballot });
 
   return ballot;
 }
 
-export function checkVotingCode(state: any, sPriv: string) {
+function checkVotingCode(state: any, sPriv: string) {
   if (
     !/[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}/.test(sPriv)
   ) {
-    alert("Invalid credential format");
+    alert("Invalid credential format. Should be XXXXX-XXXXXX-XXXXX-XXXXXX.");
     return false;
   }
 
@@ -131,7 +126,7 @@ export function checkVotingCode(state: any, sPriv: string) {
   if (electionPublicCredentials.includes(hPublicCredential)) {
     return true;
   } else {
-    alert("Incorrect voting code");
+    alert("Invalid credential.");
     return false;
   }
 }
