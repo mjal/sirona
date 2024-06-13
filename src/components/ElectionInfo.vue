@@ -1,12 +1,24 @@
 <script setup>
 import { computed } from "vue";
 
-const props = defineProps(["state"]);
+const props = defineProps(["state", "logs", "ballotLogs"]);
 const election = props.state.setup?.payload.election;
 const countBallots = props.state.ballots?.length;
 const fingerprint = props.state.setup?.fingerprint;
 
 const hasResult = props.state.result ? true : false;
+const hasError = computed(() => {
+  const keys = ["top", "database", "setup", "encryptedTally", "result"];
+  const bError = keys.some((key) => {
+    return props.logs[key].filter(({pass}) => !pass).length;
+  })
+  // props.ballotLogs is a hash map
+  const bBallotError = Object.values(props.ballotLogs).some((logEntry) => {
+    return logEntry.some(({pass}) => !pass);
+  });
+  return bError || bBallotError;
+});
+
 </script>
 
 <template>
@@ -14,7 +26,14 @@ const hasResult = props.state.result ? true : false;
       <caption>Election infos</caption>
       <tbody>
         <tr>
-          <td>Status</td>
+          <td>Verification Status</td>
+          <td>
+            <span v-if="hasError" class="uk-label uk-label-danger">Error</span>
+            <span v-else class="uk-label uk-label-success">Success</span>
+          </td>
+        </tr>
+        <tr>
+          <td>Election Status</td>
           <td>
             <span v-if="hasResult" class="uk-label uk-label-success">Finished</span>
             <span v-else class="uk-label">In progress</span>

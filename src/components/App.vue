@@ -106,7 +106,7 @@ const goToBallotList = () => {
     <ul class="uk-switcher uk-margin">
       <li>
         <div v-if="!loaded">Not loaded yet.</div>
-        <ElectionInfo :state="state" v-if="loaded" />
+        <ElectionInfo :state="state" :logs="logs" :ballotLogs="ballotLogs" v-if="loaded" />
         <ElectionResult :state="state" v-if="loaded && state.result" />
       </li>
       <li>
