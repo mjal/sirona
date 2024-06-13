@@ -10,7 +10,7 @@ const hasResult = props.state.result ? true : false;
 const hasError = computed(() => {
   const keys = ["top", "database", "setup", "encryptedTally", "result"];
   const bError = keys.some((key) => {
-    return props.logs[key].filter(({pass}) => !pass).length;
+    return props.logs[key] && props.logs[key].filter(({pass}) => !pass).length;
   })
   const bBallotError = Object.values(props.ballotLogs).some((logEntry) => {
     return logEntry.some(({pass}) => !pass);
