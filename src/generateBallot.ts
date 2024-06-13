@@ -95,6 +95,13 @@ export default function (
     credential: hPublicCredential,
     election_hash: state.setup.fingerprint,
     election_uuid: state.setup.payload.election.uuid,
+    signature: {
+      hash: null,
+      proof: {
+        challenge: null,
+        response: null,
+      },
+    }
   };
 
   const hH = hashWithoutSignature({ payload: ballotWithoutSignature });
