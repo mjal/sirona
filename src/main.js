@@ -17,9 +17,10 @@
 
 import { createApp } from "vue";
 
-import "./vendor/franken-ui-0.0.12.min.css";
-import "./vendor/uikit.min.js.js";
-import "./vendor/uikit-icons.min.js.js";
+import "./vendor/franken-ui-0.0.13.min.css";
+import "./vendor/uikit.css";
+import "./vendor/uikit.js";
+import "./vendor/uikit-icons.js";
 
 import App from "./components/App.vue";
 
