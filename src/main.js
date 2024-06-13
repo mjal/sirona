@@ -9,10 +9,13 @@
  * Here are the prefixes:
  *
  * - a for arrays
- * - n for BigInt
- * - p for curve points
+ * - b for booleans
  * - h for hexadecimal strings
  * - s for other strings
+ * - n for BigInt
+ * - p for curve points
+ * - z for zero-knowledge proofs
+ * - e for ElGamal ciphertexts
  */
 
 import { createApp } from "vue";
