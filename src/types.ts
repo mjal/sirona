@@ -65,10 +65,15 @@ export function parseAnswerH(answer: Serialized.AnswerH) : AnswerH {
 }
 
 export function serializeAnswerH(answer: AnswerH) : Serialized.AnswerH {
-  return {
+  let obj : Serialized.AnswerH = {
     choices: answer.aeChoices.map(serializeCiphertext),
-    individual_proofs: answer.aazIndividualProofs.map((proofs) => proofs.map(serializeProof)),
+    individual_proofs: answer.aazIndividualProofs.map((proofs) =>
+      proofs.map(serializeProof)
+    ),
     overall_proof: answer.azOverallProof.map(serializeProof),
-    blank_proof: answer.azBlankProof.map(serializeProof)
   };
+  if (answer.azBlankProof) {
+    obj.blank_proof = answer.azBlankProof.map(serializeProof);
+  }
+  return obj;
 }
