@@ -55,6 +55,9 @@ const submitForm = (event) => {
   serializedGeneratedBallot.value = sBallot;
   return false;
 };
+const copyToClipboard = () => {
+  navigator.clipboard.writeText(serializedGeneratedBallot.value)
+}
 </script>
 
 <template>
@@ -127,6 +130,13 @@ const submitForm = (event) => {
           ></textarea>
         </div>
       </div>
+      <button
+        class="uk-button uk-button-default"
+        type="button"
+        @click="copyToClipboard"
+      >
+        Copy to clipboard
+      </button>
       <button class="uk-modal-close uk-button uk-button-default" type="button">
         Close
       </button>
