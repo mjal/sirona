@@ -12,7 +12,6 @@ const hasError = computed(() => {
   const bError = keys.some((key) => {
     return props.logs[key].filter(({pass}) => !pass).length;
   })
-  // props.ballotLogs is a hash map
   const bBallotError = Object.values(props.ballotLogs).some((logEntry) => {
     return logEntry.some(({pass}) => !pass);
   });
