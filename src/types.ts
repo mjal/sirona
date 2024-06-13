@@ -47,7 +47,7 @@ export type AnswerH = {
   aeChoices: Array<Ciphertext>;
   aazIndividualProofs: Array<Array<Proof>>;
   azOverallProof: Array<Proof>;
-  azBlankProof?: [Proof, Proof];
+  azBlankProof?: Array<Proof>;
 };
 
 export function parseAnswerH(answer: Serialized.AnswerH) : AnswerH {
@@ -59,11 +59,16 @@ export function parseAnswerH(answer: Serialized.AnswerH) : AnswerH {
     azOverallProof: answer.overall_proof.map(parseProof),
   };
   if (answer.blank_proof) {
-    obj.azBlankProof = [
-      parseProof(answer.blank_proof[0]),
-      parseProof(answer.blank_proof[1])
-    ];
+    obj.azBlankProof = answer.blank_proof.map(parseProof);
   }
   return obj;
 }
 
+export function serializeAnswerH(answer: AnswerH) : Serialized.AnswerH {
+  return {
+    choices: answer.aeChoices.map(serializeCiphertext),
+    individual_proofs: answer.aazIndividualProofs.map((proofs) => proofs.map(serializeProof)),
+    overall_proof: answer.azOverallProof.map(serializeProof),
+    blank_proof: answer.azBlankProof.map(serializeProof)
+  };
+}

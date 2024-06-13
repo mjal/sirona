@@ -1,15 +1,12 @@
 import sjcl from "sjcl";
 import {
-  tProof,
-  tSerializedProof,
-  tCiphertext,
-  tSerializedCiphertext,
-  tAnswerWithoutBlank,
-  tAnswerWithBlank,
-  tAnswer,
-
+  Point,
+  Serialized,
+  Proof,
+  Ciphertext,
   serializeProof,
   serializeCiphertext,
+  serializeAnswerH,
 } from "./types";
 import {
   g,
@@ -24,11 +21,49 @@ import {
   Hbproof0,
   Hbproof1,
   zero,
-  point,
 } from "./math";
 import { hashWithoutSignature } from "./checkBallot";
 import canonicalBallot from "./canonicalBallot";
 import checkBallot from "./checkBallot";
+
+function deriveCredential(state: any, sPriv: string) {
+  const prefix = `derive_credential|${state.setup.payload.election.uuid}`;
+
+  const x0 = sjcl.codec.hex.fromBits(
+    sjcl.hash.sha256.hash(`${prefix}|0|${sPriv}`),
+  );
+
+  const x1 = sjcl.codec.hex.fromBits(
+    sjcl.hash.sha256.hash(`${prefix}|1|${sPriv}`),
+  );
+
+  const nPrivateCredential = mod(BigInt("0x" + x0 + x1), L);
+  const pPublicCredential = g.multiply(nPrivateCredential);
+  const hPublicCredential = rev(pPublicCredential.toHex());
+
+  return {
+    nPrivateCredential,
+    hPublicCredential,
+  };
+}
+
+function signature(nPriv: bigint, sHash: string) {
+  const w = rand();
+  const pA = g.multiply(w);
+
+  // TODO: Refactor using Hsignature
+  // TODO: nChallenge = Hsignature(hash, pA);
+  const hashSignature = sjcl.codec.hex.fromBits(
+    sjcl.hash.sha256.hash(`sig|${sHash}|${rev(pA.toHex())}`),
+  );
+  const nChallenge = mod(BigInt("0x" + hashSignature), L);
+  const nResponse = mod(w - nPriv * nChallenge, L);
+
+  return {
+    hash: sHash,
+    proof: serializeProof({ nChallenge, nResponse }),
+  };
+}
 
 
 export default function (
@@ -45,7 +80,7 @@ export default function (
     sPriv,
   );
 
-  let answers: Array<tAnswer> = [];
+  let answers: Array<Serialized.AnswerH> = [];
   for (let i = 0; i < choices.length; i++) {
     const question = state.setup.payload.election.questions[i];
     const f = question.blank
@@ -103,16 +138,16 @@ export function checkVotingCode(state: any, sPriv: string) {
 
 function iproof(
   prefix: string,
-  pY: point,
-  pAlpha: point,
-  pBeta: point,
+  pY: Point,
+  pAlpha: Point,
+  pBeta: Point,
   r: bigint,
   m: number,
   M: Array<number>,
-) {
+) : Array<Proof> {
   const w = rand();
-  let commitments: Array<point> = [];
-  let proofs: Array<tProof> = [];
+  let commitments: Array<Point> = [];
+  let proofs: Array<Proof> = [];
 
   for (let i = 0; i < M.length; i++) {
     if (m !== M[i]) {
@@ -143,18 +178,18 @@ function iproof(
     }
   }
 
-  return proofs.map(serializeProof);
+  return proofs;
 }
 
 function generateEncryptions(
   state: any,
-  pY: point,
+  pY: Point,
   hPublicCredential: string,
   choices: Array<number>,
 ) {
   let anR: Array<bigint> = [];
-  let aCiphertexts: Array<tCiphertext> = [];
-  let aIndividualProofs: Array<Array<tSerializedProof>> = [];
+  let aeChoices: Array<Ciphertext> = [];
+  let aazIndividualProofs: Array<Array<Proof>> = [];
 
   for (let i = 0; i < choices.length; i++) {
     const nR = rand();
@@ -165,12 +200,12 @@ function generateEncryptions(
     const S = `${state.setup.fingerprint}|${hPublicCredential}`;
     const proof = iproof(S, pY, pAlpha, pBeta, nR, choices[i], [0, 1]);
 
-    aCiphertexts.push({ pAlpha, pBeta });
-    aIndividualProofs.push(proof);
+    aeChoices.push({ pAlpha, pBeta });
+    aazIndividualProofs.push(proof);
     anR.push(nR);
   }
 
-  return { anR, aCiphertexts, aIndividualProofs };
+  return { anR, aeChoices, aazIndividualProofs };
 }
 
 function generateAnswerWithoutBlank(
@@ -178,18 +213,18 @@ function generateAnswerWithoutBlank(
   question: any,
   sPriv: string,
   choices: Array<number>,
-): tAnswerWithoutBlank {
+): Serialized.AnswerH {
   const pY = parsePoint(state.setup.payload.election.public_key);
   const { hPublicCredential } = deriveCredential(state, sPriv);
-  const { anR, aCiphertexts, aIndividualProofs } = generateEncryptions(
+  const { anR, aeChoices, aazIndividualProofs } = generateEncryptions(
     state,
     pY,
     hPublicCredential,
     choices,
   );
 
-  const pSumAlpha = aCiphertexts.reduce((acc, c) => acc.add(c.pAlpha), zero);
-  const pSumBeta = aCiphertexts.reduce((acc, c) => acc.add(c.pBeta), zero);
+  const pSumAlpha = aeChoices.reduce((acc, c) => acc.add(c.pAlpha), zero);
+  const pSumBeta = aeChoices.reduce((acc, c) => acc.add(c.pBeta), zero);
   const m = choices.reduce((acc, c) => c + acc, 0);
   const M = Array.from({ length: question.max - question.min + 1 }).map(
     (_, i) => i + question.min,
@@ -197,28 +232,28 @@ function generateAnswerWithoutBlank(
   const nR = anR.reduce((acc, r) => mod(acc + r, L), BigInt(0));
 
   let S = `${state.setup.fingerprint}|${hPublicCredential}|`;
-  S += aCiphertexts
+  S += aeChoices
     .map((c) => `${rev(c.pAlpha.toHex())},${rev(c.pBeta.toHex())}`)
     .join(",");
-  const overallProof = iproof(S, pY, pSumAlpha, pSumBeta, nR, m, M);
+  const azOverallProof = iproof(S, pY, pSumAlpha, pSumBeta, nR, m, M);
 
-  return {
-    choices: aCiphertexts.map(serializeCiphertext),
-    individual_proofs: aIndividualProofs,
-    overall_proof: overallProof,
-  };
+  return serializeAnswerH({
+    aeChoices,
+    aazIndividualProofs,
+    azOverallProof,
+  });
 }
 
 function blankProof(
   state: any,
   hPub: string,
-  pY: point,
-  choices: Array<tCiphertext>,
-  pAlphaS: point,
-  pBetaS: point,
+  pY: Point,
+  choices: Array<Ciphertext>,
+  pAlphaS: Point,
+  pBetaS: Point,
   nR0: bigint,
   bNonBlank: boolean
-): Array<tProof> {
+): Array<Proof> {
   const nChallengeS = rand();
   const nResponseS = rand();
   const pAS = formula(g,  nResponseS, pAlphaS, nChallengeS);
@@ -250,10 +285,10 @@ function overallProofBlank(
   state: any,
   question: any,
   anChoices: Array<number>,
-  aeCiphertexts: Array<tCiphertext>,
+  aeCiphertexts: Array<Ciphertext>,
   hPub: string,
   anR: Array<bigint>
-): Array<tProof> {
+): Array<Proof> {
   const pAlphaS = aeCiphertexts.slice(1).reduce((acc, c) => acc.add(c.pAlpha), zero);
   const pBetaS = aeCiphertexts.slice(1).reduce((acc, c) => acc.add(c.pBeta), zero);
   const pY = parsePoint(state.setup.payload.election.public_key);
@@ -269,7 +304,7 @@ function overallProofBlank(
     const nResponse0 = rand();
     const [pA0, pB0] = formula2(pY, aeCiphertexts[0].pAlpha, aeCiphertexts[0].pBeta, nChallenge0, nResponse0, 1);
 
-    let azProofs : Array<tProof> = [{
+    let azProofs : Array<Proof> = [{
       nChallenge: nChallenge0,
       nResponse: nResponse0
     }];
@@ -310,7 +345,7 @@ function overallProofBlank(
     const pB0 = pY.multiply(nW);
     let commitments = [pA0, pB0];
 
-    let azProofs : Array<tProof> = [{
+    let azProofs : Array<Proof> = [{
       nChallenge: BigInt(0),
       nResponse: BigInt(0)
     }];
@@ -341,80 +376,36 @@ function generateAnswerWithBlank(
   question: any,
   sPriv: string,
   choices: Array<number>,
-): tAnswerWithBlank {
+): Serialized.AnswerH {
   const pY = parsePoint(state.setup.payload.election.public_key);
   const { hPublicCredential } = deriveCredential(state, sPriv);
-  const { anR, aCiphertexts, aIndividualProofs } = generateEncryptions(
+  const { anR, aeChoices, aazIndividualProofs } = generateEncryptions(
     state,
     pY,
     hPublicCredential,
     choices,
   );
 
-  const pAlphaS = aCiphertexts.slice(1).reduce((acc, c) => acc.add(c.pAlpha), zero);
-  const pBetaS = aCiphertexts.slice(1).reduce((acc, c) => acc.add(c.pBeta), zero);
-  const pAlpha0 = aCiphertexts[0].pAlpha;
-  const pBeta0 = aCiphertexts[0].pBeta;
-  const m = choices.slice(1).reduce((acc, c) => c + acc, 0);
-  const M = Array.from({ length: question.max - question.min + 1 }).map(
-    (_, i) => i + question.min,
-  );
+  const pAlphaS = aeChoices.slice(1).reduce((acc, c) => acc.add(c.pAlpha), zero);
+  const pBetaS = aeChoices.slice(1).reduce((acc, c) => acc.add(c.pBeta), zero);
+  const pAlpha0 = aeChoices[0].pAlpha;
+  const pBeta0 = aeChoices[0].pBeta;
   const nRS = anR.slice(1).reduce((acc, r) => mod(acc + r, L), BigInt(0));
   const nR0 = anR[0];
 
-  let azBlankProof : Array<tProof> = [];
+  let azBlankProof : Array<Proof> = [];
   if (choices[0] === 0) {
-    azBlankProof = blankProof(state, hPublicCredential, pY, aCiphertexts, pAlphaS, pBetaS, nR0, true);
+    azBlankProof = blankProof(state, hPublicCredential, pY, aeChoices, pAlphaS, pBetaS, nR0, true);
   } else {
-    azBlankProof = blankProof(state, hPublicCredential, pY, aCiphertexts, pAlpha0, pBeta0, nRS, false);
+    azBlankProof = blankProof(state, hPublicCredential, pY, aeChoices, pAlpha0, pBeta0, nRS, false);
   }
 
-  let overall_proof = overallProofBlank(state, question, choices,
-                                        aCiphertexts, hPublicCredential, anR);
-
-  return {
-    choices: aCiphertexts.map(serializeCiphertext),
-    individual_proofs: aIndividualProofs,
-    overall_proof: overall_proof.map(serializeProof),
-    blank_proof: azBlankProof.map(serializeProof)
-  };
-}
-
-function signature(nPriv: bigint, sHash: string) {
-  const w = rand();
-  const pA = g.multiply(w);
-
-  // TODO: Refactor using Hsignature
-  // TODO: nChallenge = Hsignature(hash, pA);
-  const hashSignature = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(`sig|${sHash}|${rev(pA.toHex())}`),
-  );
-  const nChallenge = mod(BigInt("0x" + hashSignature), L);
-  const nResponse = mod(w - nPriv * nChallenge, L);
-
-  return {
-    hash: sHash,
-    proof: serializeProof({ nChallenge, nResponse }),
-  };
-}
-
-function deriveCredential(state: any, sPriv: string) {
-  const prefix = `derive_credential|${state.setup.payload.election.uuid}`;
-
-  const x0 = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(`${prefix}|0|${sPriv}`),
-  );
-
-  const x1 = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(`${prefix}|1|${sPriv}`),
-  );
-
-  const nPrivateCredential = mod(BigInt("0x" + x0 + x1), L);
-  const pPublicCredential = g.multiply(nPrivateCredential);
-  const hPublicCredential = rev(pPublicCredential.toHex());
-
-  return {
-    nPrivateCredential,
-    hPublicCredential,
-  };
+  let azOverallProof = overallProofBlank(state, question, choices,
+                                        aeChoices, hPublicCredential, anR);
+  return serializeAnswerH({
+    aeChoices,
+    aazIndividualProofs,
+    azOverallProof,
+    azBlankProof
+  });
 }

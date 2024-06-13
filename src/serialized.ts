@@ -12,7 +12,7 @@ export type AnswerH = {
   choices: Array<Ciphertext>;
   individual_proofs: Array<Array<Proof>>;
   overall_proof: Array<Proof>;
-  blank_proof?: [Proof, Proof];
+  blank_proof?: Array<Proof>;
 };
 
 export type AnswerNH = {
