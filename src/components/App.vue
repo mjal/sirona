@@ -9,6 +9,8 @@ import ElectionBallotList from "./ElectionBallotList.vue";
 import GenerateBallotModal from "./GenerateBallotModal.vue";
 import { getLogs, getBallotLogs } from "../logger";
 
+import { TarReader } from "../tarReader";
+
 const state = ref({});
 const logs = ref([]);
 const ballotLogs = ref({});
@@ -17,16 +19,19 @@ const loaded = ref(false);
 
 const onUploadedFile = (event) => {
   const reader = new window.FileReader();
-  reader.onload = function () {
+  reader.onload = async () => {
     loading.value = true;
-    untar(reader.result).then(async (files) => {
-      state.value = await check(files);
-      loaded.value = true;
-      loading.value = false;
-      logs.value = getLogs();
-      ballotLogs.value = getBallotLogs();
-      return state;
-    });
+
+    const tarReader = new TarReader(reader.result);
+
+    const files = tarReader.getFiles();
+    state.value = await check(files);
+
+    loaded.value = true;
+    loading.value = false;
+    logs.value = getLogs();
+    ballotLogs.value = getBallotLogs();
+    return state;
   };
   reader.readAsArrayBuffer(event.target.files[0]);
 };

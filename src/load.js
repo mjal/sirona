@@ -6,10 +6,6 @@ export default function (fileEntries) {
 
   state.files = fileEntries.map(readFile);
 
-  for (let i = 0; i < state.files.length; i++) {
-    log("database", (state.files[i] !== null), `File ${i + 1} loaded`);
-  }
-
   state.setup = findEvent(state.files, "Setup");
   state.setup = {
     ...state.setup,
@@ -116,13 +112,13 @@ export default function (fileEntries) {
 
 function readFile(file) {
   if (file.name === "BELENIOS") {
-    return [null, "BELENIOS", JSON.parse(file.readAsString())];
+    return [null, "BELENIOS", JSON.parse(file.content)];
   }
 
   const splittedFilename = file.name.split(".");
   const hash = splittedFilename[0];
   const type = splittedFilename[1];
-  const textContent = file.readAsString();
+  const textContent = file.content;
   const jsonContent = JSON.parse(textContent);
   const hashContent = sjcl.codec.hex.fromBits(
     sjcl.hash.sha256.hash(textContent),
@@ -130,6 +126,13 @@ function readFile(file) {
 
   if (hash !== hashContent) {
     return null;
+  }
+
+  if (hash !== hashContent) {
+    log("database", false, `File integrity check failed`);
+    return null;
+  } else {
+    log("database", true, `File successfully loaded`);
   }
 
   return [hash, type, jsonContent];
