@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "prettier --write ."
+    "lint": "prettier --write .",
+    "cli": "deno run --allow-read --unstable-sloppy-imports src/cli.ts"
   },
   "devDependencies": {
     "@types/sjcl": "^1.0.34",
