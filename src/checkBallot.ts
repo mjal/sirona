@@ -1,5 +1,6 @@
 import sjcl from "sjcl";
 import { logBallot } from "./logger";
+import { map2, map3 } from "./utils";
 import {
   g,
   L,
@@ -14,17 +15,13 @@ import {
   Hbproof1,
   Hsignature,
 } from "./math";
-import { Point } from "./types";
-import canonicalBallot from "./canonicalBallot.js";
 
-import {
-  Proof,
-  Ciphertext,
-  parseProof,
-  parseCiphertext,
-  Serialized,
-  parseAnswerH,
-} from "./types";
+import * as Point from "./point";
+import * as Proof from "./proof";
+import * as Answer from "./answer";
+import * as Ciphertext from "./ciphertext";
+
+import canonicalBallot from "./canonicalBallot.js";
 
 export default function (state: any, ballot: any) {
   const election = state.setup.payload.election;
@@ -152,9 +149,9 @@ export function checkValidPoints(ballot: any) {
 
 export function checkIndividualProof(
   S: string,
-  zIndividualProof: Array<Proof>,
-  pY: Point,
-  eCiphertext: Ciphertext,
+  zIndividualProof: Array<Proof.t>,
+  pY: Point.t,
+  eCiphertext: Ciphertext.t,
 ) {
   const nSumChallenges = mod(zIndividualProof[0].nChallenge + zIndividualProof[1].nChallenge, L);
   const [pA0, pB0] = formula2(
@@ -184,8 +181,8 @@ export function checkIndividualProofs(state: any, ballot: any, idx: number) {
 
   const S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
 
-  if (Serialized.IsAnswerH(answer, question)) {
-    const a = parseAnswerH(answer);
+  if (Answer.Serialized.IsAnswerH(answer, question)) {
+    const a = Answer.AnswerH.parse(answer);
     for (let j = 0; j < question.answers.length + (question.blank ? 1 : 0); j++) {
       let bCheckResult = checkIndividualProof(S,
         a.aazIndividualProofs[j],
@@ -194,10 +191,10 @@ export function checkIndividualProofs(state: any, ballot: any, idx: number) {
       );
       logBallot(ballot.tracker, bCheckResult, "Valid individual proof");
     }
-  } else if (Serialized.IsAnswerL(answer, question)) {
+  } else if (Answer.Serialized.IsAnswerL(answer, question)) {
     // TODO: parseAnswerL
-    const aaeChoices = answer.choices.map((a) => a.map(parseCiphertext));
-    const aaazIndividualProofs = answer.individual_proofs.map((a) => a.map((a) => a.map(parseProof)));
+    const aaeChoices = map2(answer.choices, Ciphertext.parse);
+    const aaazIndividualProofs = map3(answer.individual_proofs, Proof.parse);
     for (let j = 0; j < question.value.answers.length; j++) {
       for (let k = 0; k < question.value.answers[j].length; k++) {
         let bCheckResult = checkIndividualProof(S,
@@ -208,7 +205,7 @@ export function checkIndividualProofs(state: any, ballot: any, idx: number) {
         logBallot(ballot.tracker, bCheckResult, "Valid individual proof");
       }
     }
-  } else if (Serialized.IsAnswerNH(answer, question)) {
+  } else if (Answer.Serialized.IsAnswerNH(answer, question)) {
     logBallot(
       ballot.tracker,
       false,
@@ -227,7 +224,7 @@ export function checkOverallProofWithoutBlank(state: any, ballot: any, idx: numb
   const pY = parsePoint(state.setup.payload.election.public_key);
   const question = state.setup.payload.election.questions[idx];
   const answer = ballot.payload.answers[idx];
-  const a = parseAnswerH(answer);
+  const a = Answer.AnswerH.parse(answer);
 
   const sumc = a.aeChoices.reduce((acc, c) => {
     return {
@@ -237,7 +234,7 @@ export function checkOverallProofWithoutBlank(state: any, ballot: any, idx: numb
   }, { pAlpha: zero, pBeta: zero });
 
   const nSumChallenges = a.azOverallProof.reduce(
-    (acc: bigint, proof: Proof) => mod(acc + proof.nChallenge, L),
+    (acc: bigint, proof: Proof.t) => mod(acc + proof.nChallenge, L),
     0n,
   );
 
@@ -268,7 +265,7 @@ export function checkOverallProofWithoutBlank(state: any, ballot: any, idx: numb
 export function checkBlankProof(state: any, ballot: any, idx: number) {
   const pY = parsePoint(state.setup.payload.election.public_key);
   const answer = ballot.payload.answers[idx];
-  const a = parseAnswerH(answer);
+  const a = Answer.AnswerH.parse(answer);
 
   const pAlphaS = a.aeChoices.slice(1).reduce((acc, c) => acc.add(c.pAlpha), zero);
   const pBetaS = a.aeChoices.slice(1).reduce((acc, c) => acc.add(c.pBeta), zero);
@@ -298,7 +295,7 @@ export function checkOverallProofWithBlank(state: any, ballot: any, idx: number)
   const pY = parsePoint(state.setup.payload.election.public_key);
   const question = state.setup.payload.election.questions[idx];
   const answer = ballot.payload.answers[idx];
-  const a = parseAnswerH(answer);
+  const a = Answer.AnswerH.parse(answer);
 
   const pAlphaS = a.aeChoices.slice(1).reduce((acc, c) => acc.add(c.pAlpha), zero);
   const pBetaS = a.aeChoices.slice(1).reduce((acc, c) => acc.add(c.pBeta), zero);

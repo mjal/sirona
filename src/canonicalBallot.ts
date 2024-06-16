@@ -1,22 +1,26 @@
-import { Serialized } from './types';
+import { map2, map3 } from './utils';
+import * as Proof from './proof';
+import * as NonZeroProof from './nonZeroProof';
+import * as Ciphertext from './ciphertext';
+import * as Answer from './answer';
 
 // NOTE: Instead of canonical* could also use serialize(parse()) when we have all serialize/parse functions and serialize function are all canonicals
 
-function canonicalCiphertext(ciphertext: Serialized.Ciphertext) {
+function canonicalCiphertext(ciphertext: Ciphertext.Serialized.t) : Ciphertext.Serialized.t {
   return {
     alpha: ciphertext.alpha,
     beta: ciphertext.beta,
   };
 }
 
-function canonicalProof(proof: Serialized.Proof) {
+function canonicalProof(proof: Proof.Serialized.t) : Proof.Serialized.t {
   return {
     challenge: proof.challenge,
     response: proof.response,
   };
 }
 
-function canonicalNonZeroProof(proof: Serialized.NonZeroProof) {
+function canonicalNonZeroProof(proof: NonZeroProof.Serialized.t) : NonZeroProof.Serialized.t {
   return {
     commitment: proof.commitment,
     challenge: proof.challenge,
@@ -25,12 +29,10 @@ function canonicalNonZeroProof(proof: Serialized.NonZeroProof) {
 }
 
 
-function canonicalAnswerH(answer: Serialized.AnswerH): Serialized.AnswerH {
-  let obj: Serialized.AnswerH = {
+function canonicalAnswerH(answer: Answer.AnswerH.Serialized.t): Answer.AnswerH.Serialized.t {
+  let obj: Answer.AnswerH.Serialized.t = {
     choices: answer.choices.map(canonicalCiphertext),
-    individual_proofs: answer.individual_proofs.map((iproof) => {
-      return iproof.map(canonicalProof);
-    }),
+    individual_proofs: map2(answer.individual_proofs, canonicalProof),
     overall_proof: answer.overall_proof.map(canonicalProof)
   }
   if (answer.blank_proof) {
@@ -39,23 +41,19 @@ function canonicalAnswerH(answer: Serialized.AnswerH): Serialized.AnswerH {
   return obj;
 }
 
-function canonicalAnswerNH(answer: Serialized.AnswerNH): Serialized.AnswerNH {
+function canonicalAnswerNH(answer: Answer.AnswerNH.Serialized.t): Answer.AnswerNH.Serialized.t {
   return {
     choices: canonicalCiphertext(answer.choices),
     proof: canonicalProof(answer.proof)
   }
 }
 
-function canonicalAnswerL(answer: Serialized.AnswerL): Serialized.AnswerL {
+function canonicalAnswerL(answer: Answer.AnswerL.Serialized.t): Answer.AnswerL.Serialized.t {
   return {
-    choices: answer.choices.map((choices) => {
-      return choices.map(canonicalCiphertext);
-    }),
-    individual_proofs: answer.individual_proofs.map((iproofs) => {
-      return iproofs.map((iproof) => iproof.map(canonicalProof));
-    }),
+    choices: map2(answer.choices, canonicalCiphertext),
+    individual_proofs: map3(answer.individual_proofs, canonicalProof),
     overall_proof: canonicalProof(answer.overall_proof),
-    list_proofs: answer.list_proofs.map((proofs) => proofs.map(canonicalProof)),
+    list_proofs: map2(answer.list_proofs, canonicalProof),
     nonzero_proof: canonicalNonZeroProof(answer.nonzero_proof)
   }
 }
@@ -73,11 +71,11 @@ export default function (ballot: any, election: any) {
 
   for (let i = 0; i < election.questions.length; i++) {
     const question = election.questions[i];
-    if (Serialized.IsAnswerH(ballot.answers[i], question)) {
+    if (Answer.Serialized.IsAnswerH(ballot.answers[i], question)) {
       obj.answers.push(canonicalAnswerH(ballot.answers[i]));
-    } else if (Serialized.IsAnswerNH(ballot.answers[i], question)) {
+    } else if (Answer.Serialized.IsAnswerNH(ballot.answers[i], question)) {
       obj.answers.push(canonicalAnswerNH(ballot.answers[i]));
-    } else if (Serialized.IsAnswerL(ballot.answers[i], question)) {
+    } else if (Answer.Serialized.IsAnswerL(ballot.answers[i], question)) {
       obj.answers.push(canonicalAnswerL(ballot.answers[i]));
     } else {
       throw new Error('Unknown answer type');
