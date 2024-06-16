@@ -26,13 +26,17 @@ function canonicalNonZeroProof(proof: Serialized.NonZeroProof) {
 
 
 function canonicalAnswerH(answer: Serialized.AnswerH): Serialized.AnswerH {
-  return {
+  let obj: Serialized.AnswerH = {
     choices: answer.choices.map(canonicalCiphertext),
     individual_proofs: answer.individual_proofs.map((iproof) => {
       return iproof.map(canonicalProof);
     }),
     overall_proof: answer.overall_proof.map(canonicalProof)
   }
+  if (answer.blank_proof) {
+    obj.blank_proof = answer.blank_proof.map(canonicalProof);
+  }
+  return obj;
 }
 
 function canonicalAnswerNH(answer: Serialized.AnswerNH): Serialized.AnswerNH {

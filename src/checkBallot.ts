@@ -28,8 +28,8 @@ import {
 
 export default function (state: any, ballot: any) {
   const election = state.setup.payload.election;
-  checkMisc(state, ballot);
-  checkCredential(state, ballot);
+  checkMisc(ballot, election, state.setup.fingerprint);
+  checkCredential(ballot, state.credentialsWeights);
   checkIsUnique(ballot);
   checkValidPoints(ballot);
   checkSignature(ballot, election);
@@ -55,13 +55,13 @@ export default function (state: any, ballot: any) {
   }
 }
 
-function checkMisc(state: any, ballot: any) {
-  const sSerializedBallot = JSON.stringify(canonicalBallot(ballot.payload, state.setup.payload.election));
+function checkMisc(ballot: any, election, fingerprint) {
+  const sSerializedBallot = JSON.stringify(canonicalBallot(ballot.payload, election));
 
   logBallot(
     ballot.tracker, 
-    state.setup.payload.election.uuid === ballot.payload.election_uuid &&
-    state.setup.fingerprint === ballot.payload.election_hash,
+    election.uuid === ballot.payload.election_uuid &&
+    fingerprint === ballot.payload.election_hash,
     "election.uuid correspond to election uuid"
   );
 
@@ -81,8 +81,8 @@ export function hashWithoutSignature(ballot: any, election) {
   return hash.replace(/=+$/, "");
 }
 
-function checkCredential(state: any, ballot: any) {
-  const credentials = state.credentialsWeights.map((cw) => cw.credential);
+function checkCredential(ballot: any, credentialsWeights: any) {
+  const credentials = credentialsWeights.map((cw) => cw.credential);
 
   logBallot(
     ballot.tracker,
