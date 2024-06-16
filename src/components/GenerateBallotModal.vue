@@ -1,9 +1,13 @@
 <script setup>
 import generateBallot from "../generateBallot";
 import { ref, computed } from "vue";
-import canonicalBallot from "../canonicalBallot.js";
+import canonicalBallot from "../canonicalBallot";
 
 const props = defineProps(["state", "loaded"]);
+
+const election = computed(() => {
+  return props.state.setup ? props.state.setup.payload.election : null;
+});
 
 const questions = computed(() => {
   return props.state.setup ? props.state.setup.payload.election.questions : [];
@@ -51,7 +55,10 @@ const submitForm = (event) => {
   }
 
   const oBallot = generateBallot(props.state, credential.value.trim(), answers);
-  const sBallot = JSON.stringify(canonicalBallot(oBallot));
+  console.log("election");
+  console.log(election);
+  console.log(election.value);
+  const sBallot = JSON.stringify(canonicalBallot(oBallot, election.value));
   serializedGeneratedBallot.value = sBallot;
   return false;
 };

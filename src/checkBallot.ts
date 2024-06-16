@@ -27,11 +27,12 @@ import {
 } from "./types";
 
 export default function (state: any, ballot: any) {
+  const election = state.setup.payload.election;
   checkMisc(state, ballot);
   checkCredential(state, ballot);
   checkIsUnique(ballot);
   checkValidPoints(ballot);
-  checkSignature(ballot);
+  checkSignature(ballot, election);
 
   for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
     const question = state.setup.payload.election.questions[i];
@@ -55,7 +56,7 @@ export default function (state: any, ballot: any) {
 }
 
 function checkMisc(state: any, ballot: any) {
-  const sSerializedBallot = JSON.stringify(canonicalBallot(ballot.payload));
+  const sSerializedBallot = JSON.stringify(canonicalBallot(ballot.payload, state.setup.payload.election));
 
   logBallot(
     ballot.tracker, 
@@ -72,8 +73,8 @@ function checkMisc(state: any, ballot: any) {
   );
 }
 
-export function hashWithoutSignature(ballot: any) {
-  const copy = Object.assign({}, canonicalBallot(ballot.payload));
+export function hashWithoutSignature(ballot: any, election) {
+  const copy = Object.assign({}, canonicalBallot(ballot.payload, election));
   delete copy.signature;
   const serialized = JSON.stringify(copy);
   const hash = sjcl.codec.base64.fromBits(sjcl.hash.sha256.hash(serialized));
@@ -101,10 +102,11 @@ function checkIsUnique(ballot: any) {
   processedBallots[ballot.payloadHash] = ballot;
 }
 
-export function checkSignature(ballot: any) {
+export function checkSignature(ballot: any, election) {
+  console.log("checkSignature", election);
   logBallot(
     ballot.tracker,
-    ballot.payload.signature.hash === hashWithoutSignature(ballot),
+    ballot.payload.signature.hash === hashWithoutSignature(ballot, election),
     "Hash without signature is correct",
   );
 

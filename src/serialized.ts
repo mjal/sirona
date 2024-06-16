@@ -20,13 +20,18 @@ export type AnswerNH = {
   proof: Proof;
 };
 
+export type NonZeroProof = {
+  commitment: string;
+  challenge: string;
+  response: [string, string];
+}
+
 export type AnswerL = {
   choices: Array<Array<Ciphertext>>;
-  proof: Proof;
   individual_proofs: Array<Array<Array<Proof>>>;
-  overall_proof: Array<Proof>;
-  list_proofs: Array<Proof>;
-  //nonzero_proof: Array<tSerializedNonZeroProof>;
+  overall_proof: Proof;
+  list_proofs: Array<Array<Proof>>;
+  nonzero_proof: NonZeroProof;
 };
 
 export type Answer = AnswerH | AnswerNH | AnswerL;

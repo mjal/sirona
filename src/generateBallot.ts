@@ -23,7 +23,6 @@ import {
   zero,
 } from "./math";
 import { hashWithoutSignature } from "./checkBallot";
-import canonicalBallot from "./canonicalBallot";
 import checkBallot from "./checkBallot";
 
 function deriveCredential(state: any, sPriv: string) {
