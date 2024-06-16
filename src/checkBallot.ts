@@ -21,7 +21,7 @@ import * as Proof from "./proof";
 import * as Answer from "./answer";
 import * as Ciphertext from "./ciphertext";
 
-import canonicalBallot from "./canonicalBallot.js";
+import canonicalBallot from "./canonicalBallot";
 
 export default function (state: any, ballot: any) {
   const election = state.setup.payload.election;

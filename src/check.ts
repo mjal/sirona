@@ -1,12 +1,12 @@
 import { log } from "./logger";
-import { _async } from "./utils.js";
-import load from "./load.js";
-import checkFiles from "./checkFiles.js";
-import checkSetup from "./checkSetup.js";
+import { _async } from "./utils";
+import load from "./load";
+import checkFiles from "./checkFiles";
+import checkSetup from "./checkSetup";
 import checkBallot from "./checkBallot";
-import checkEncryptedTally from "./checkEncryptedTally.js";
-import checkPartialDecryptions from "./checkPartialDecryptions.js";
-import checkResult from "./checkResult.js";
+import checkEncryptedTally from "./checkEncryptedTally";
+import checkPartialDecryptions from "./checkPartialDecryptions";
+import checkResult from "./checkResult";
 
 export default async function (fileEntries) {
   try {

@@ -11,6 +11,7 @@
     "cli": "deno run --allow-read --unstable-sloppy-imports src/cli.ts"
   },
   "devDependencies": {
+    "@types/node": "^20.14.2",
     "@types/sjcl": "^1.0.34",
     "@vitejs/plugin-vue": "^5.0.4",
     "prettier": "3.2.5",
