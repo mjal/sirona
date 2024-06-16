@@ -5,15 +5,25 @@ import check from "./check";
 // Import fs
 import fs from "fs"; // Without star
 
+let errors = 0;
+
 const main = async () => {
+  const files = process.argv.slice(2);
+  for (let i = 0; i < files.length; i++) {
+    await checkFile(files[i]);
+  }
+  console.log(`${errors} errors found.`);
+
+  process.exit(errors > 0 ? 1 : 0);
+}
+
+const checkFile = async (file) => {
   const filePath = process.argv[2];
   const data = await fs.promises.readFile(filePath);
 
   const tarReader = new TarReader(data);
   const files = tarReader.getFiles();
   const state = await check(files);
-
-  let errors = 0;
 
   const sectionLogs = getLogs();
   const sections = Object.keys(sectionLogs);
@@ -39,8 +49,6 @@ const main = async () => {
       console.log(prefix + logs[j].message);
     }
   }
-
-  process.exit(errors > 0 ? 1 : 0);
 }
 
 main();
