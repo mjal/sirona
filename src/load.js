@@ -12,7 +12,7 @@ export default function (fileEntries) {
     payloadHash: state.setup.payload,
     payload: findData(state.files, state.setup.payload),
   };
-  state.setup.fingerprint = sjcl.codec.base64
+  state.electionFingerprint = sjcl.codec.base64
     .fromBits(sjcl.codec.hex.toBits(state.setup.payload.election))
     .replace(/=+$/, "");
   state.setup.payload = {

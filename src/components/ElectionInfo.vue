@@ -4,7 +4,7 @@ import { computed } from "vue";
 const props = defineProps(["state", "logs", "ballotLogs"]);
 const election = props.state.setup?.payload.election;
 const countBallots = props.state.ballots?.length;
-const fingerprint = props.state.setup?.fingerprint;
+const fingerprint = props.electionFingerprint;
 
 const hasResult = props.state.result ? true : false;
 const hasError = computed(() => {

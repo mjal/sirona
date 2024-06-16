@@ -92,7 +92,7 @@ export default function (
   const ballotWithoutSignature = {
     answers,
     credential: hPublicCredential,
-    election_hash: state.setup.fingerprint,
+    election_hash: state.electionFingerprint,
     election_uuid: state.setup.payload.election.uuid,
     signature: {
       hash: null,
@@ -103,7 +103,7 @@ export default function (
     }
   };
 
-  const hH = hashWithoutSignature({ payload: ballotWithoutSignature });
+  const hH = hashWithoutSignature({ payload: ballotWithoutSignature }, state.setup.payload.election);
 
   const ballot = {
     ...ballotWithoutSignature,
@@ -198,7 +198,7 @@ function generateEncryptions(
     const pAlpha = g.multiply(nR);
     const pBeta = pY.multiply(nR).add(gPowerM);
 
-    const S = `${state.setup.fingerprint}|${hPublicCredential}`;
+    const S = `${state.electionFingerprint}|${hPublicCredential}`;
     const proof = iproof(S, pY, pAlpha, pBeta, nR, choices[i], [0, 1]);
 
     aeChoices.push({ pAlpha, pBeta });
@@ -232,7 +232,7 @@ function generateAnswerWithoutBlank(
   );
   const nR = anR.reduce((acc, r) => mod(acc + r, L), BigInt(0));
 
-  let S = `${state.setup.fingerprint}|${hPublicCredential}|`;
+  let S = `${state.electionFingerprint}|${hPublicCredential}|`;
   S += aeChoices
     .map((c) => `${rev(c.pAlpha.toHex())},${rev(c.pBeta.toHex())}`)
     .join(",");
@@ -263,7 +263,7 @@ function blankProof(
   const pA0 = g.multiply(nW);
   const pB0 = pY.multiply(nW);
 
-  let S = `${state.setup.fingerprint}|${hPub}|`;
+  let S = `${state.electionFingerprint}|${hPub}|`;
   S += choices.map(serializeCiphertext).map((c) => `${c.alpha},${c.beta}`).join(",");
   const nH = (bNonBlank) ? Hbproof0(S, pA0, pB0, pAS, pBS) : Hbproof0(S, pAS, pBS, pA0, pB0)
   const nChallenge0 = mod(nH - nChallengeS, L);
@@ -328,7 +328,7 @@ function overallProofBlank(
       }
     }
 
-    let S = `${state.setup.fingerprint}|${hPub}|`;
+    let S = `${state.electionFingerprint}|${hPub}|`;
     S += aeCiphertexts.map(serializeCiphertext).map((c) => `${c.alpha},${c.beta}`).join(",");
     const nH = Hbproof1(S, ...commitments);
 
@@ -361,7 +361,7 @@ function overallProofBlank(
       commitments.push(pA, pB);
     }
 
-    let S = `${state.setup.fingerprint}|${hPub}|`;
+    let S = `${state.electionFingerprint}|${hPub}|`;
     S += aeCiphertexts.map(serializeCiphertext).map((c) => `${c.alpha},${c.beta}`).join(",");
     const nH = Hbproof1(S, ...commitments);
 

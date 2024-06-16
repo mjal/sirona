@@ -57,7 +57,7 @@ export default function (state) {
 
           const hVerificationHash = sjcl.codec.hex.fromBits(
             sjcl.hash.sha256.hash(
-              `decrypt|${state.setup.fingerprint}|${rev(pPublicKey.toHex())}|${rev(pA.toHex())},${rev(pB.toHex())}`,
+              `decrypt|${state.electionFingerprint}|${rev(pPublicKey.toHex())}|${rev(pA.toHex())},${rev(pB.toHex())}`,
             ),
           );
           const hReducedVerificationHash = mod(

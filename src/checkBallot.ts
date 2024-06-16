@@ -25,7 +25,7 @@ import canonicalBallot from "./canonicalBallot.js";
 
 export default function (state: any, ballot: any) {
   const election = state.setup.payload.election;
-  checkMisc(ballot, election, state.setup.fingerprint);
+  checkMisc(ballot, election, state.electionFingerprint);
   checkCredential(ballot, state.credentialsWeights);
   checkIsUnique(ballot);
   checkValidPoints(ballot);
@@ -52,13 +52,13 @@ export default function (state: any, ballot: any) {
   }
 }
 
-function checkMisc(ballot: any, election, fingerprint) {
+function checkMisc(ballot: any, election, electionFingerprint) {
   const sSerializedBallot = JSON.stringify(canonicalBallot(ballot.payload, election));
 
   logBallot(
     ballot.tracker, 
     election.uuid === ballot.payload.election_uuid &&
-    fingerprint === ballot.payload.election_hash,
+    electionFingerprint === ballot.payload.election_hash,
     "election.uuid correspond to election uuid"
   );
 
@@ -179,7 +179,7 @@ export function checkIndividualProofs(state: any, ballot: any, idx: number) {
   const question = state.setup.payload.election.questions[idx];
   const answer = ballot.payload.answers[idx]
 
-  const S = `${state.setup.fingerprint}|${ballot.payload.credential}`;
+  const S = `${state.electionFingerprint}|${ballot.payload.credential}`;
 
   if (Answer.Serialized.IsAnswerH(answer, question)) {
     const a = Answer.AnswerH.parse(answer);
@@ -251,7 +251,7 @@ export function checkOverallProofWithoutBlank(state: any, ballot: any, idx: numb
     commitments.push(pA, pB);
   }
 
-  let S = `${state.setup.fingerprint}|${ballot.payload.credential}|`;
+  let S = `${state.electionFingerprint}|${ballot.payload.credential}|`;
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
   const nH = Hiprove(S, sumc.pAlpha, sumc.pBeta, ...commitments);
 
@@ -280,7 +280,7 @@ export function checkBlankProof(state: any, ballot: any, idx: number) {
   const [pAS, pBS] = formula2(pY, pAlphaS, pBetaS,
                               a.azBlankProof[1].nChallenge, a.azBlankProof[1].nResponse, 0);
 
-  let S = `${state.setup.fingerprint}|${ballot.payload.credential}|`;
+  let S = `${state.electionFingerprint}|${ballot.payload.credential}|`;
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
   const nH = Hbproof0(S, ...[pA0, pB0, pAS, pBS]);
 
@@ -327,7 +327,7 @@ export function checkOverallProofWithBlank(state: any, ballot: any, idx: number)
     0n,
   );
 
-  let S = `${state.setup.fingerprint}|${ballot.payload.credential}|`;
+  let S = `${state.electionFingerprint}|${ballot.payload.credential}|`;
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
   const nH = Hbproof1(S, ...commitments);
 
