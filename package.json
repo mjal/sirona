@@ -7,7 +7,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "prettier --write .",
-    "cli": "deno run --allow-read --unstable-sloppy-imports src/cli.ts"
+    "cli": "ts-node src/cli.ts"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
