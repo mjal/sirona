@@ -55,9 +55,6 @@ const submitForm = (event) => {
   }
 
   const oBallot = generateBallot(props.state, credential.value.trim(), answers);
-  console.log("election");
-  console.log(election);
-  console.log(election.value);
   const sBallot = JSON.stringify(canonicalBallot(oBallot, election.value));
   serializedGeneratedBallot.value = sBallot;
   return false;

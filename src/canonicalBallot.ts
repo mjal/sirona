@@ -87,8 +87,5 @@ export default function (ballot: any, election: any) {
     proof: canonicalProof(ballot.signature.proof)
   };
 
-  console.log(obj);
-  console.log(ballot);
-
   return obj;
 }

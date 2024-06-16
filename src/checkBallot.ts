@@ -100,7 +100,6 @@ function checkIsUnique(ballot: any) {
 }
 
 export function checkSignature(ballot: any, election) {
-  console.log("checkSignature", election);
   logBallot(
     ballot.tracker,
     ballot.payload.signature.hash === hashWithoutSignature(ballot, election),
