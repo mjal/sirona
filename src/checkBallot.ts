@@ -89,6 +89,13 @@ function checkCredential(ballot: any, credentialsWeights: any) {
 }
 
 const processedBallots = {};
+
+export function resetProcessedBallots() {
+  for (const key in processedBallots) {
+    delete processedBallots[key];
+  }
+}
+
 function checkIsUnique(ballot: any) {
   logBallot(
     ballot.tracker,

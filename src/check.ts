@@ -4,6 +4,7 @@ import load from "./load";
 import checkFiles from "./checkFiles";
 import checkSetup from "./checkSetup";
 import checkBallot from "./checkBallot";
+import { resetProcessedBallots } from "./checkBallot";
 import checkEncryptedTally from "./checkEncryptedTally";
 import checkPartialDecryptions from "./checkPartialDecryptions";
 import checkResult from "./checkResult";
@@ -13,6 +14,7 @@ export default async function (fileEntries) {
     let state = load(fileEntries);
     await _async(checkFiles, state);
     await _async(checkSetup, state);
+    resetProcessedBallots();
     for (let i = 0; i < state.ballots.length; i++) {
       await _async(checkBallot, state, state.ballots[i]);
     }
