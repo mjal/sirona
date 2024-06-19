@@ -3,6 +3,7 @@ import * as Point from "./point";
 import sjcl from "sjcl";
 import { ed25519 } from "@noble/curves/ed25519";
 
+// TODO: Use Point.zero instead
 export const zero = ed25519.ExtendedPoint.ZERO;
 export const g = ed25519.ExtendedPoint.BASE;
 export const q = 2n ** 255n - 19n;
