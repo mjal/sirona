@@ -122,3 +122,7 @@ export function Hpok(S: string, A: Point.t) {
 export function Hnonzero(S: string, ...commitments: Array<Point.t>) {
   return H(`nonzero|${S}`, ...commitments);
 }
+
+export function Hlproof(S: string, ...commitments: Array<Point.t>) {
+  return H(`lproof|${S}`, ...commitments);
+}
