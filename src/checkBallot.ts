@@ -14,6 +14,7 @@ import {
   Hbproof0,
   Hbproof1,
   Hsignature,
+  Hnonzero,
 } from "./math";
 
 import * as Point from "./point";
@@ -42,9 +43,10 @@ export default function (state: any, ballot: any) {
         checkOverallProofWithoutBlank(state, ballot, i);
       }
     } else if (question.type === "Lists") {
-      logBallot(ballot.tracker, false, `Ballot of type 'Lists' not yet supported`);
       checkIndividualProofs(state, ballot, i);
       checkOverallProofLists(state, ballot, i);
+      checkNonZeroProof(state, ballot, i);
+      logBallot(ballot.tracker, false, `Ballot of type 'Lists' not yet supported`);
     } else if (question.type === "NonHomomorphic") {
       logBallot(ballot.tracker, false, "NonHomomorphic questions not implemented yet");
     } else {
@@ -377,5 +379,49 @@ function checkOverallProofLists(state, ballot, idx) {
     ballot.tracker,
     a.overall_proof.nChallenge.toString(16) === nH.toString(16),
     "Valid overall proof (lists)",
+  );
+}
+
+function checkNonZeroProof(state, ballot, idx) {
+  const pY = parsePoint(state.setup.payload.election.public_key);
+  const answer = ballot.payload.answers[idx];
+  const a = Answer.AnswerL.parse(answer);
+
+  const ct = a.choices.reduce((acc, choices) => {
+    const temp = choices.slice(1).reduce((acc, c) => {
+      return {
+        pAlpha: acc.pAlpha.add(c.pAlpha),
+        pBeta: acc.pBeta.add(c.pBeta),
+      }
+    }, { pAlpha: zero, pBeta: zero });
+    return {
+      pAlpha: acc.pAlpha.add(temp.pAlpha),
+      pBeta: acc.pBeta.add(temp.pBeta),
+    }
+  }, { pAlpha: zero, pBeta: zero });
+
+  const A0 = a.nonzero_proof.pCommitment;
+  const c =  a.nonzero_proof.nChallenge;
+  const [t1, t2] = a.nonzero_proof.nResponse;
+
+  logBallot(
+    ballot.tracker,
+    Point.serialize(A0) !== Point.serialize(zero),
+    "Commitment isn't one (Nonzero proof)",
+  );
+
+  const A1 = formula(ct.pAlpha, t1, g, t2);
+  const A2 = formula(ct.pBeta, t1, pY, t2).add(A0.multiply(c));
+
+  let S = `${state.electionFingerprint}|${ballot.payload.credential}|`;
+  S += answer.choices.map((cs) => {
+    return cs.map((c) => `${c.alpha},${c.beta}`).join(",")
+  }).join(",")
+  const nH = Hnonzero(S, A0, A1, A2);
+
+  logBallot(
+    ballot.tracker,
+    c.toString(16) === nH.toString(16),
+    "Valid nonzero proof (lists)",
   );
 }

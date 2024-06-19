@@ -117,3 +117,7 @@ export function Hsignature(S: string, A: Point.t) {
 export function Hpok(S: string, A: Point.t) {
   return H(`pok|${S}`, A);
 }
+
+export function Hnonzero(S: string, ...commitments: Array<Point.t>) {
+  return H(`nonzero|${S}`, ...commitments);
+}
