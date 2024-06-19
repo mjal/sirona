@@ -44,6 +44,7 @@ export default function (state: any, ballot: any) {
     } else if (question.type === "Lists") {
       logBallot(ballot.tracker, false, `Ballot of type 'Lists' not yet supported`);
       checkIndividualProofs(state, ballot, i);
+      checkOverallProofLists(state, ballot, i);
     } else if (question.type === "NonHomomorphic") {
       logBallot(ballot.tracker, false, "NonHomomorphic questions not implemented yet");
     } else {
@@ -341,5 +342,40 @@ export function checkOverallProofWithBlank(state: any, ballot: any, idx: number)
     ballot.tracker,
     nSumChallenges.toString(16) === nH.toString(16),
     "Valid overall proof (with blank vote)",
+  );
+}
+
+function checkOverallProofLists(state, ballot, idx) {
+  const pY = parsePoint(state.setup.payload.election.public_key);
+  const question = state.setup.payload.election.questions[idx];
+  const answer = ballot.payload.answers[idx];
+  const a = Answer.AnswerL.parse(answer);
+
+  const sumc = a.choices.reduce((acc, c) => {
+    return {
+      pAlpha: acc.pAlpha.add(c[0].pAlpha),
+      pBeta: acc.pBeta.add(c[0].pBeta),
+    };
+  }, { pAlpha: zero, pBeta: zero });
+
+  const [pA, pB] = formula2(
+    pY,
+    sumc.pAlpha,
+    sumc.pBeta,
+    a.overall_proof.nChallenge,
+    a.overall_proof.nResponse,
+    1,
+  );
+
+  let S = `${state.electionFingerprint}|${ballot.payload.credential}|`;
+  S += answer.choices.map((cs) => {
+    return cs.map((c) => `${c.alpha},${c.beta}`).join(",")
+  }).join(",")
+  const nH = Hiprove(S, sumc.pAlpha, sumc.pBeta, pA, pB);
+
+  logBallot(
+    ballot.tracker,
+    a.overall_proof.nChallenge.toString(16) === nH.toString(16),
+    "Valid overall proof (lists)",
   );
 }
