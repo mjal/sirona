@@ -61,8 +61,11 @@ export namespace AnswerNH {
 
 export namespace AnswerL {
   export type t = {
-    choices: Ciphertext.t;
-    proof: Proof.t;
+    choices: Array<Array<Ciphertext.t>>;
+    individual_proofs: Array<Array<Proof.t>>;
+    overall_proof: Proof.t;
+    list_proofs: Array<Proof.t>;
+    nonzero_proof: NonZeroProof.t;
   };
 
   export namespace Serialized {
@@ -73,6 +76,16 @@ export namespace AnswerL {
       list_proofs: Array<Array<Proof.Serialized.t>>;
       nonzero_proof: NonZeroProof.Serialized.t;
     };
+  }
+
+  export function parse(answer: Serialized.t) : t {
+    return {
+      choices: map2(answer.choices, Ciphertext.parse),
+      individual_proofs: map3(answer.individual_proofs, Proof.parse),
+      overall_proof: Proof.parse(answer.overall_proof),
+      list_proofs: map2(answer.list_proofs, Proof.parse),
+      nonzero_proof: NonZeroProof.parse(answer.nonzero_proof)
+    }
   }
 }
 
