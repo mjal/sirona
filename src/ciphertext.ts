@@ -27,3 +27,12 @@ export function parse(c: Serialized.t): t {
   };
 }
 
+export const zero = { pAlpha: Point.zero, pBeta: Point.zero });
+
+
+export function combine(a: t, b: t) {
+  return {
+    pAlpha: a.pAlpha.add(b.pAlpha),
+    pBeta: b.pBeta.add(b.pBeta),
+  }
+}
