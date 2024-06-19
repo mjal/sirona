@@ -27,7 +27,7 @@ export function parse(c: Serialized.t): t {
   };
 }
 
-export const zero = { pAlpha: Point.zero, pBeta: Point.zero });
+export const zero = { pAlpha: Point.zero, pBeta: Point.zero };
 
 
 export function combine(a: t, b: t) {
