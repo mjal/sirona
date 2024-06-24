@@ -79,9 +79,10 @@ export function formula2(
   nResponse: bigint,
   m: number,
 ) {
-  const pA = formula(g, nResponse, pAlpha, nChallenge);
   const gPowerM = m === 0 ? zero : g.multiply(BigInt(m));
   const pBDivGPowerM = pBeta.add(gPowerM.negate());
+
+  const pA = formula(g, nResponse, pAlpha, nChallenge);
   const pB = formula(pY, nResponse, pBDivGPowerM, nChallenge);
 
   return [pA, pB];
