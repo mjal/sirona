@@ -1,54 +1,68 @@
+import fs from "fs";
+import { Command } from 'commander';
 import { TarReader } from "./tarReader";
 import { getLogs, getBallotLogs } from "./logger";
 import check from "./check";
 
-// Import fs
-import fs from "fs"; // Without star
-
+const program = new Command();
 let errors = 0;
 
-const main = async () => {
-  const files = process.argv.slice(2);
-  for (let i = 0; i < files.length; i++) {
-    await checkFile(files[i]);
-  }
-  console.log(`${errors} errors found.`);
+program
+  .name('sirona')
+  .description('belenios compatible implementation')
+  .version('0.0.1');
 
-  process.exit(errors > 0 ? 1 : 0);
-}
+const electionCommand = program
+  .command('election')
+  .description('Election related commands')
 
-const checkFile = async (file) => {
-  const filePath = process.argv[2];
-  const data = await fs.promises.readFile(filePath);
+electionCommand
+  .command('verify')
+  .argument('<filename>', 'database file (.bel)')
+  .option('-q, --quiet',  'only show the final result')
+  .action(async function (filename, options) {
+    const checkFile = async (filePath) => {
+      const data = await fs.promises.readFile(filePath);
 
-  const tarReader = new TarReader(data);
-  const files = tarReader.getFiles();
-  const state = await check(files);
+      const tarReader = new TarReader(data);
+      const files = tarReader.getFiles();
+      const state = await check(files);
 
-  const sectionLogs = getLogs();
-  const sections = Object.keys(sectionLogs);
-  for (let i = 0; i < sections.length; i++) {
-    const logs = sectionLogs[sections[i]];
-    console.log("=== " + sections[i] + " ===");
-    for (let j = 0; j < logs.length; j++) {
-      if (!logs[j].pass) { errors++; }
-      const prefix = logs[j].pass ? "✅" : "❌";
-      console.log(prefix + logs[j].message);
+      const sectionLogs = getLogs();
+      const sections = Object.keys(sectionLogs);
+      for (let i = 0; i < sections.length; i++) {
+        const logs = sectionLogs[sections[i]];
+        if (!options.quiet)
+          console.log("=== " + sections[i] + " ===");
+        for (let j = 0; j < logs.length; j++) {
+          if (!logs[j].pass) { errors++; }
+          const prefix = logs[j].pass ? "✅" : "❌";
+          if (!options.quiet)
+            console.log(prefix + logs[j].message);
+        }
+      }
+      
+      const ballotLogs = getBallotLogs();
+      const ballotKeys = Object.keys(ballotLogs);
+      if (!options.quiet)
+        console.log("=== BALLOTS ===");
+      for (let i = 0; i < ballotKeys.length; i++) {
+        const logs = ballotLogs[ballotKeys[i]];
+        if (!options.quiet)
+          console.log("=== " + ballotKeys[i] + " ===");
+        for (let j = 0; j < logs.length; j++) {
+          if (!logs[j].pass) { errors++; }
+          const prefix = logs[j].pass ? "✅" : "❌";
+          if (!options.quiet)
+            console.log(prefix + logs[j].message);
+        }
+      }
     }
-  }
-  
-  const ballotLogs = getBallotLogs();
-  const ballotKeys = Object.keys(ballotLogs);
-  console.log("=== BALLOTS ===");
-  for (let i = 0; i < ballotKeys.length; i++) {
-    const logs = ballotLogs[ballotKeys[i]];
-    console.log("=== " + ballotKeys[i] + " ===");
-    for (let j = 0; j < logs.length; j++) {
-      if (!logs[j].pass) { errors++; }
-      const prefix = logs[j].pass ? "✅" : "❌";
-      console.log(prefix + logs[j].message);
-    }
-  }
-}
 
-main();
+    await checkFile(filename);
+    console.log(`${errors} errors found.`);
+
+    process.exit(errors > 0 ? 1 : 0);
+  });
+
+program.parseAsync(process.argv);
