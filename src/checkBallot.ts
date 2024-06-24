@@ -15,6 +15,7 @@ import {
   Hbproof1,
   Hsignature,
   Hnonzero,
+  Hlproof,
 } from "./math";
 
 import * as Point from "./point";
@@ -46,7 +47,7 @@ export default function (state: any, ballot: any) {
       checkIndividualProofs(state, ballot, i);
       checkOverallProofLists(state, ballot, i);
       checkNonZeroProof(state, ballot, i);
-      logBallot(ballot.tracker, false, `Ballot of type 'Lists' not yet supported`);
+      checkListProofs(state, ballot, i);
     } else if (question.type === "NonHomomorphic") {
       logBallot(ballot.tracker, false, "NonHomomorphic questions not implemented yet");
     } else {
@@ -424,4 +425,45 @@ function checkNonZeroProof(state, ballot, idx) {
     c.toString(16) === nH.toString(16),
     "Valid nonzero proof (lists)",
   );
+}
+
+function checkListProofs(state, ballot, idx) {
+  const pY = parsePoint(state.setup.payload.election.public_key);
+  const question = state.setup.payload.election.questions[idx];
+  const answer = ballot.payload.answers[idx];
+  const a = Answer.AnswerL.parse(answer);
+
+  for (let i = 0; i < question.value.answers.length; i++) {
+    const proofs = a.list_proofs[i];
+    const ct0 = a.choices[i][0];
+    const ct = a.choices[i].slice(1).reduce(Ciphertext.combine, Ciphertext.zero);
+
+    const [A0, B0] = formula2(
+      pY,
+      ct0.pAlpha,
+      ct0.pBeta,
+      proofs[0].nChallenge,
+      proofs[0].nResponse,
+      1,
+    );
+
+    const A1 = formula(g, proofs[1].nResponse, ct.pAlpha, proofs[1].nChallenge);
+    const B1 = formula(pY, proofs[1].nResponse, ct.pBeta, proofs[1].nChallenge);
+
+    let S = `${state.electionFingerprint}|${ballot.payload.credential}|`;
+    S += answer.choices.map((cs) => {
+      return cs.map((c) => `${c.alpha},${c.beta}`).join(",")
+    }).join(",")
+
+    const nH = Hlproof(S, A0, B0, A1, B1);
+
+    const nSumChallenges = mod(proofs[0].nChallenge + proofs[1].nChallenge, L);
+
+    logBallot(
+      ballot.tracker,
+      a.choices[i].length === question.value.answers[i].length &&
+      nSumChallenges === nH,
+      `Valid list proof (list ${i})`,
+    );
+  }
 }
