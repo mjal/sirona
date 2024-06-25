@@ -127,7 +127,7 @@ function checkVotingCode(state: any, sPriv: string) {
   if (electionPublicCredentials.includes(hPublicCredential)) {
     return true;
   } else {
-    alert("Invalid credential.");
+    throw "Invalid credential.";
     return false;
   }
 }

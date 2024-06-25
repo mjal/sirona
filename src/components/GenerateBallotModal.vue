@@ -54,9 +54,13 @@ const submitForm = (event) => {
     }
   }
 
-  const oBallot = generateBallot(props.state, credential.value.trim(), answers);
-  const sBallot = JSON.stringify(canonicalBallot(oBallot, election.value));
-  serializedGeneratedBallot.value = sBallot;
+  try {
+    const oBallot = generateBallot(props.state, credential.value.trim(), answers);
+    const sBallot = JSON.stringify(canonicalBallot(oBallot, election.value));
+    serializedGeneratedBallot.value = sBallot;
+  } catch (e) {
+    alert(e);
+  }
   return false;
 };
 const copyToClipboard = () => {
