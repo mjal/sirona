@@ -2,6 +2,8 @@ import fs from "fs";
 import { Command } from 'commander';
 import { TarReader } from "./tarReader";
 import { getLogs, getBallotLogs } from "./logger";
+import generateBallot from "./generateBallot";
+import canonicalBallot from "./canonicalBallot";
 import check from "./check";
 
 const program = new Command();
@@ -61,6 +63,28 @@ electionCommand
 
     await checkFile(filename);
     console.log(`${errors} errors found.`);
+
+    process.exit(errors > 0 ? 1 : 0);
+  });
+
+electionCommand
+  .command('generate-ballot')
+  .argument('<filename>', 'database file (.bel)')
+  .requiredOption('--privcred <privcred>',  'private credentiel')
+  .requiredOption('--choice <choice>',  'choice')
+  .action(async function (filename, options) {
+    try {
+      const data = await fs.promises.readFile(filename);
+      const tarReader = new TarReader(data);
+      const files = tarReader.getFiles();
+      const state = await check(files);
+      const choice = JSON.parse(options.choice)
+      const ballot = generateBallot(state, options.privcred, choice);
+      const sBallot = JSON.stringify(canonicalBallot(ballot, state.setup.payload.election));
+      console.log(sBallot);
+    } catch (e) {
+      console.error(e);
+    }
 
     process.exit(errors > 0 ? 1 : 0);
   });
