@@ -2,6 +2,26 @@
 
 ## An external tool to interact with Belenios elections
 
+## Install
+
+`npm install`
+
+## Usage (web)
+
+`npm run dev`
+
+## Usage (cli)
+
+`npm run cli`
+
+Two commands implemented:
+
+`npm run cli -- election verify`
+
+`npm run cli -- election generate-ballot`
+
+## Features
+
 Only focus on a subset of Belenios specification.
 
 For exemple, we only support the ed25519 group.
