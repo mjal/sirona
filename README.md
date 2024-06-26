@@ -1,4 +1,6 @@
-## External tool to verify Belenios elections
+# Sirona 🎑
+
+## An external tool to interact with Belenios elections
 
 Only focus on a subset of Belenios specification.
 

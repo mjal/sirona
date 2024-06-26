@@ -44,8 +44,7 @@ const goToBallotList = () => {
 
 <template>
   <div class="uk-container uk-container-xsmall uk-padding">
-    <h1 class="uk-h2 uk-text-center">Belenios election verifier</h1>
-
+    <h1 class="uk-h2 uk-text-center">Sirona (a tool for belenios elections)</h1>
     <div
       id="import"
       class="uk-card uk-card-body uk-width-medium uk-margin uk-margin-auto"
