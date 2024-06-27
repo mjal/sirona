@@ -16,9 +16,9 @@
 
 Two commands implemented:
 
-`npm run cli -- election verify`
+`ts-node src/cli.ts election verify`
 
-`npm run cli -- election generate-ballot`
+`ts-node src/cli.ts election generate-ballot`
 
 ## Features
 
