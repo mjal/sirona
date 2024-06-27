@@ -32,11 +32,12 @@ Roadmap:
 - [x] A.1.2 Verify homomorpic questions with blank vote
 
 - [x] A.2.1 Generate Homomorpic questions without blank vote
-- [ ] A.2.2 Generate Homomorpic questions with blank vote
+- [x] A.2.2 Generate Homomorpic questions with blank vote
 
-- [ ] C.1 Verify "List"-type questions
+- [x] C.1 Verify "Lists" questions
+- [ ] C.2 Generate "List" questions
 
-- [ ] B.1.1 Verify shuffleds questions without blank vote
-- [ ] B.1.2 Verify shuffleds questions with blank vote
+- [ ] B.1 Verify shuffleds questions
+- [ ] B.2 Generate shuffleds questions
 
 - [x] T.1 Pedersen trustees
