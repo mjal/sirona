@@ -11,7 +11,7 @@ import checkResult from "./checkResult";
 
 export default async function (fileEntries) {
   try {
-    let state = load(fileEntries);
+    let state : any = load(fileEntries);
     await _async(checkFiles, state);
     await _async(checkSetup, state);
     resetProcessedBallots();

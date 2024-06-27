@@ -63,11 +63,11 @@ export default function (state) {
           const hReducedVerificationHash = mod(
             BigInt("0x" + hVerificationHash),
             L,
-          ).toString(16);
+          );
 
           log(
             "partialDecryptions",
-            nChallenge.toString(16) === hReducedVerificationHash,
+            nChallenge === hReducedVerificationHash,
             "Valid decryption proof"
           );
         }

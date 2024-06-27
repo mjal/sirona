@@ -73,7 +73,7 @@ function checkTrusteePublicKey(state, trustee) {
 
   log(
     "setup",
-    nChallenge.toString(16) === nH.toString(16),
+    nChallenge === nH,
     `Trustee POK is valid`
   );
 }

@@ -2,7 +2,7 @@ import sjcl from "sjcl";
 import { log } from "./logger";
 
 export default function (fileEntries) {
-  const state = {};
+  const state : any = {};
 
   state.files = fileEntries.map(readFile);
 

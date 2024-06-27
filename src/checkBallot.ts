@@ -134,7 +134,7 @@ export function checkSignature(ballot: Event.t<Ballot.t>, election: Election.t) 
 
   logBallot(
     ballot.tracker,
-    nChallenge.toString(16) === nH.toString(16),
+    nChallenge === nH,
     "Valid signature",
   );
 }
@@ -193,7 +193,7 @@ export function checkIndividualProof(
     1,
   );
   const nH = Hiprove(S, eCiphertext.pAlpha, eCiphertext.pBeta, pA0, pB0, pA1, pB1);
-  return nSumChallenges.toString(16) === nH.toString(16);
+  return nSumChallenges === nH;
 }
 
 export function checkIndividualProofs(state: any, ballot: any, idx: number) {
@@ -279,7 +279,7 @@ export function checkOverallProofWithoutBlank(state: any, ballot: any, idx: numb
 
   logBallot(
     ballot.tracker,
-    nSumChallenges.toString(16) === nH.toString(16),
+    nSumChallenges === nH,
     "Valid overall proof (without blank vote)",
   );
 }
@@ -308,7 +308,7 @@ export function checkBlankProof(state: any, ballot: any, idx: number) {
 
   logBallot(
     ballot.tracker,
-    nSumChallenges.toString(16) === nH.toString(16),
+    nSumChallenges === nH,
     "Valid blank proof",
   );
 }
@@ -355,7 +355,7 @@ export function checkOverallProofWithBlank(state: any, ballot: any, idx: number)
 
   logBallot(
     ballot.tracker,
-    nSumChallenges.toString(16) === nH.toString(16),
+    nSumChallenges === nH,
     "Valid overall proof (with blank vote)",
   );
 }
@@ -390,7 +390,7 @@ function checkOverallProofLists(state, ballot, idx) {
 
   logBallot(
     ballot.tracker,
-    a.overall_proof.nChallenge.toString(16) === nH.toString(16),
+    a.overall_proof.nChallenge === nH,
     "Valid overall proof (lists)",
   );
 }
@@ -434,7 +434,7 @@ function checkNonZeroProof(state, ballot, idx) {
 
   logBallot(
     ballot.tracker,
-    c.toString(16) === nH.toString(16),
+    c === nH,
     "Valid nonzero proof (lists)",
   );
 }
