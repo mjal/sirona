@@ -33,7 +33,7 @@ export default function (state: any, ballot: Event.t<Ballot.t>) {
   checkMisc(ballot, election, state.electionFingerprint);
   checkCredential(ballot, state.credentialsWeights);
   checkIsUnique(ballot);
-  checkValidPoints(ballot);
+  checkValidPoints(ballot, election);
   checkSignature(ballot, election);
 
   for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
@@ -139,23 +139,32 @@ export function checkSignature(ballot: Event.t<Ballot.t>, election: Election.t) 
   );
 }
 
-export function checkValidPoints(ballot: Event.t<Ballot.t>) {
+export function checkValidPoints(ballot: Event.t<Ballot.t>, election: Election.t) {
   const answers = ballot.payload.answers;
-  for (let i = 0; i < answers.length; i++) {
-    for (let j = 0; j < answers[i].choices.length; j++) {
-      const choices = Array.isArray(answers[i].choices[j])
-        ? answers[i].choices[j]
-        : [answers[i].choices[j]];
-      for (let k = 0; k < choices.length; k++) {
-        const pAlpha = parsePoint(choices[k].alpha);
-        const pBeta = parsePoint(choices[k].beta);
 
-        logBallot(
-          ballot.tracker,
-          isValidPoint(pAlpha) && isValidPoint(pBeta),
-          "Encrypted choices alpha,beta are valid curve points",
-        );
+  const check = (choice: Ciphertext.Serialized.t) => {
+    const ct = Ciphertext.parse(choice);
+    logBallot(
+      ballot.tracker,
+      isValidPoint(ct.pAlpha) && isValidPoint(ct.pBeta),
+      "Encrypted choices alpha,beta are valid curve points",
+    );
+  };
+
+  for (let i = 0; i < answers.length; i++) {
+    const answer = answers[i];
+    if (Answer.Serialized.IsAnswerH(answer, election.questions[i])) {
+      for (let j = 0; j < answer.choices.length; j++) {
+        check(answer.choices[i]);
       }
+    } else if (Answer.Serialized.IsAnswerL(answer, election.questions[i])) {
+      for (let j = 0; j < answer.choices.length; j++) {
+        for (let k = 0; k < answer.choices[j].length; k++) {
+          check(answer.choices[j][k]);
+        }
+      }
+    } else if (Answer.Serialized.IsAnswerNH(answer, election.questions[i])) {
+      check(answer.choices);
     }
   }
 }
