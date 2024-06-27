@@ -2,6 +2,7 @@ import { map2, map3 } from './utils';
 import * as Proof from './proof';
 import * as NonZeroProof from './nonZeroProof';
 import * as Ciphertext from './ciphertext';
+import * as Question from './question';
 
 export namespace AnswerH {
   export type t = {
@@ -96,14 +97,14 @@ export namespace Serialized {
   export type t = AnswerH.Serialized.t | AnswerNH.Serialized.t | AnswerL.Serialized.t;
 
   export function IsAnswerH(answer: any, question: any) : answer is AnswerH.Serialized.t {
-    return (question.type === undefined);
+    return Question.IsQuestionH(question);
   }
   
   export function IsAnswerNH(answer: any, question: any) : answer is AnswerNH.Serialized.t {
-    return (question.type === "NonHomomorphic");
+    return Question.IsQuestionNH(question);
   }
   
   export function IsAnswerL(answer: any, question: any) : answer is AnswerL.Serialized.t {
-    return (question.type === "Lists");
+    return Question.IsQuestionL(question);
   }
 }
