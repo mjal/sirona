@@ -22,10 +22,13 @@ import * as Point from "./point";
 import * as Proof from "./proof";
 import * as Answer from "./answer";
 import * as Ciphertext from "./ciphertext";
+import * as Election from "./election";
+import * as Event from "./event";
+import * as Ballot from "./ballot";
 
 import canonicalBallot from "./canonicalBallot";
 
-export default function (state: any, ballot: any) {
+export default function (state: any, ballot: Event.t<Ballot.t>) {
   const election = state.setup.payload.election;
   checkMisc(ballot, election, state.electionFingerprint);
   checkCredential(ballot, state.credentialsWeights);
@@ -56,7 +59,7 @@ export default function (state: any, ballot: any) {
   }
 }
 
-function checkMisc(ballot: any, election, electionFingerprint) {
+function checkMisc(ballot: any, election: Election.t, electionFingerprint: string) {
   const sSerializedBallot = JSON.stringify(canonicalBallot(ballot.payload, election));
 
   logBallot(
@@ -74,7 +77,7 @@ function checkMisc(ballot: any, election, electionFingerprint) {
   );
 }
 
-export function hashWithoutSignature(ballot: any, election) {
+export function hashWithoutSignature(ballot: any, election: Election.t) {
   const copy = Object.assign({}, canonicalBallot(ballot.payload, election));
   delete copy.signature;
   const serialized = JSON.stringify(copy);
@@ -110,7 +113,7 @@ function checkIsUnique(ballot: any) {
   processedBallots[ballot.payloadHash] = ballot;
 }
 
-export function checkSignature(ballot: any, election) {
+export function checkSignature(ballot: any, election: Election.t) {
   logBallot(
     ballot.tracker,
     ballot.payload.signature.hash === hashWithoutSignature(ballot, election),
