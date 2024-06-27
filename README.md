@@ -2,6 +2,10 @@
 
 ## An external tool to interact with Belenios elections
 
+Focus on a subset of belenios protocol version 2.5
+
+For exemple, we only support the latest recommended settings (including only the ed25519 group)
+
 ## Install
 
 `npm install`
@@ -20,13 +24,7 @@ Two commands implemented:
 
 `ts-node src/cli.ts election generate-ballot`
 
-## Features
-
-Only focus on a subset of Belenios specification.
-
-For exemple, we only support the ed25519 group.
-
-Roadmap:
+## Roadmap
 
 - [x] A.1.1 Verify homomorpic questions without blank vote
 - [x] A.1.2 Verify homomorpic questions with blank vote
