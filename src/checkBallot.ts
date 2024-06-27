@@ -59,7 +59,7 @@ export default function (state: any, ballot: Event.t<Ballot.t>) {
   }
 }
 
-function checkMisc(ballot: any, election: Election.t, electionFingerprint: string) {
+function checkMisc(ballot: Event.t<Ballot.t>, election: Election.t, electionFingerprint: string) {
   const sSerializedBallot = JSON.stringify(canonicalBallot(ballot.payload, election));
 
   logBallot(
@@ -77,7 +77,7 @@ function checkMisc(ballot: any, election: Election.t, electionFingerprint: strin
   );
 }
 
-export function hashWithoutSignature(ballot: any, election: Election.t) {
+export function hashWithoutSignature(ballot: Event.t<Ballot.t>, election: Election.t) {
   const copy = Object.assign({}, canonicalBallot(ballot.payload, election));
   delete copy.signature;
   const serialized = JSON.stringify(copy);
@@ -85,7 +85,7 @@ export function hashWithoutSignature(ballot: any, election: Election.t) {
   return hash.replace(/=+$/, "");
 }
 
-function checkCredential(ballot: any, credentialsWeights: any) {
+function checkCredential(ballot: Event.t<Ballot.t>, credentialsWeights: any) {
   const credentials = credentialsWeights.map((cw) => cw.credential);
 
   logBallot(
@@ -113,7 +113,7 @@ function checkIsUnique(ballot: any) {
   processedBallots[ballot.payloadHash] = ballot;
 }
 
-export function checkSignature(ballot: any, election: Election.t) {
+export function checkSignature(ballot: Event.t<Ballot.t>, election: Election.t) {
   logBallot(
     ballot.tracker,
     ballot.payload.signature.hash === hashWithoutSignature(ballot, election),
@@ -139,7 +139,7 @@ export function checkSignature(ballot: any, election: Election.t) {
   );
 }
 
-export function checkValidPoints(ballot: any) {
+export function checkValidPoints(ballot: Event.t<Ballot.t>) {
   const answers = ballot.payload.answers;
   for (let i = 0; i < answers.length; i++) {
     for (let j = 0; j < answers[i].choices.length; j++) {
