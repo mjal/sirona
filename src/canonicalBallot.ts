@@ -3,6 +3,8 @@ import * as Proof from './proof';
 import * as NonZeroProof from './nonZeroProof';
 import * as Ciphertext from './ciphertext';
 import * as Answer from './answer';
+import * as Election from './election';
+import * as Ballot from './ballot';
 
 // NOTE: Instead of canonical* could also use serialize(parse()) when we have all serialize/parse functions and serialize function are all canonicals
 
@@ -58,7 +60,7 @@ function canonicalAnswerL(answer: Answer.AnswerL.Serialized.t): Answer.AnswerL.S
   }
 }
 
-export default function (ballot: any, election: any) {
+export default function (ballot: Ballot.t, election: Election.t) : Ballot.t {
   // The order of the fields in the JSON.stringify serialization
   // correspond to the order of insertion.
   // This is not guaranteed by but is the case in every tested js engines.
@@ -66,17 +68,19 @@ export default function (ballot: any, election: any) {
     election_uuid: ballot.election_uuid,
     election_hash: ballot.election_hash,
     credential: ballot.credential,
-    answers: []
+    answers: [],
+    signature: { hash: '', proof: { challenge: '', response: '' } }
   };
 
   for (let i = 0; i < election.questions.length; i++) {
     const question = election.questions[i];
-    if (Answer.Serialized.IsAnswerH(ballot.answers[i], question)) {
-      obj.answers.push(canonicalAnswerH(ballot.answers[i]));
-    } else if (Answer.Serialized.IsAnswerNH(ballot.answers[i], question)) {
-      obj.answers.push(canonicalAnswerNH(ballot.answers[i]));
-    } else if (Answer.Serialized.IsAnswerL(ballot.answers[i], question)) {
-      obj.answers.push(canonicalAnswerL(ballot.answers[i]));
+    const answer = ballot.answers[i];
+    if (Answer.Serialized.IsAnswerH(answer, question)) {
+      obj.answers.push(canonicalAnswerH(answer));
+    } else if (Answer.Serialized.IsAnswerNH(answer, question)) {
+      obj.answers.push(canonicalAnswerNH(answer));
+    } else if (Answer.Serialized.IsAnswerL(answer, question)) {
+      obj.answers.push(canonicalAnswerL(answer));
     } else {
       throw new Error('Unknown answer type');
     }
