@@ -2,7 +2,7 @@ import { map2, map3 } from './utils';
 import * as Proof from './proof';
 import * as NonZeroProof from './nonZeroProof';
 import * as Ciphertext from './ciphertext';
-import * as Answer from './answer';
+import * as Answer from './Answer';
 import * as Election from './election';
 import * as Ballot from './ballot';
 

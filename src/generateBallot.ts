@@ -2,7 +2,7 @@ import sjcl from "sjcl";
 import * as Point from "./point";
 import * as Ciphertext from "./ciphertext";
 import * as Proof from "./proof";
-import * as Answer from "./answer";
+import * as Answer from "./Answer";
 import {
   g,
   L,
