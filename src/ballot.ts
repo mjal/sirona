@@ -1,5 +1,5 @@
 import * as Proof from './proof';
-import * as Answer from './answer';
+import * as Answer from './Answer';
 
 export type t = {
   election_uuid: string,
