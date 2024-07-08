@@ -11,11 +11,14 @@ import {
   L,
   mod,
   parsePoint,
+  isValidPoint,
   formula2,
   Hiprove,
   Hbproof0,
   Hbproof1
 } from "./math";
+
+// -- Types
 
 export type t = {
   aeChoices: Array<Ciphertext.t>;
@@ -32,6 +35,8 @@ export namespace Serialized {
     blank_proof?: Array<Proof.Serialized.t>;
   };
 }
+
+// -- Parse and serialize
 
 export function parse(answer: Serialized.t) : t {
   let obj : t = {
@@ -55,6 +60,23 @@ export function serialize(answer: t) : Serialized.t {
     obj.blank_proof = answer.azBlankProof.map(Proof.serialize);
   }
   return obj;
+}
+
+// -- Check
+
+export function checkValidPoints(
+  ballot: Ballot.t,
+  question: Question.QuestionH.t,
+  answer: Serialized.t
+) {
+  for (let j = 0; j < question.answers.length; j++) {
+    const ct = Ciphertext.parse(answer.choices[j]);
+    logBallot(
+      ballot.signature.hash,
+      isValidPoint(ct.pAlpha) && isValidPoint(ct.pBeta),
+      "Encrypted choices alpha,beta are valid curve points",
+    );
+  }
 }
 
 export function checkIndividualProofs(
@@ -208,7 +230,6 @@ export function checkBlankProof(
   );
 }
 
-
 export function check(
   election: Election.t,
   electionFingerprint: string,
@@ -216,6 +237,9 @@ export function check(
   question: Question.QuestionH.t,
   answer: Serialized.t
 ) {
+
+  checkValidPoints(ballot, question, answer);
+
   checkIndividualProofs(
     election, electionFingerprint,
     ballot, question, answer);

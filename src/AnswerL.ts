@@ -13,6 +13,7 @@ import {
   L,
   mod,
   parsePoint,
+  isValidPoint,
   formula,
   formula2,
   Hiprove,
@@ -20,6 +21,7 @@ import {
   Hnonzero,
 } from "./math";
 
+// -- Types
 
 export type t = {
   choices: Array<Array<Ciphertext.t>>;
@@ -39,6 +41,8 @@ export namespace Serialized {
   };
 }
 
+// -- Parse and serialize
+//
 export function parse(answer: Serialized.t) : t {
   return {
     choices: map2(answer.choices, Ciphertext.parse),
@@ -46,6 +50,25 @@ export function parse(answer: Serialized.t) : t {
     overall_proof: Proof.parse(answer.overall_proof),
     list_proofs: map2(answer.list_proofs, Proof.parse),
     nonzero_proof: NonZeroProof.parse(answer.nonzero_proof)
+  }
+}
+
+// -- Check
+
+export function checkValidPoints(
+  ballot: Ballot.t,
+  question: Question.QuestionL.t,
+  answer: Serialized.t
+) {
+  for (let i = 0; i < question.value.answers.length; i++) {
+    for (let j = 0; j < question.value.answers[i].length; j++) {
+      const ct = Ciphertext.parse(answer.choices[i][j]);
+      logBallot(
+        ballot.signature.hash,
+        isValidPoint(ct.pAlpha) && isValidPoint(ct.pBeta),
+        "Encrypted choices alpha,beta are valid curve points",
+      );
+    }
   }
 }
 
@@ -214,6 +237,9 @@ export function check(
   question: Question.QuestionL.t,
   answer: Serialized.t
 ) {
+
+  checkValidPoints(ballot, question, answer);
+
   checkIndividualProofs(
     election, electionFingerprint,
     ballot, question, answer);

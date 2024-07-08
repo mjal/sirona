@@ -127,17 +127,20 @@ export function checkValidPoints(ballot: Event.t<Ballot.t>, election: Election.t
 
   for (let i = 0; i < answers.length; i++) {
     const answer = answers[i];
-    if (Answer.Serialized.IsAnswerH(answer, election.questions[i])) {
-      for (let j = 0; j < answer.choices.length; j++) {
-        check(answer.choices[i]);
-      }
-    } else if (Answer.Serialized.IsAnswerL(answer, election.questions[i])) {
-      for (let j = 0; j < answer.choices.length; j++) {
-        for (let k = 0; k < answer.choices[j].length; k++) {
-          check(answer.choices[j][k]);
-        }
-      }
-    } else if (Answer.Serialized.IsAnswerNH(answer, election.questions[i])) {
+    //if (Answer.Serialized.IsAnswerH(answer, election.questions[i])) {
+    //  for (let j = 0; j < answer.choices.length; j++) {
+    //    check(answer.choices[i]);
+    //  }
+    //} else if (Answer.Serialized.IsAnswerL(answer, election.questions[i])) {
+    //  for (let j = 0; j < answer.choices.length; j++) {
+    //    for (let k = 0; k < answer.choices[j].length; k++) {
+    //      check(answer.choices[j][k]);
+    //    }
+    //  }
+    //} else if (Answer.Serialized.IsAnswerNH(answer, election.questions[i])) {
+    //  check(answer.choices);
+    //}
+    if (Answer.Serialized.IsAnswerNH(answer, election.questions[i])) {
       check(answer.choices);
     }
   }
