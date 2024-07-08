@@ -37,14 +37,14 @@ function checkMisc(ballot: Event.t<Ballot.t>, election: Election.t, electionFing
   const sSerializedBallot = JSON.stringify(canonicalBallot(ballot.payload, election));
 
   logBallot(
-    ballot.tracker, 
+    ballot.payload.signature.hash,
     election.uuid === ballot.payload.election_uuid &&
     electionFingerprint === ballot.payload.election_hash,
     "election.uuid correspond to election uuid"
   );
 
   logBallot(
-    ballot.tracker,
+    ballot.payload.signature.hash,
     sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(sSerializedBallot)) ===
       ballot.payloadHash,
     "Is canonical"
@@ -63,7 +63,7 @@ function checkCredential(ballot: Event.t<Ballot.t>, credentialsWeights: any) {
   const credentials = credentialsWeights.map((cw) => cw.credential);
 
   logBallot(
-    ballot.tracker,
+    ballot.payload.signature.hash,
     credentials.indexOf(ballot.payload.credential) !== -1,
     "Has a valid credential",
   );
@@ -79,7 +79,7 @@ export function resetProcessedBallots() {
 
 function checkIsUnique(ballot: any) {
   logBallot(
-    ballot.tracker,
+    ballot.payload.signature.hash,
     processedBallots[ballot.payloadHash] === undefined,
     "Is unique",
   );
@@ -89,7 +89,7 @@ function checkIsUnique(ballot: any) {
 
 export function checkSignature(ballot: Event.t<Ballot.t>, election: Election.t) {
   logBallot(
-    ballot.tracker,
+    ballot.payload.signature.hash,
     ballot.payload.signature.hash === hashWithoutSignature(ballot, election),
     "Hash without signature is correct",
   );
@@ -107,7 +107,7 @@ export function checkSignature(ballot: Event.t<Ballot.t>, election: Election.t) 
   const nH = Hsignature(signature.hash, pA);
 
   logBallot(
-    ballot.tracker,
+    ballot.payload.signature.hash,
     nChallenge === nH,
     "Valid signature",
   );
@@ -119,7 +119,7 @@ export function checkValidPoints(ballot: Event.t<Ballot.t>, election: Election.t
   const check = (choice: Ciphertext.Serialized.t) => {
     const ct = Ciphertext.parse(choice);
     logBallot(
-      ballot.tracker,
+      ballot.payload.signature.hash,
       isValidPoint(ct.pAlpha) && isValidPoint(ct.pBeta),
       "Encrypted choices alpha,beta are valid curve points",
     );
