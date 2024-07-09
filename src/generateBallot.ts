@@ -3,6 +3,7 @@ import * as Point from "./point";
 import * as Ciphertext from "./ciphertext";
 import * as Proof from "./proof";
 import * as Answer from "./Answer";
+import * as Ballot from "./ballot";
 import {
   g,
   L,
@@ -17,8 +18,6 @@ import {
   Hbproof1,
   zero,
 } from "./math";
-import { hashWithoutSignature } from "./checkBallot";
-import checkBallot from "./checkBallot";
 
 function deriveCredential(state: any, sPriv: string) {
   const prefix = `derive_credential|${state.setup.payload.election.uuid}`;
@@ -98,14 +97,14 @@ export default function (
     }
   };
 
-  const hH = hashWithoutSignature({ payload: ballotWithoutSignature }, state.setup.payload.election);
+  const hH = Ballot.hashWithoutSignature({ payload: ballotWithoutSignature }, state.setup.payload.election);
 
   const ballot = {
     ...ballotWithoutSignature,
     signature: signature(nPrivateCredential, hH),
   };
 
-  checkBallot(state, { payload: ballot });
+  Ballot.check(state, { payload: ballot });
 
   return ballot;
 }

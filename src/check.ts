@@ -3,20 +3,19 @@ import { _async } from "./utils";
 import load from "./load";
 import checkFiles from "./checkFiles";
 import checkSetup from "./checkSetup";
-import checkBallot from "./checkBallot";
-import { resetProcessedBallots } from "./checkBallot";
 import checkEncryptedTally from "./checkEncryptedTally";
 import checkPartialDecryptions from "./checkPartialDecryptions";
 import checkResult from "./checkResult";
+import * as Ballot from "./ballot";
 
 export default async function (fileEntries) {
   try {
     let state : any = load(fileEntries);
     await _async(checkFiles, state);
     await _async(checkSetup, state);
-    resetProcessedBallots();
+    Ballot.resetProcessedBallots();
     for (let i = 0; i < state.ballots.length; i++) {
-      await _async(checkBallot, state, state.ballots[i]);
+      await _async(Ballot.check, state, state.ballots[i]);
     }
     if (state.encryptedTally) {
       await _async(checkEncryptedTally, state);
