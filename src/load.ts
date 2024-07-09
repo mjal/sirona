@@ -1,5 +1,4 @@
 import sjcl from "sjcl";
-import { log } from "./logger";
 
 export default function (fileEntries) {
   const state: any = {};
@@ -129,10 +128,7 @@ function readFile(file) {
   }
 
   if (hash !== hashContent) {
-    log("database", false, `File integrity check failed`);
-    return null;
-  } else {
-    log("database", true, `File successfully loaded`);
+    throw new Error("File integrity check failed");
   }
 
   return [hash, type, jsonContent];

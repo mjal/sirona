@@ -4,7 +4,6 @@ import * as Proof from "./proof";
 import * as Answer from "./Answer";
 import * as Election from "./election";
 import canonicalBallot from "./canonicalBallot";
-import { logBallot } from "./logger";
 import { g, parsePoint, formula, Hsignature } from "./math";
 
 export type t = {
@@ -52,19 +51,17 @@ function checkMisc(
 ) {
   const sSerializedBallot = JSON.stringify(canonicalBallot(ballot, election));
 
-  logBallot(
-    ballot.signature.hash,
-    election.uuid === ballot.election_uuid &&
-      electionFingerprint === ballot.election_hash,
-    "election_uuid and election_hash are corrects",
-  );
+  if (!(election.uuid === ballot.election_uuid &&
+      electionFingerprint === ballot.election_hash)) {
+    throw new Error("election_uuid or election_hash is incorrect");
+  }
 
-  logBallot(
-    ballot.signature.hash,
-    sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(sSerializedBallot)) ===
-      ballotPayloadHash,
-    "Is canonical",
-  );
+  const hash = sjcl.codec.hex.fromBits(
+    sjcl.hash.sha256.hash(sSerializedBallot));
+
+  if (hash !== ballotPayloadHash) {
+    throw new Error("Ballot payload is not canonical");
+  }
 }
 
 export function hashWithoutSignature(ballot: t, election: Election.t) {
@@ -78,11 +75,9 @@ export function hashWithoutSignature(ballot: t, election: Election.t) {
 function checkCredential(ballot: t, credentialsWeights: any) {
   const credentials = credentialsWeights.map((cw) => cw.credential);
 
-  logBallot(
-    ballot.signature.hash,
-    credentials.indexOf(ballot.credential) !== -1,
-    "Has a valid credential",
-  );
+  if (credentials.indexOf(ballot.credential) === -1) {
+    throw new Error("Credential is not valid");
+  }
 }
 
 const processedBallots = {};
@@ -94,21 +89,16 @@ export function resetProcessedBallots() {
 }
 
 function checkIsUnique(ballot: t, ballotPayloadHash: string) {
-  logBallot(
-    ballot.signature.hash,
-    processedBallots[ballotPayloadHash] === undefined,
-    "Is unique",
-  );
-
+  if (processedBallots[ballotPayloadHash] !== undefined) {
+    throw new Error("Ballot is not unique");
+  }
   processedBallots[ballotPayloadHash] = ballot;
 }
 
 export function checkSignature(ballot: t, election: Election.t) {
-  logBallot(
-    ballot.signature.hash,
-    ballot.signature.hash === hashWithoutSignature(ballot, election),
-    "Hash without signature is correct",
-  );
+  if (ballot.signature.hash !== hashWithoutSignature(ballot, election)) {
+    throw new Error("Hash without signature is incorrect");
+  }
 
   const signature = ballot.signature;
   const nChallenge = BigInt(signature.proof.challenge);
@@ -117,5 +107,7 @@ export function checkSignature(ballot: t, election: Election.t) {
   const pA = formula(g, nResponse, parsePoint(ballot.credential), nChallenge);
   const nH = Hsignature(signature.hash, pA);
 
-  logBallot(ballot.signature.hash, nChallenge === nH, "Valid signature");
+  if (nH !== nChallenge) {
+    throw new Error("Invalid signature");
+  }
 }

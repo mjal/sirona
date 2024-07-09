@@ -4,7 +4,6 @@ import * as Ballot from "./ballot";
 import * as AnswerH from "./AnswerH";
 import * as AnswerL from "./AnswerL";
 import * as AnswerNH from "./AnswerNH";
-import { logBallot } from "./logger";
 export { AnswerH, AnswerL, AnswerNH };
 
 // -- Types
@@ -30,24 +29,19 @@ export function check(
     Serialized.IsAnswerH(answer, question) &&
     Question.IsQuestionH(question)
   ) {
-    AnswerH.check(election, electionFingerprint, ballot, question, answer);
+    return AnswerH.check(election, electionFingerprint, ballot, question, answer);
   } else if (
     Serialized.IsAnswerNH(answer, question) &&
     Question.IsQuestionNH(question)
   ) {
-    AnswerNH.check(election, electionFingerprint, ballot, question, answer);
-    logBallot(
-      ballot.signature.hash,
-      false,
-      "NonHomomorphic questions not fully implemented yet",
-    );
+    return AnswerNH.check(election, electionFingerprint, ballot, question, answer);
   } else if (
     Serialized.IsAnswerL(answer, question) &&
     Question.IsQuestionL(question)
   ) {
-    AnswerL.check(election, electionFingerprint, ballot, question, answer);
+    return AnswerL.check(election, electionFingerprint, ballot, question, answer);
   } else {
-    logBallot(ballot.signature.hash, false, "Unknown question type");
+    throw new Error("Unknown question type");
   }
 }
 

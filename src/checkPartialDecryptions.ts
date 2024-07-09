@@ -1,4 +1,3 @@
-import { log } from "./logger";
 import { rev, g, L, mod, parsePoint } from "./math";
 import sjcl from "sjcl";
 
@@ -65,11 +64,9 @@ export default function (state) {
             L,
           );
 
-          log(
-            "partialDecryptions",
-            nChallenge === hReducedVerificationHash,
-            "Valid decryption proof",
-          );
+          if (nChallenge !== hReducedVerificationHash) {
+            throw new Error("Invalid decryption proof");
+          }
         }
       } else {
         continue; // TODO

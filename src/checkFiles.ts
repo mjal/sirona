@@ -1,20 +1,16 @@
-import { log } from "./logger";
-
 export default function (state) {
-  let parent;
+  let parent : string = undefined;
   let nEvent = 0;
   for (let i = 0; i < state.files.length; i++) {
     const [entryHash, type, content] = state.files[i];
     if (type === "event") {
-      log(
-        "database",
-        content.parent === parent,
-        `Event parent correspond to previous event's hash`,
-      );
+      if (content.parent !== parent) {
+        throw new Error("Event parent does not correspond to previous event's hash");
+      }
       parent = entryHash;
       nEvent++;
     }
   }
 
-  return state;
+  return true;
 }

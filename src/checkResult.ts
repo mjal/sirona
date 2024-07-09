@@ -1,4 +1,3 @@
-import { log } from "./logger";
 import { g, L, zero, mod, modInverse, parsePoint } from "./math";
 
 export default function (state) {
@@ -12,13 +11,10 @@ export default function (state) {
         const pBeta = parsePoint(et[i][j].beta);
         const pResult = pBeta.add(df[i][j].negate());
         const nAnswer = BigInt(res[i][j]);
-        log(
-          "result",
-          (res[i][j] === 0 && pResult.toHex() === zero.toHex()) ||
-            (res[i][j] !== 0 &&
-              pResult.toHex() === g.multiply(nAnswer).toHex()),
-          `Result ${i},${j} correspond to the log of the sum of partial decryptions`,
-        );
+        if (!((res[i][j] === 0 && pResult.toHex() === zero.toHex()) ||
+          (res[i][j] !== 0 && pResult.toHex() === g.multiply(nAnswer).toHex()))) {
+          throw new Error("Invalid result");
+        }
       }
     } else {
       continue; // TODO
@@ -48,12 +44,9 @@ function getDecryptionFactors(state) {
           partialDecryption = state.partialDecryptions[j];
         }
       }
-
-      log(
-        "result",
-        partialDecryption !== null,
-        `Partial decryption found for trustee ${i}`,
-      );
+      if (partialDecryption === null) {
+        throw new Error(`No partial decryption found for trustee ${i}`);
+      }
       df = multiplyDfPow(df, parseDf(partialDecryption), 1);
     } else {
       //  "Pedersen"
@@ -65,12 +58,11 @@ function getDecryptionFactors(state) {
         ...new Map(pds.map((item) => [item.payload.owner, item])).values(),
       ]; // Unique by owner
       pds = pds.slice(0, content.threshold); // Remove useless shares
-
-      log(
-        "result",
-        pds.length === content.threshold,
-        `Enough partial decryptions for Pedersen trustee ${i}`,
-      );
+      if (pds.length !== content.threshold) {
+        throw new Error(
+          `Not enough partial decryptions for Pedersen trustee ${i}`,
+        );
+      }
 
       // INIT PERDERSON DF
       let res = [];
@@ -113,8 +105,6 @@ function lagrange(n, indexes) {
       let denominator = mod(BigInt(indexes[i] - n), L);
       result = mod(result * BigInt(indexes[i]) * modInverse(denominator, L), L);
     }
-    //let kj = k - j in
-    //if kj = 0 then accu else G.Zq.(accu * of_int k * invert (of_int kj)))
   }
   return result;
 }

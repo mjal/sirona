@@ -3,7 +3,6 @@ import * as Ciphertext from "./ciphertext";
 import * as Election from "./election";
 import * as Question from "./question";
 import * as Ballot from "./ballot";
-import { logBallot } from "./logger";
 import { isValidPoint } from "./math";
 
 // -- Types
@@ -29,14 +28,15 @@ export function check(
   question: Question.QuestionNH.t,
   answer: Serialized.t,
 ) {
-  checkValidPoints(ballot, answer);
+  if (!checkValidPoints(answer)) {
+    throw new Error("Invalid curve points");
+  }
+  throw new Error("NonHomomorphic questions not fully implemented yet");
+
+  return true;
 }
 
-export function checkValidPoints(ballot: Ballot.t, answer: Serialized.t) {
+export function checkValidPoints(answer: Serialized.t) {
   const ct = Ciphertext.parse(answer.choices);
-  logBallot(
-    ballot.signature.hash,
-    isValidPoint(ct.pAlpha) && isValidPoint(ct.pBeta),
-    "Encrypted choices alpha,beta are valid curve points",
-  );
+  return (isValidPoint(ct.pAlpha) && isValidPoint(ct.pBeta));
 }

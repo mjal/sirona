@@ -1,4 +1,3 @@
-import { rev, parsePoint } from "./math";
 import * as Point from "./point";
 
 export type t = {

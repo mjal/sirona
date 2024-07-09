@@ -6,7 +6,6 @@ import * as Question from "./question";
 import * as Ballot from "./ballot";
 import * as Answer from "./Answer";
 import * as Point from "./point";
-import { logBallot } from "./logger";
 import {
   L,
   mod,
@@ -70,48 +69,54 @@ export function check(
   ballot: Ballot.t,
   question: Question.QuestionH.t,
   answer: Serialized.t,
-) {
-  checkValidPoints(ballot, question, answer);
-  checkIndividualProofs(
+) : boolean {
+  if (!checkValidPoints(question, answer)) {
+    throw new Error("Invalid curve points");
+  }
+  if (!checkIndividualProofs(
     election,
     electionFingerprint,
     ballot,
     question,
-    answer,
-  );
-  if (question.blank) {
-    checkBlankProof(election, electionFingerprint, ballot, question, answer);
-    checkOverallProofWithBlank(
-      election,
-      electionFingerprint,
-      ballot,
-      question,
-      answer,
-    );
-  } else {
-    checkOverallProofWithoutBlank(
-      election,
-      electionFingerprint,
-      ballot,
-      question,
-      answer,
-    );
+    answer)) {
+    throw new Error("Invalid individual proofs");
   }
+  if (question.blank) {
+    if (!checkBlankProof(election, electionFingerprint, ballot, question, answer)) {
+      throw new Error("Invalid blank proof");
+    }
+    if (!checkOverallProofWithBlank(
+      election,
+      electionFingerprint,
+      ballot,
+      question,
+      answer)) {
+      throw new Error("Invalid blank proof");
+    }
+  } else {
+    if (!checkOverallProofWithoutBlank(
+      election,
+      electionFingerprint,
+      ballot,
+      question,
+      answer)) {
+      throw new Error("Invalid overall proof (without blank vote)");
+    }
+  }
+  return true;
 }
 
 export function checkValidPoints(
-  ballot: Ballot.t,
   question: Question.QuestionH.t,
   answer: Serialized.t,
-) {
+) : boolean {
   for (let j = 0; j < question.answers.length; j++) {
     const ct = Ciphertext.parse(answer.choices[j]);
-    logBallot(
-      ballot.signature.hash,
-      isValidPoint(ct.pAlpha) && isValidPoint(ct.pBeta),
-      "Encrypted choices alpha,beta are valid curve points",
-    );
+    if (!isValidPoint(ct.pAlpha) || !isValidPoint(ct.pBeta)) {
+      return false;
+    }
   }
+  return true;
 }
 
 export function checkIndividualProofs(
@@ -120,19 +125,21 @@ export function checkIndividualProofs(
   ballot: Ballot.t,
   question: Question.QuestionH.t,
   answer: Serialized.t,
-) {
+) : boolean {
   const pY = parsePoint(election.public_key);
   const S = `${electionFingerprint}|${ballot.credential}`;
   const a = Answer.AnswerH.parse(answer);
   for (let j = 0; j < question.answers.length + (question.blank ? 1 : 0); j++) {
-    let bCheckResult = Proof.checkIndividualProof(
+    if (!Proof.checkIndividualProof(
       S,
       a.aazIndividualProofs[j],
       pY,
       a.aeChoices[j],
-    );
-    logBallot(ballot.signature.hash, bCheckResult, "Valid individual proof");
+    )) {
+      return false;
+    }
   }
+  return true;
 }
 
 export function checkOverallProofWithoutBlank(
@@ -141,7 +148,7 @@ export function checkOverallProofWithoutBlank(
   ballot: Ballot.t,
   question: Question.QuestionH.t,
   answer: Serialized.t,
-) {
+) : boolean {
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerH.parse(answer);
 
@@ -172,13 +179,8 @@ export function checkOverallProofWithoutBlank(
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
-  const nH = Hiprove(S, sumc.pAlpha, sumc.pBeta, ...commitments);
 
-  logBallot(
-    ballot.signature.hash,
-    nSumChallenges === nH,
-    "Valid overall proof (without blank vote)",
-  );
+  return (Hiprove(S, sumc.pAlpha, sumc.pBeta, ...commitments) === nSumChallenges);
 }
 
 export function checkOverallProofWithBlank(
@@ -187,7 +189,7 @@ export function checkOverallProofWithBlank(
   ballot: Ballot.t,
   question: Question.QuestionH.t,
   answer: Serialized.t,
-) {
+) : boolean {
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerH.parse(answer);
 
@@ -227,13 +229,8 @@ export function checkOverallProofWithBlank(
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
-  const nH = Hbproof1(S, ...commitments);
 
-  logBallot(
-    ballot.signature.hash,
-    nSumChallenges === nH,
-    "Valid overall proof (with blank vote)",
-  );
+  return (Hbproof1(S, ...commitments) === nSumChallenges);
 }
 
 export function checkBlankProof(
@@ -242,7 +239,7 @@ export function checkBlankProof(
   ballot: Ballot.t,
   _question: Question.QuestionH.t,
   answer: Serialized.t,
-) {
+) : boolean {
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerH.parse(answer);
 
@@ -277,7 +274,5 @@ export function checkBlankProof(
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
-  const nH = Hbproof0(S, ...[pA0, pB0, pAS, pBS]);
-
-  logBallot(ballot.signature.hash, nSumChallenges === nH, "Valid blank proof");
+  return (Hbproof0(S, ...[pA0, pB0, pAS, pBS]) === nSumChallenges);
 }

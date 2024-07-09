@@ -1,36 +1,37 @@
-import { log } from "./logger";
 import { g, rev, zero, isValidPoint, parsePoint, Hpok } from "./math";
-import sjcl from "sjcl";
 
-export default function (state) {
-  checkTrustees(state);
-  checkElectionPublicKey(state);
-  checkCredentials(state);
+export default function (state: any) {
+  return checkTrustees(state)
+  && checkElectionPublicKey(state)
+  && checkCredentials(state);
 }
 
-function checkTrustees(state) {
+function checkTrustees(state: any) {
   for (let i = 0; i < state.setup.payload.trustees.length; i++) {
     const trustee = state.setup.payload.trustees[i];
     if (trustee[0] === "Single") {
-      checkTrusteePublicKey(state, trustee[1]);
+      if (!checkTrusteePublicKey(state, trustee[1])) {
+        return false;
+      }
     } else {
       // "Pedersen"
       for (let j = 0; j < trustee[1].verification_keys.length; j++) {
-        checkTrusteePublicKey(state, trustee[1].verification_keys[j]);
+        if (checkTrusteePublicKey(state, trustee[1].verification_keys[j])) {
+          return false;
+        }
       }
     }
   }
+  return true;
 }
 
-function checkElectionPublicKey(state) {
+function checkElectionPublicKey(state: any) {
   const pElectionPublicKey = parsePoint(
     state.setup.payload.election.public_key,
   );
-  log(
-    "setup",
-    isValidPoint(pElectionPublicKey),
-    `Election Public Key is a valid curve point`,
-  );
+  if (!isValidPoint(pElectionPublicKey)) {
+    throw new Error("Invalid curve point");
+  }
 
   let pJointPublicKey = zero;
   for (let i = 0; i < state.setup.payload.trustees.length; i++) {
@@ -51,17 +52,19 @@ function checkElectionPublicKey(state) {
     }
   }
 
-  log(
-    "setup",
-    rev(pJointPublicKey.toHex()) === state.setup.payload.election.public_key,
-    "Election Public Key correspond to trustees",
-  );
+  if (rev(pJointPublicKey.toHex()) !== state.setup.payload.election.public_key) {
+    throw new Error("Election Public Key doesn't correspond to trustees")
+  }
+  
+  return true;
 }
 
-function checkTrusteePublicKey(state, trustee) {
+function checkTrusteePublicKey(state: any, trustee: any) {
   const pX = parsePoint(trustee.public_key);
 
-  log("setup", isValidPoint(pX), `Trustee public key is a valid curve point`);
+  if (!isValidPoint(pX)) {
+    throw new Error("Invalid curve point");
+  }
 
   const nChallenge = BigInt(trustee.pok.challenge);
   const nResponse = BigInt(trustee.pok.response);
@@ -69,17 +72,18 @@ function checkTrusteePublicKey(state, trustee) {
   const pA = g.multiply(nResponse).add(pX.multiply(nChallenge));
 
   const S = `${state.setup.payload.election.group}|${trustee.public_key}`;
-  let nH = Hpok(S, pA);
 
-  log("setup", nChallenge === nH, `Trustee POK is valid`);
+  if (Hpok(S, pA) !== nChallenge) {
+    throw new Error("Trustee POK is invalid");
+  }
+  return true;
 }
 
-function checkCredentials(state) {
+function checkCredentials(state: any) {
   for (let i = 0; i < state.credentialsWeights.length; i++) {
-    log(
-      "setup",
-      isValidPoint(parsePoint(state.credentialsWeights[i].credential)),
-      `Credential ${i} is valid`,
-    );
+    if (!isValidPoint(parsePoint(state.credentialsWeights[i].credential))) {
+      throw new Error(`Credential ${i} is invalid`);
+    }
   }
+  return true;
 }

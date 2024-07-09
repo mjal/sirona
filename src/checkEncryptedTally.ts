@@ -1,14 +1,12 @@
-import { log } from "./logger";
 import { rev, zero, parsePoint } from "./math";
 
-export default function (state) {
+export default function (state) : boolean {
   const ballots = state.ballots.filter((ballot) => ballot.accepted);
 
   const questions = state.setup.payload.election.questions;
   const encryptedTally = [];
   for (let i = 0; i < questions.length; i++) {
-    if (questions[i].type === undefined) {
-      // question_h
+    if (questions[i].type === undefined) { // question_h
       const row = questions[i].answers.map((_) => {
         return { alpha: zero, beta: zero };
       });
@@ -24,15 +22,13 @@ export default function (state) {
       });
       encryptedTally.push(matrix);
     } else {
-      log("encryptedTally", false, "Unsupported question type");
-      encryptedTally.push([]);
+      throw new Error("Unsupported question type");
     }
   }
 
   for (let i = 0; i < ballots.length; i++) {
     for (let j = 0; j < questions.length; j++) {
-      if (questions[j].type === undefined) {
-        // question_h
+      if (questions[j].type === undefined) { // question_h
         const answer = ballots[i].payload.answers[j];
         for (let k = 0; k < encryptedTally[j].length; k++) {
           const pAlpha = parsePoint(answer.choices[k].alpha);
@@ -65,37 +61,31 @@ export default function (state) {
           }
         }
       } else {
-        log("encryptedTally", false, "Unsupported question type");
+        throw new Error("Unsupported question type");
       }
     }
   }
 
   const et = state.encryptedTally.payload.encrypted_tally;
   for (let i = 0; i < et.length; i++) {
-    if (questions[i].type === undefined) {
-      // question_h
+    if (questions[i].type === undefined) { // question_h
       for (let j = 0; j < et[i].length; j++) {
-        log(
-          "encryptedTally",
-          et[i][j].alpha === rev(encryptedTally[i][j].alpha.toHex()) &&
-            et[i][j].beta === rev(encryptedTally[i][j].beta.toHex()),
-          "Encrypted tally microballot correspond to the weighted sum of all ballots",
-        );
+        if (!(et[i][j].alpha === rev(encryptedTally[i][j].alpha.toHex()) &&
+            et[i][j].beta === rev(encryptedTally[i][j].beta.toHex()))) {
+          throw new Error("Encrypted tally microballot does not correspond to the weighted sum of all ballots");
+        }
       }
     } else if (questions[i].type === "Lists") {
       for (let j = 0; j < et[i].length; j++) {
         for (let k = 0; k < et[i][j].length; k++) {
-          log(
-            "encryptedTally",
-            et[i][j][k].alpha === rev(encryptedTally[i][j][k].alpha.toHex()) &&
-              et[i][j][k].beta === rev(encryptedTally[i][j][k].beta.toHex()),
-            "Encrypted tally microballot correspond to the weighted sum of all ballots",
-          );
+          if (!(et[i][j][k].alpha === rev(encryptedTally[i][j][k].alpha.toHex()) &&
+              et[i][j][k].beta === rev(encryptedTally[i][j][k].beta.toHex()))) {
+            throw new Error("Encrypted tally microballot does not correspond to the weighted sum of all ballots");
+          }
         }
       }
     } else {
-      log("encryptedTally", false, "Unsupported question type");
-      continue; // TODO
+      throw new Error("Unsupported question type");
     }
   }
 
@@ -106,15 +96,12 @@ export default function (state) {
     return weight + acc;
   }, 0);
 
-  log(
-    "encryptedTally",
-    total_weight === Number(state.encryptedTally.payload.total_weight),
-    "total_weight is correct",
-  );
+  if (total_weight !== Number(state.encryptedTally.payload.total_weight)) {
+    throw new Error("total_weight is incorrect");
+  }
+  if (ballots.length !== state.encryptedTally.payload.num_tallied) {
+    throw new Error("num_tallied is incorrect");
+  }
 
-  log(
-    "encryptedTally",
-    ballots.length === state.encryptedTally.payload.num_tallied,
-    "num_tallied is correct",
-  );
+  return true;
 }

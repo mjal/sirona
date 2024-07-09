@@ -10,10 +10,11 @@ import * as Ballot from "./ballot";
 
 export default async function (fileEntries) {
   try {
+    Ballot.resetProcessedBallots();
     let state: any = load(fileEntries);
+
     await _async(checkFiles, state);
     await _async(checkSetup, state);
-    Ballot.resetProcessedBallots();
     for (let i = 0; i < state.ballots.length; i++) {
       await _async(Ballot.check, state, state.ballots[i]);
     }
