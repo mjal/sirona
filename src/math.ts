@@ -127,3 +127,7 @@ export function Hnonzero(S: string, ...commitments: Array<Point.t>) {
 export function Hlproof(S: string, ...commitments: Array<Point.t>) {
   return H(`lproof|${S}`, ...commitments);
 }
+
+export function Hdecrypt(S: string, ...commitments: Array<Point.t>) {
+  return H(`decrypt|${S}`, ...commitments);
+}

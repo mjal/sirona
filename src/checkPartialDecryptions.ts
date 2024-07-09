@@ -1,4 +1,4 @@
-import { rev, g, L, mod, parsePoint } from "./math";
+import { rev, g, L, mod, parsePoint, Hdecrypt } from "./math";
 import sjcl from "sjcl";
 
 export default function (state) {
@@ -54,17 +54,9 @@ export default function (state) {
             .multiply(nResponse)
             .add(pFactor.multiply(nChallenge));
 
-          const hVerificationHash = sjcl.codec.hex.fromBits(
-            sjcl.hash.sha256.hash(
-              `decrypt|${state.electionFingerprint}|${rev(pPublicKey.toHex())}|${rev(pA.toHex())},${rev(pB.toHex())}`,
-            ),
-          );
-          const hReducedVerificationHash = mod(
-            BigInt("0x" + hVerificationHash),
-            L,
-          );
+          const S = `${state.electionFingerprint}|${rev(pPublicKey.toHex())}`;
 
-          if (nChallenge !== hReducedVerificationHash) {
+          if (Hdecrypt(S, pA, pB) !== nChallenge) {
             throw new Error("Invalid decryption proof");
           }
         }
