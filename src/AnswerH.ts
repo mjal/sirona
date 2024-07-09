@@ -64,6 +64,33 @@ export function serialize(answer: t) : Serialized.t {
 
 // -- Check
 
+export function check(
+  election: Election.t,
+  electionFingerprint: string,
+  ballot: Ballot.t,
+  question: Question.QuestionH.t,
+  answer: Serialized.t
+) {
+
+  checkValidPoints(ballot, question, answer);
+  checkIndividualProofs(
+    election, electionFingerprint,
+    ballot, question, answer);
+  if (question.blank) {
+    checkBlankProof(
+      election, electionFingerprint,
+      ballot, question, answer);
+    checkOverallProofWithBlank(
+      election, electionFingerprint,
+      ballot, question, answer);
+  } else {
+    checkOverallProofWithoutBlank(
+      election, electionFingerprint,
+      ballot, question, answer);
+  }
+}
+
+
 export function checkValidPoints(
   ballot: Ballot.t,
   question: Question.QuestionH.t,
@@ -229,32 +256,3 @@ export function checkBlankProof(
     "Valid blank proof",
   );
 }
-
-export function check(
-  election: Election.t,
-  electionFingerprint: string,
-  ballot: Ballot.t,
-  question: Question.QuestionH.t,
-  answer: Serialized.t
-) {
-
-  checkValidPoints(ballot, question, answer);
-
-  checkIndividualProofs(
-    election, electionFingerprint,
-    ballot, question, answer);
-
-  if (question.blank) {
-    checkBlankProof(
-      election, electionFingerprint,
-      ballot, question, answer);
-    checkOverallProofWithBlank(
-      election, electionFingerprint,
-      ballot, question, answer);
-  } else {
-    checkOverallProofWithoutBlank(
-      election, electionFingerprint,
-      ballot, question, answer);
-  }
-}
-

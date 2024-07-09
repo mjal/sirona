@@ -55,6 +55,28 @@ export function parse(answer: Serialized.t) : t {
 
 // -- Check
 
+export function check(
+  election: Election.t,
+  electionFingerprint: string,
+  ballot: Ballot.t,
+  question: Question.QuestionL.t,
+  answer: Serialized.t
+) {
+  checkValidPoints(ballot, question, answer);
+  checkIndividualProofs(
+    election, electionFingerprint,
+    ballot, question, answer);
+  checkOverallProofLists(
+    election, electionFingerprint,
+    ballot, question, answer);
+  checkNonZeroProof(
+    election, electionFingerprint,
+    ballot, question, answer);
+  checkListProofs(
+    election, electionFingerprint,
+    ballot, question, answer);
+}
+
 export function checkValidPoints(
   ballot: Ballot.t,
   question: Question.QuestionL.t,
@@ -228,31 +250,4 @@ function checkListProofs(
       `Valid list proof (list ${i})`,
     );
   }
-}
-
-export function check(
-  election: Election.t,
-  electionFingerprint: string,
-  ballot: Ballot.t,
-  question: Question.QuestionL.t,
-  answer: Serialized.t
-) {
-
-  checkValidPoints(ballot, question, answer);
-
-  checkIndividualProofs(
-    election, electionFingerprint,
-    ballot, question, answer);
-
-  checkOverallProofLists(
-    election, electionFingerprint,
-    ballot, question, answer);
-
-  checkNonZeroProof(
-    election, electionFingerprint,
-    ballot, question, answer);
-
-  checkListProofs(
-    election, electionFingerprint,
-    ballot, question, answer);
 }
