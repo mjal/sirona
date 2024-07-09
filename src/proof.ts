@@ -1,23 +1,18 @@
-import * as Proof from './proof';
-import * as Ciphertext from './ciphertext';
-import * as Point from './point';
-import {
-  L,
-  mod,
-  formula2,
-  Hiprove,
-} from "./math";
+import * as Proof from "./proof";
+import * as Ciphertext from "./ciphertext";
+import * as Point from "./point";
+import { L, mod, formula2, Hiprove } from "./math";
 
 export type t = {
   nChallenge: bigint;
-  nResponse: bigint
+  nResponse: bigint;
 };
 
 export namespace Serialized {
   export type t = {
     challenge: string;
-    response: string
-  }
+    response: string;
+  };
 }
 
 export function serialize(proof: t): Serialized.t {
@@ -40,7 +35,10 @@ export function checkIndividualProof(
   pY: Point.t,
   eCiphertext: Ciphertext.t,
 ) {
-  const nSumChallenges = mod(zIndividualProof[0].nChallenge + zIndividualProof[1].nChallenge, L);
+  const nSumChallenges = mod(
+    zIndividualProof[0].nChallenge + zIndividualProof[1].nChallenge,
+    L,
+  );
   const [pA0, pB0] = formula2(
     pY,
     eCiphertext.pAlpha,
@@ -57,6 +55,14 @@ export function checkIndividualProof(
     zIndividualProof[1].nResponse,
     1,
   );
-  const nH = Hiprove(S, eCiphertext.pAlpha, eCiphertext.pBeta, pA0, pB0, pA1, pB1);
+  const nH = Hiprove(
+    S,
+    eCiphertext.pAlpha,
+    eCiphertext.pBeta,
+    pA0,
+    pB0,
+    pA1,
+    pB1,
+  );
   return nSumChallenges === nH;
 }

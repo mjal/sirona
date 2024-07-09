@@ -10,7 +10,7 @@ import * as Ballot from "./ballot";
 
 export default async function (fileEntries) {
   try {
-    let state : any = load(fileEntries);
+    let state: any = load(fileEntries);
     await _async(checkFiles, state);
     await _async(checkSetup, state);
     Ballot.resetProcessedBallots();

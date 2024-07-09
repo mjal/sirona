@@ -1,26 +1,21 @@
 import sjcl from "sjcl";
 import * as Event from "./event";
-import * as Proof from './proof';
-import * as Answer from './Answer';
-import * as Election from './election';
+import * as Proof from "./proof";
+import * as Answer from "./Answer";
+import * as Election from "./election";
 import canonicalBallot from "./canonicalBallot";
 import { logBallot } from "./logger";
-import {
-  g,
-  parsePoint,
-  formula,
-  Hsignature,
-} from "./math";
+import { g, parsePoint, formula, Hsignature } from "./math";
 
 export type t = {
-  election_uuid: string,
-  election_hash: string,
-  credential: string,
-  answers: Array<Answer.Serialized.t>,
+  election_uuid: string;
+  election_hash: string;
+  credential: string;
+  answers: Array<Answer.Serialized.t>;
   signature: {
-    hash: string,
-    proof: Proof.Serialized.t
-  }
+    hash: string;
+    proof: Proof.Serialized.t;
+  };
 };
 
 // -- Check
@@ -28,35 +23,47 @@ export type t = {
 export function check(state: any, ballotEvent: Event.t<t>) {
   const ballot = ballotEvent.payload;
   const election = state.setup.payload.election;
-  checkMisc(ballot, ballotEvent.payloadHash, election, state.electionFingerprint);
+  checkMisc(
+    ballot,
+    ballotEvent.payloadHash,
+    election,
+    state.electionFingerprint,
+  );
   checkCredential(ballot, state.credentialsWeights);
   checkIsUnique(ballot, ballotEvent.payloadHash);
   checkSignature(ballot, election);
 
   for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
-    Answer.check(election,
-                 state.electionFingerprint,
-                 ballot,
-                 state.setup.payload.election.questions[i],
-                 ballot.answers[i]);
+    Answer.check(
+      election,
+      state.electionFingerprint,
+      ballot,
+      state.setup.payload.election.questions[i],
+      ballot.answers[i],
+    );
   }
 }
 
-function checkMisc(ballot: t, ballotPayloadHash: string, election: Election.t, electionFingerprint: string) {
+function checkMisc(
+  ballot: t,
+  ballotPayloadHash: string,
+  election: Election.t,
+  electionFingerprint: string,
+) {
   const sSerializedBallot = JSON.stringify(canonicalBallot(ballot, election));
 
   logBallot(
     ballot.signature.hash,
     election.uuid === ballot.election_uuid &&
-    electionFingerprint === ballot.election_hash,
-    "election_uuid and election_hash are corrects"
+      electionFingerprint === ballot.election_hash,
+    "election_uuid and election_hash are corrects",
   );
 
   logBallot(
     ballot.signature.hash,
     sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(sSerializedBallot)) ===
       ballotPayloadHash,
-    "Is canonical"
+    "Is canonical",
   );
 }
 
@@ -107,17 +114,8 @@ export function checkSignature(ballot: t, election: Election.t) {
   const nChallenge = BigInt(signature.proof.challenge);
   const nResponse = BigInt(signature.proof.response);
 
-  const pA = formula(
-    g,
-    nResponse,
-    parsePoint(ballot.credential),
-    nChallenge,
-  );
+  const pA = formula(g, nResponse, parsePoint(ballot.credential), nChallenge);
   const nH = Hsignature(signature.hash, pA);
 
-  logBallot(
-    ballot.signature.hash,
-    nChallenge === nH,
-    "Valid signature",
-  );
+  logBallot(ballot.signature.hash, nChallenge === nH, "Valid signature");
 }

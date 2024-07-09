@@ -1,9 +1,9 @@
-import * as Election from './election';
-import * as Question from './question';
-import * as Ballot from './ballot';
-import * as AnswerH  from './AnswerH';
-import * as AnswerL  from './AnswerL';
-import * as AnswerNH from './AnswerNH';
+import * as Election from "./election";
+import * as Question from "./question";
+import * as Ballot from "./ballot";
+import * as AnswerH from "./AnswerH";
+import * as AnswerL from "./AnswerL";
+import * as AnswerNH from "./AnswerNH";
 import { logBallot } from "./logger";
 export { AnswerH, AnswerL, AnswerNH };
 
@@ -11,7 +11,10 @@ export { AnswerH, AnswerL, AnswerNH };
 
 export type t = AnswerH.t | AnswerNH.t | AnswerL.t;
 export namespace Serialized {
-  export type t = AnswerH.Serialized.t | AnswerNH.Serialized.t | AnswerL.Serialized.t;
+  export type t =
+    | AnswerH.Serialized.t
+    | AnswerNH.Serialized.t
+    | AnswerL.Serialized.t;
 }
 
 // -- Check
@@ -21,48 +24,71 @@ export function check(
   electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.t,
-  answer: Serialized.t
+  answer: Serialized.t,
 ) {
-  if (Serialized.IsAnswerH(answer, question)
-    && Question.IsQuestionH(question)) {
-    AnswerH.check(election, electionFingerprint,
-                         ballot, question, answer);
-  } else if (Serialized.IsAnswerNH(answer, question)
-    && Question.IsQuestionNH(question)) {
-    AnswerNH.check(election, electionFingerprint,
-                         ballot, question, answer);
-    logBallot(ballot.signature.hash,
-              false, "NonHomomorphic questions not fully implemented yet");
-  } else if (Serialized.IsAnswerL(answer, question)
-    && Question.IsQuestionL(question)) {
-    AnswerL.check(election, electionFingerprint,
-                         ballot, question, answer);
+  if (
+    Serialized.IsAnswerH(answer, question) &&
+    Question.IsQuestionH(question)
+  ) {
+    AnswerH.check(election, electionFingerprint, ballot, question, answer);
+  } else if (
+    Serialized.IsAnswerNH(answer, question) &&
+    Question.IsQuestionNH(question)
+  ) {
+    AnswerNH.check(election, electionFingerprint, ballot, question, answer);
+    logBallot(
+      ballot.signature.hash,
+      false,
+      "NonHomomorphic questions not fully implemented yet",
+    );
+  } else if (
+    Serialized.IsAnswerL(answer, question) &&
+    Question.IsQuestionL(question)
+  ) {
+    AnswerL.check(election, electionFingerprint, ballot, question, answer);
   } else {
-    logBallot(ballot.signature.hash,
-              false, "Unknown question type");
+    logBallot(ballot.signature.hash, false, "Unknown question type");
   }
 }
 
 // -- Type guards
 
-export function IsAnswerH(answer: t, question: Question.t) : answer is AnswerH.t {
+export function IsAnswerH(
+  answer: t,
+  question: Question.t,
+): answer is AnswerH.t {
   return Question.IsQuestionH(question);
 }
-export function IsAnswerNH(answer: t, question: Question.t) : answer is AnswerNH.t {
+export function IsAnswerNH(
+  answer: t,
+  question: Question.t,
+): answer is AnswerNH.t {
   return Question.IsQuestionNH(question);
 }
-export function IsAnswerL(answer: t, question: Question.t) : answer is AnswerL.t {
+export function IsAnswerL(
+  answer: t,
+  question: Question.t,
+): answer is AnswerL.t {
   return Question.IsQuestionL(question);
 }
 
 export namespace Serialized {
-  export function IsAnswerH(answer: t, question: Question.t) : answer is AnswerH.Serialized.t {
+  export function IsAnswerH(
+    answer: t,
+    question: Question.t,
+  ): answer is AnswerH.Serialized.t {
     return Question.IsQuestionH(question);
   }
-  export function IsAnswerNH(answer: t, question: Question.t) : answer is AnswerNH.Serialized.t {
+  export function IsAnswerNH(
+    answer: t,
+    question: Question.t,
+  ): answer is AnswerNH.Serialized.t {
     return Question.IsQuestionNH(question);
   }
-  export function IsAnswerL(answer: t, question: Question.t) : answer is AnswerL.Serialized.t {
+  export function IsAnswerL(
+    answer: t,
+    question: Question.t,
+  ): answer is AnswerL.Serialized.t {
     return Question.IsQuestionL(question);
   }
 }

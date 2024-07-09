@@ -1,11 +1,11 @@
-import { map2 } from './utils';
-import * as Proof from './proof';
-import * as Ciphertext from './ciphertext';
-import * as Election from './election';
-import * as Question from './question';
-import * as Ballot from './ballot';
-import * as Answer from './Answer';
-import * as Point from './point';
+import { map2 } from "./utils";
+import * as Proof from "./proof";
+import * as Ciphertext from "./ciphertext";
+import * as Election from "./election";
+import * as Question from "./question";
+import * as Ballot from "./ballot";
+import * as Answer from "./Answer";
+import * as Point from "./point";
 import { logBallot } from "./logger";
 import {
   L,
@@ -15,7 +15,7 @@ import {
   formula2,
   Hiprove,
   Hbproof0,
-  Hbproof1
+  Hbproof1,
 } from "./math";
 
 // -- Types
@@ -25,7 +25,7 @@ export type t = {
   aazIndividualProofs: Array<Array<Proof.t>>;
   azOverallProof: Array<Proof.t>;
   azBlankProof?: Array<Proof.t>;
-}
+};
 
 export namespace Serialized {
   export type t = {
@@ -38,8 +38,8 @@ export namespace Serialized {
 
 // -- Parse and serialize
 
-export function parse(answer: Serialized.t) : t {
-  let obj : t = {
+export function parse(answer: Serialized.t): t {
+  let obj: t = {
     aeChoices: answer.choices.map(Ciphertext.parse),
     aazIndividualProofs: map2(answer.individual_proofs, Proof.parse),
     azOverallProof: answer.overall_proof.map(Proof.parse),
@@ -50,8 +50,8 @@ export function parse(answer: Serialized.t) : t {
   return obj;
 }
 
-export function serialize(answer: t) : Serialized.t {
-  let obj : Serialized.t = {
+export function serialize(answer: t): Serialized.t {
+  let obj: Serialized.t = {
     choices: answer.aeChoices.map(Ciphertext.serialize),
     individual_proofs: map2(answer.aazIndividualProofs, Proof.serialize),
     overall_proof: answer.azOverallProof.map(Proof.serialize),
@@ -69,32 +69,40 @@ export function check(
   electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionH.t,
-  answer: Serialized.t
+  answer: Serialized.t,
 ) {
-
   checkValidPoints(ballot, question, answer);
   checkIndividualProofs(
-    election, electionFingerprint,
-    ballot, question, answer);
+    election,
+    electionFingerprint,
+    ballot,
+    question,
+    answer,
+  );
   if (question.blank) {
-    checkBlankProof(
-      election, electionFingerprint,
-      ballot, question, answer);
+    checkBlankProof(election, electionFingerprint, ballot, question, answer);
     checkOverallProofWithBlank(
-      election, electionFingerprint,
-      ballot, question, answer);
+      election,
+      electionFingerprint,
+      ballot,
+      question,
+      answer,
+    );
   } else {
     checkOverallProofWithoutBlank(
-      election, electionFingerprint,
-      ballot, question, answer);
+      election,
+      electionFingerprint,
+      ballot,
+      question,
+      answer,
+    );
   }
 }
-
 
 export function checkValidPoints(
   ballot: Ballot.t,
   question: Question.QuestionH.t,
-  answer: Serialized.t
+  answer: Serialized.t,
 ) {
   for (let j = 0; j < question.answers.length; j++) {
     const ct = Ciphertext.parse(answer.choices[j]);
@@ -111,16 +119,17 @@ export function checkIndividualProofs(
   electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionH.t,
-  answer: Serialized.t
+  answer: Serialized.t,
 ) {
   const pY = parsePoint(election.public_key);
   const S = `${electionFingerprint}|${ballot.credential}`;
   const a = Answer.AnswerH.parse(answer);
   for (let j = 0; j < question.answers.length + (question.blank ? 1 : 0); j++) {
-    let bCheckResult = Proof.checkIndividualProof(S,
+    let bCheckResult = Proof.checkIndividualProof(
+      S,
       a.aazIndividualProofs[j],
       pY,
-      a.aeChoices[j]
+      a.aeChoices[j],
     );
     logBallot(ballot.signature.hash, bCheckResult, "Valid individual proof");
   }
@@ -131,7 +140,7 @@ export function checkOverallProofWithoutBlank(
   electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionH.t,
-  answer: Serialized.t
+  answer: Serialized.t,
 ) {
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerH.parse(answer);
@@ -177,13 +186,17 @@ export function checkOverallProofWithBlank(
   electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionH.t,
-  answer: Serialized.t
+  answer: Serialized.t,
 ) {
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerH.parse(answer);
 
-  const pAlphaS = a.aeChoices.slice(1).reduce((acc, c) => acc.add(c.pAlpha), Point.zero);
-  const pBetaS = a.aeChoices.slice(1).reduce((acc, c) => acc.add(c.pBeta), Point.zero);
+  const pAlphaS = a.aeChoices
+    .slice(1)
+    .reduce((acc, c) => acc.add(c.pAlpha), Point.zero);
+  const pBetaS = a.aeChoices
+    .slice(1)
+    .reduce((acc, c) => acc.add(c.pBeta), Point.zero);
 
   let commitments = [];
   const [pA, pB] = formula2(
@@ -228,31 +241,43 @@ export function checkBlankProof(
   electionFingerprint: string,
   ballot: Ballot.t,
   _question: Question.QuestionH.t,
-  answer: Serialized.t
+  answer: Serialized.t,
 ) {
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerH.parse(answer);
 
-  const pAlphaS = a.aeChoices.slice(1).reduce((acc, c) => acc.add(c.pAlpha), Point.zero);
-  const pBetaS = a.aeChoices.slice(1).reduce((acc, c) => acc.add(c.pBeta), Point.zero);
+  const pAlphaS = a.aeChoices
+    .slice(1)
+    .reduce((acc, c) => acc.add(c.pAlpha), Point.zero);
+  const pBetaS = a.aeChoices
+    .slice(1)
+    .reduce((acc, c) => acc.add(c.pBeta), Point.zero);
 
   const nSumChallenges = a.azBlankProof.reduce(
     (acc, proof) => mod(acc + BigInt(proof.nChallenge), L),
     0n,
   );
 
-  const [pA0, pB0] = formula2(pY, a.aeChoices[0].pAlpha, a.aeChoices[0].pBeta,
-                              a.azBlankProof[0].nChallenge, a.azBlankProof[0].nResponse, 0);
-  const [pAS, pBS] = formula2(pY, pAlphaS, pBetaS,
-                              a.azBlankProof[1].nChallenge, a.azBlankProof[1].nResponse, 0);
+  const [pA0, pB0] = formula2(
+    pY,
+    a.aeChoices[0].pAlpha,
+    a.aeChoices[0].pBeta,
+    a.azBlankProof[0].nChallenge,
+    a.azBlankProof[0].nResponse,
+    0,
+  );
+  const [pAS, pBS] = formula2(
+    pY,
+    pAlphaS,
+    pBetaS,
+    a.azBlankProof[1].nChallenge,
+    a.azBlankProof[1].nResponse,
+    0,
+  );
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
   const nH = Hbproof0(S, ...[pA0, pB0, pAS, pBS]);
 
-  logBallot(
-    ballot.signature.hash,
-    nSumChallenges === nH,
-    "Valid blank proof",
-  );
+  logBallot(ballot.signature.hash, nSumChallenges === nH, "Valid blank proof");
 }

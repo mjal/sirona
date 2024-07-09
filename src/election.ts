@@ -1,4 +1,4 @@
-import * as Question from './question';
+import * as Question from "./question";
 
 export type t = {
   version: number;

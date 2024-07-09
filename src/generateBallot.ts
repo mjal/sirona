@@ -58,7 +58,6 @@ function signature(nPriv: bigint, sHash: string) {
   };
 }
 
-
 export default function (
   state: any,
   sPriv: string,
@@ -94,10 +93,13 @@ export default function (
         challenge: null,
         response: null,
       },
-    }
+    },
   };
 
-  const hH = Ballot.hashWithoutSignature({ payload: ballotWithoutSignature }, state.setup.payload.election);
+  const hH = Ballot.hashWithoutSignature(
+    { payload: ballotWithoutSignature },
+    state.setup.payload.election,
+  );
 
   const ballot = {
     ...ballotWithoutSignature,
@@ -139,7 +141,7 @@ function iproof(
   r: bigint,
   m: number,
   M: Array<number>,
-) : Array<Proof.t> {
+): Array<Proof.t> {
   const w = rand();
   let commitments: Array<Point.t> = [];
   let proofs: Array<Proof.t> = [];
@@ -247,19 +249,24 @@ function blankProof(
   pAlphaS: Point.t,
   pBetaS: Point.t,
   nR0: bigint,
-  bNonBlank: boolean
+  bNonBlank: boolean,
 ): Array<Proof.t> {
   const nChallengeS = rand();
   const nResponseS = rand();
-  const pAS = formula(g,  nResponseS, pAlphaS, nChallengeS);
+  const pAS = formula(g, nResponseS, pAlphaS, nChallengeS);
   const pBS = formula(pY, nResponseS, pBetaS, nChallengeS);
   const nW = rand();
   const pA0 = g.multiply(nW);
   const pB0 = pY.multiply(nW);
 
   let S = `${state.electionFingerprint}|${hPub}|`;
-  S += choices.map(Ciphertext.serialize).map((c) => `${c.alpha},${c.beta}`).join(",");
-  const nH = (bNonBlank) ? Hbproof0(S, pA0, pB0, pAS, pBS) : Hbproof0(S, pAS, pBS, pA0, pB0)
+  S += choices
+    .map(Ciphertext.serialize)
+    .map((c) => `${c.alpha},${c.beta}`)
+    .join(",");
+  const nH = bNonBlank
+    ? Hbproof0(S, pA0, pB0, pAS, pBS)
+    : Hbproof0(S, pAS, pBS, pA0, pB0);
   const nChallenge0 = mod(nH - nChallengeS, L);
   const nResponse0 = mod(nW - nChallenge0 * nR0, L);
 
@@ -282,10 +289,14 @@ function overallProofBlank(
   anChoices: Array<number>,
   aeCiphertexts: Array<Ciphertext.t>,
   hPub: string,
-  anR: Array<bigint>
+  anR: Array<bigint>,
 ): Array<Proof.t> {
-  const pAlphaS = aeCiphertexts.slice(1).reduce((acc, c) => acc.add(c.pAlpha), zero);
-  const pBetaS = aeCiphertexts.slice(1).reduce((acc, c) => acc.add(c.pBeta), zero);
+  const pAlphaS = aeCiphertexts
+    .slice(1)
+    .reduce((acc, c) => acc.add(c.pAlpha), zero);
+  const pBetaS = aeCiphertexts
+    .slice(1)
+    .reduce((acc, c) => acc.add(c.pBeta), zero);
   const pY = parsePoint(state.setup.payload.election.public_key);
   const mS = anChoices.slice(1).reduce((acc, c) => c + acc, 0);
   const M = Array.from({ length: question.max - question.min + 1 }).map(
@@ -297,12 +308,21 @@ function overallProofBlank(
   if (anChoices[0] === 0) {
     const nChallenge0 = rand();
     const nResponse0 = rand();
-    const [pA0, pB0] = formula2(pY, aeCiphertexts[0].pAlpha, aeCiphertexts[0].pBeta, nChallenge0, nResponse0, 1);
+    const [pA0, pB0] = formula2(
+      pY,
+      aeCiphertexts[0].pAlpha,
+      aeCiphertexts[0].pBeta,
+      nChallenge0,
+      nResponse0,
+      1,
+    );
 
-    let azProofs : Array<Proof.t> = [{
-      nChallenge: nChallenge0,
-      nResponse: nResponse0
-    }];
+    let azProofs: Array<Proof.t> = [
+      {
+        nChallenge: nChallenge0,
+        nResponse: nResponse0,
+      },
+    ];
     let commitments = [pA0, pB0];
     let nChallengeS = nChallenge0;
 
@@ -316,47 +336,73 @@ function overallProofBlank(
         const pB = pY.multiply(nW);
         commitments.push(pA, pB);
       } else {
-        const [pA, pB] = formula2(pY, pAlphaS, pBetaS, nChallenge, nResponse, M[j]);
+        const [pA, pB] = formula2(
+          pY,
+          pAlphaS,
+          pBetaS,
+          nChallenge,
+          nResponse,
+          M[j],
+        );
         nChallengeS = mod(nChallengeS + nChallenge, L);
         commitments.push(pA, pB);
       }
     }
 
     let S = `${state.electionFingerprint}|${hPub}|`;
-    S += aeCiphertexts.map(Ciphertext.serialize).map((c) => `${c.alpha},${c.beta}`).join(",");
+    S += aeCiphertexts
+      .map(Ciphertext.serialize)
+      .map((c) => `${c.alpha},${c.beta}`)
+      .join(",");
     const nH = Hbproof1(S, ...commitments);
 
     for (let j = 0; j < M.length; j++) {
       if (M[j] === mS) {
-        azProofs[j+1].nChallenge = mod(nH - nChallengeS, L);
-        azProofs[j+1].nResponse = mod(nW - nRS * azProofs[j+1].nChallenge, L);
+        azProofs[j + 1].nChallenge = mod(nH - nChallengeS, L);
+        azProofs[j + 1].nResponse = mod(
+          nW - nRS * azProofs[j + 1].nChallenge,
+          L,
+        );
       }
     }
 
     return azProofs;
-  } else { // anChoices[0] === 1 (Blank vote)
+  } else {
+    // anChoices[0] === 1 (Blank vote)
     console.assert(mS === 0);
     const pA0 = g.multiply(nW);
     const pB0 = pY.multiply(nW);
     let commitments = [pA0, pB0];
 
-    let azProofs : Array<Proof.t> = [{
-      nChallenge: BigInt(0),
-      nResponse: BigInt(0)
-    }];
+    let azProofs: Array<Proof.t> = [
+      {
+        nChallenge: BigInt(0),
+        nResponse: BigInt(0),
+      },
+    ];
 
     let nChallengeS = BigInt(0);
     for (let j = 0; j < M.length; j++) {
       const nChallenge = rand();
       const nResponse = rand();
       azProofs.push({ nChallenge, nResponse });
-      const [pA, pB] = formula2(pY, pAlphaS, pBetaS, nChallenge, nResponse, M[j]);
+      const [pA, pB] = formula2(
+        pY,
+        pAlphaS,
+        pBetaS,
+        nChallenge,
+        nResponse,
+        M[j],
+      );
       nChallengeS = mod(nChallengeS + nChallenge, L);
       commitments.push(pA, pB);
     }
 
     let S = `${state.electionFingerprint}|${hPub}|`;
-    S += aeCiphertexts.map(Ciphertext.serialize).map((c) => `${c.alpha},${c.beta}`).join(",");
+    S += aeCiphertexts
+      .map(Ciphertext.serialize)
+      .map((c) => `${c.alpha},${c.beta}`)
+      .join(",");
     const nH = Hbproof1(S, ...commitments);
 
     azProofs[0].nChallenge = mod(nH - nChallengeS, L);
@@ -381,26 +427,52 @@ function generateAnswerWithBlank(
     choices,
   );
 
-  const pAlphaS = aeChoices.slice(1).reduce((acc, c) => acc.add(c.pAlpha), zero);
+  const pAlphaS = aeChoices
+    .slice(1)
+    .reduce((acc, c) => acc.add(c.pAlpha), zero);
   const pBetaS = aeChoices.slice(1).reduce((acc, c) => acc.add(c.pBeta), zero);
   const pAlpha0 = aeChoices[0].pAlpha;
   const pBeta0 = aeChoices[0].pBeta;
   const nRS = anR.slice(1).reduce((acc, r) => mod(acc + r, L), BigInt(0));
   const nR0 = anR[0];
 
-  let azBlankProof : Array<Proof.t> = [];
+  let azBlankProof: Array<Proof.t> = [];
   if (choices[0] === 0) {
-    azBlankProof = blankProof(state, hPublicCredential, pY, aeChoices, pAlphaS, pBetaS, nR0, true);
+    azBlankProof = blankProof(
+      state,
+      hPublicCredential,
+      pY,
+      aeChoices,
+      pAlphaS,
+      pBetaS,
+      nR0,
+      true,
+    );
   } else {
-    azBlankProof = blankProof(state, hPublicCredential, pY, aeChoices, pAlpha0, pBeta0, nRS, false);
+    azBlankProof = blankProof(
+      state,
+      hPublicCredential,
+      pY,
+      aeChoices,
+      pAlpha0,
+      pBeta0,
+      nRS,
+      false,
+    );
   }
 
-  let azOverallProof = overallProofBlank(state, question, choices,
-                                        aeChoices, hPublicCredential, anR);
+  let azOverallProof = overallProofBlank(
+    state,
+    question,
+    choices,
+    aeChoices,
+    hPublicCredential,
+    anR,
+  );
   return Answer.AnswerH.serialize({
     aeChoices,
     aazIndividualProofs,
     azOverallProof,
-    azBlankProof
+    azBlankProof,
   });
 }

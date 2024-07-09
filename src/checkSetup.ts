@@ -29,7 +29,7 @@ function checkElectionPublicKey(state) {
   log(
     "setup",
     isValidPoint(pElectionPublicKey),
-    `Election Public Key is a valid curve point`
+    `Election Public Key is a valid curve point`,
   );
 
   let pJointPublicKey = zero;
@@ -68,14 +68,10 @@ function checkTrusteePublicKey(state, trustee) {
 
   const pA = g.multiply(nResponse).add(pX.multiply(nChallenge));
 
-  const S = `${state.setup.payload.election.group}|${trustee.public_key}`
+  const S = `${state.setup.payload.election.group}|${trustee.public_key}`;
   let nH = Hpok(S, pA);
 
-  log(
-    "setup",
-    nChallenge === nH,
-    `Trustee POK is valid`
-  );
+  log("setup", nChallenge === nH, `Trustee POK is valid`);
 }
 
 function checkCredentials(state) {

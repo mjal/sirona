@@ -39,7 +39,6 @@ const onUploadedFile = (event) => {
 const goToBallotList = () => {
   UIkit.tab(document.querySelector(".uk-tab")).show(1);
 };
-
 </script>
 
 <template>
@@ -110,7 +109,12 @@ const goToBallotList = () => {
     <ul class="uk-switcher uk-margin">
       <li>
         <div v-if="!loaded">Not loaded yet.</div>
-        <ElectionInfo :state="state" :logs="logs" :ballotLogs="ballotLogs" v-if="loaded" />
+        <ElectionInfo
+          :state="state"
+          :logs="logs"
+          :ballotLogs="ballotLogs"
+          v-if="loaded"
+        />
         <ElectionResult :state="state" v-if="loaded && state.result" />
       </li>
       <li>
@@ -126,19 +130,22 @@ const goToBallotList = () => {
         <div id="result"></div>
         <div id="check2">
           <ul uk-accordion>
-            <LogSection v-if="logs.top"
-              title="General" :logs="logs.top" />
-            <LogSection v-if="logs.database"
-              title="Database" :logs="logs.database" />
-            <LogSection v-if="logs.setup"
-              title="Setup" :logs="logs.setup" />
+            <LogSection v-if="logs.top" title="General" :logs="logs.top" />
+            <LogSection
+              v-if="logs.database"
+              title="Database"
+              :logs="logs.database"
+            />
+            <LogSection v-if="logs.setup" title="Setup" :logs="logs.setup" />
             <template v-for="(ballotLogEntry, key) in ballotLogs" :key="key">
               <LogSection :title="'Ballot ' + key" :logs="ballotLogEntry" />
             </template>
-            <LogSection v-if="logs.encryptedTally"
-              title="Encrypted Tally" :logs="logs.encryptedTally" />
-            <LogSection v-if="logs.result"
-              title="Result" :logs="logs.result" />
+            <LogSection
+              v-if="logs.encryptedTally"
+              title="Encrypted Tally"
+              :logs="logs.encryptedTally"
+            />
+            <LogSection v-if="logs.result" title="Result" :logs="logs.result" />
           </ul>
         </div>
       </li>

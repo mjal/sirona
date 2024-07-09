@@ -55,7 +55,11 @@ const submitForm = (event) => {
   }
 
   try {
-    const oBallot = generateBallot(props.state, credential.value.trim(), answers);
+    const oBallot = generateBallot(
+      props.state,
+      credential.value.trim(),
+      answers,
+    );
     const sBallot = JSON.stringify(canonicalBallot(oBallot, election.value));
     serializedGeneratedBallot.value = sBallot;
   } catch (e) {
@@ -64,8 +68,8 @@ const submitForm = (event) => {
   return false;
 };
 const copyToClipboard = () => {
-  navigator.clipboard.writeText(serializedGeneratedBallot.value)
-}
+  navigator.clipboard.writeText(serializedGeneratedBallot.value);
+};
 </script>
 
 <template>

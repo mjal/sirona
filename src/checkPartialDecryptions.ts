@@ -68,7 +68,7 @@ export default function (state) {
           log(
             "partialDecryptions",
             nChallenge === hReducedVerificationHash,
-            "Valid decryption proof"
+            "Valid decryption proof",
           );
         }
       } else {

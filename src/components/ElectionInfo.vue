@@ -11,19 +11,22 @@ const hasResult = props.state.result ? true : false;
 const hasError = computed(() => {
   const keys = ["top", "database", "setup", "encryptedTally", "result"];
   const bError = keys.some((key) => {
-    return props.logs[key] && props.logs[key].filter(({pass}) => !pass).length;
-  })
+    return (
+      props.logs[key] && props.logs[key].filter(({ pass }) => !pass).length
+    );
+  });
   const bBallotError = Object.values(props.ballotLogs).some((logEntry) => {
-    return logEntry.some(({pass}) => !pass);
+    return logEntry.some(({ pass }) => !pass);
   });
   return bError || bBallotError;
 });
-
 </script>
 
 <template>
   <table class="uk-table uk-table-striped">
-    <caption>Election infos</caption>
+    <caption>
+      Election infos
+    </caption>
     <tbody>
       <tr>
         <td>Verification Status</td>
@@ -35,7 +38,9 @@ const hasError = computed(() => {
       <tr>
         <td>Election Status</td>
         <td>
-          <span v-if="hasResult" class="uk-label uk-label-success">Finished</span>
+          <span v-if="hasResult" class="uk-label uk-label-success"
+            >Finished</span
+          >
           <span v-else class="uk-label">In progress</span>
         </td>
       </tr>
@@ -64,7 +69,10 @@ const hasError = computed(() => {
 
   <template v-if="election">
     <ul uk-accordion>
-      <template v-for="(question, index) in election.questions" v-bind:key="index">
+      <template
+        v-for="(question, index) in election.questions"
+        v-bind:key="index"
+      >
         <Question :question="question" />
       </template>
     </ul>

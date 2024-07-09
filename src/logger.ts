@@ -15,5 +15,9 @@ export function logBallot(ballotId: string, pass: boolean, message: string) {
   ballotLogs[ballotId].push({ pass, message });
 }
 
-export function getLogs() { return logs; }
-export function getBallotLogs() { return ballotLogs; }
+export function getLogs() {
+  return logs;
+}
+export function getBallotLogs() {
+  return ballotLogs;
+}

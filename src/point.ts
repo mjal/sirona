@@ -11,15 +11,15 @@ function reverseByteOrder(hexStr: string) {
   if (hexStr.length % 2 !== 0) {
     throw new Error("hex string should have an even number of characters");
   }
-  return hexStr.match(/../g).reverse().join('');
+  return hexStr.match(/../g).reverse().join("");
 }
 
 export function serialize(p: t): Serialized.t {
   return reverseByteOrder(p.toHex());
 }
 
-export function parse(str: Serialized.t) : t {
+export function parse(str: Serialized.t): t {
   return ed25519.ExtendedPoint.fromHex(reverseByteOrder(str));
-};
+}
 
 export const zero = ed25519.ExtendedPoint.ZERO;
