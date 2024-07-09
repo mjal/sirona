@@ -24,6 +24,16 @@ export namespace Serialized {
 
 // -- Check
 
+export function check(
+  election: Election.t,
+  electionFingerprint: string,
+  ballot: Ballot.t,
+  question: Question.QuestionNH.t,
+  answer: Serialized.t
+) {
+  checkValidPoints(ballot, answer);
+}
+
 export function checkValidPoints(
   ballot: Ballot.t,
   answer: Serialized.t
@@ -36,12 +46,3 @@ export function checkValidPoints(
   );
 }
 
-export function check(
-  election: Election.t,
-  electionFingerprint: string,
-  ballot: Ballot.t,
-  question: Question.QuestionH.t,
-  answer: Serialized.t
-) {
-  checkValidPoints(ballot, answer);
-}
