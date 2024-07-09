@@ -22,4 +22,5 @@ export function parse(str: Serialized.t): t {
   return ed25519.ExtendedPoint.fromHex(reverseByteOrder(str));
 }
 
+export const g = ed25519.ExtendedPoint.BASE;
 export const zero = ed25519.ExtendedPoint.ZERO;
