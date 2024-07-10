@@ -21,12 +21,7 @@ export default function (fileEntries) {
     trustees: findData(state.files, state.setup.payload.trustees),
   };
 
-  state.ballots = state.files
-    .filter((entry) => {
-      return entry[1] === "event" && entry[2].type === "Ballot";
-    })
-    .map((entry) => {
-      const ballot = entry[2];
+  state.ballots = findEvents(state.files, "Ballot").map((ballot) => {
       ballot.payloadHash = ballot.payload;
       ballot.tracker = sjcl.codec.base64
         .fromBits(sjcl.codec.hex.toBits(ballot.payloadHash))
@@ -34,6 +29,12 @@ export default function (fileEntries) {
       ballot.payload = findData(state.files, ballot.payload);
       return ballot;
     });
+
+  state.shuffles = findEvents(state.files, "Shuffle").map((shuffle) => {
+    shuffle.payload = findData(state.files, shuffle.payload);
+    shuffle.payload.payload = findData(state.files, shuffle.payload.payload);
+    return shuffle;
+  });
 
   state.encryptedTally = findEvent(state.files, "EncryptedTally");
   if (state.encryptedTally) {
@@ -47,12 +48,8 @@ export default function (fileEntries) {
     );
   }
 
-  state.partialDecryptions = state.files
-    .filter((entry) => {
-      return entry[1] === "event" && entry[2].type === "PartialDecryption";
-    })
-    .map((entry) => {
-      const partialDecryption = entry[2];
+  state.partialDecryptions = findEvents(state.files, "PartialDecryption")
+  .map((partialDecryption) => {
       partialDecryption.payload = findData(
         state.files,
         partialDecryption.payload,
@@ -145,6 +142,13 @@ function findEvent(entries, eventType) {
   } else {
     return null;
   }
+}
+
+function findEvents(entries, eventType) {
+  return entries.filter((entry) => {
+    return entry[1] === "event" && entry[2].type === eventType;
+  })
+  .map((entry) => entry[2]);
 }
 
 function findData(entries, hash) {
