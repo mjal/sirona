@@ -3,7 +3,7 @@ import type { ExtPointType } from "@noble/curves/abstract/edwards.js";
 
 export type t = ExtPointType;
 
-namespace Serialized {
+export namespace Serialized {
   export type t = string;
 }
 

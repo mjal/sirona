@@ -7,6 +7,7 @@ import checkEncryptedTally from "./checkEncryptedTally";
 import checkPartialDecryptions from "./checkPartialDecryptions";
 import checkResult from "./checkResult";
 import * as Ballot from "./ballot";
+import * as Shuffle from "./Shuffle";
 
 export default async function (fileEntries) {
   try {
@@ -17,6 +18,9 @@ export default async function (fileEntries) {
     await _async(checkSetup, state);
     for (let i = 0; i < state.ballots.length; i++) {
       await _async(Ballot.check, state, state.ballots[i]);
+    }
+    for (let i = 0; i < state.shuffles.length; i++) {
+      await _async(Shuffle.check, state, state.shuffles[i]);
     }
     if (state.encryptedTally) {
       await _async(checkEncryptedTally, state);
