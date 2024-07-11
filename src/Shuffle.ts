@@ -1,6 +1,7 @@
 import * as Event from "./event";
 import * as Point from "./point";
 import * as Ciphertext from "./ciphertext";
+import * as Question from "./question";
 
 // -- Types
 
@@ -76,8 +77,19 @@ export function parse(o: any): t {
 // -- Check
 
 export function check(state: any, ballotEvent: Event.t<t>) {
-  const shuffle = ballotEvent.payload;
-  console.log(parse(shuffle));
+  const shuffle = parse(ballotEvent.payload);
+  for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
+    const question = state.setup.payload.election.questions[i];
+    if (Question.IsQuestionNH(question)) {
+      CheckShuffleProof(shuffle.payload.proofs[i]);
+      throw new Error("Unsupported event type (Shuffle)");
+    }
+  }
   throw new Error("Unsupported event type (Shuffle)");
 }
 
+function CheckShuffleProof(proof: shuffle_proof) {
+  const [t, s, c, c_hat] = proof;
+  const [t1, t2, t3, [t4_1, t4_2], t_hat] = t;
+  const [s1, s2, s3, s4, s_hat, s_prime] = s
+}
