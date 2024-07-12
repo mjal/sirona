@@ -1,7 +1,16 @@
 import * as Event from "./event";
+import * as Ballot from "./ballot";
 import * as Point from "./point";
 import * as Ciphertext from "./ciphertext";
 import * as Question from "./question";
+import sjcl from "sjcl";
+import { ed25519 } from "@noble/curves/ed25519";
+import {
+  q,
+  mod,
+  L,
+  rev,
+} from "./math"
 
 // -- Types
 
@@ -78,18 +87,118 @@ export function parse(o: any): t {
 
 export function check(state: any, ballotEvent: Event.t<t>) {
   const shuffle = parse(ballotEvent.payload);
+  const y = Point.parse(state.setup.payload.election.public_key);
   for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
     const question = state.setup.payload.election.questions[i];
     if (Question.IsQuestionNH(question)) {
-      CheckShuffleProof(shuffle.payload.proofs[i]);
+      const choices : Array<Ciphertext.Serialized.t> = state.encryptedTally.payload.encrypted_tally[i];
+
+      CheckShuffleProof(
+        y,
+        state.electionFingerprint,
+        choices,
+        shuffle.payload.ciphertexts[i],
+        shuffle.payload.proofs[i]
+      );
+
       throw new Error("Unsupported event type (Shuffle)");
     }
   }
   throw new Error("Unsupported event type (Shuffle)");
 }
 
-function CheckShuffleProof(proof: shuffle_proof) {
+function hasDuplicates(array: any) {
+  return (new Set(array)).size !== array.length;
+}
+
+function CheckShuffleProof(
+  y: Point.t,
+  electionFingerprint: string,
+  input: Array<Ciphertext.Serialized.t>,
+  output: Array<Ciphertext.t>,
+  proof: shuffle_proof
+) {
   const [t, s, c, c_hat] = proof;
   const [t1, t2, t3, [t4_1, t4_2], t_hat] = t;
   const [s1, s2, s3, s4, s_hat, s_prime] = s
+
+  if (c.length !== input.length
+    || c_hat.length !== input.length
+    || t_hat.length !== input.length
+    || s_hat.length !== input.length
+    || s_prime.length !== input.length) {
+    throw new Error("Invalid proof length")
+  }
+
+  const h = GetSecondaryGenerator();
+  const hh = GetGenerators(input.length);
+  if (hasDuplicates(hh.map(Point.serialize).concat([Point.serialize(h)]))) {
+    throw new Error("Generators collision")
+  }
+
+  //console.log("ee", input.map(Ciphertext.Serialized.toString).join(','));
+  //console.log("ee_prime", output.map(Ciphertext.toString).join(','));
+  //console.log("c", c.map(Point.serialize).join(','));
+
+  const str_c = ""
+    + input.map(Ciphertext.Serialized.toString).join(",")
+    + ","
+    + output.map(Ciphertext.toString).join(",")
+    + ","
+    + c.map(Point.serialize).join(",")
+    + ",";
+
+  const uu = GetNIZKPChallenges(
+    input.length,
+    `shuffle-challenges|${electionFingerprint}|${str_c}`
+  );
+
+
+  //console.log(uu);
+  //console.log(str_c);
+}
+
+function getNextPoint(b: bigint) : Point.t {
+  let h = null;
+  while (1) {
+    try {
+      h = Point.parse(b.toString(16).padStart(64,'0'));
+      return h;
+    } catch (e) {
+      b = b + 1n;
+    }
+  }
+}
+
+function GetGenerator(i: number) {
+  const str = `ggen|${i}`;
+  const hash = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(str));
+  const b = BigInt("0x" + hash) >> BigInt(2);
+  const h = getNextPoint(b).multiply(8n);
+  return h;
+}
+
+function GetSecondaryGenerator() : Point.t {
+  return GetGenerator(-1);
+}
+
+function GetGenerators(N: number) : Array<Point.t> {
+  return [...Array(N).keys()].map(GetGenerator)
+}
+
+function GetNIZKPChallenge(S: string) {
+  const r = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(S));
+  return mod(BigInt("0x" + r), L);
+}
+
+function GetNIZKPChallenges(N: number, S: string) {
+  const H = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(S));
+  console.log(S);
+  return [...Array(N).keys()].map((i) => {
+    const Hi = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(`${i}`));
+    console.log("i = ", Hi);
+    console.log(H + Hi);
+    const r = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(H + Hi));
+    return mod(BigInt("0x" + r), L);
+  });
 }
