@@ -51,13 +51,18 @@ function checkMisc(
 ) {
   const sSerializedBallot = JSON.stringify(canonicalBallot(ballot, election));
 
-  if (!(election.uuid === ballot.election_uuid &&
-      electionFingerprint === ballot.election_hash)) {
+  if (
+    !(
+      election.uuid === ballot.election_uuid &&
+      electionFingerprint === ballot.election_hash
+    )
+  ) {
     throw new Error("election_uuid or election_hash is incorrect");
   }
 
   const hash = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(sSerializedBallot));
+    sjcl.hash.sha256.hash(sSerializedBallot),
+  );
 
   if (hash !== ballotPayloadHash) {
     throw new Error("Ballot payload is not canonical");

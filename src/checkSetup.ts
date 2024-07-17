@@ -1,9 +1,11 @@
 import { g, rev, zero, isValidPoint, parsePoint, Hpok } from "./math";
 
 export default function (state: any) {
-  return checkTrustees(state)
-  && checkElectionPublicKey(state)
-  && checkCredentials(state);
+  return (
+    checkTrustees(state) &&
+    checkElectionPublicKey(state) &&
+    checkCredentials(state)
+  );
 }
 
 function checkTrustees(state: any) {
@@ -52,10 +54,12 @@ function checkElectionPublicKey(state: any) {
     }
   }
 
-  if (rev(pJointPublicKey.toHex()) !== state.setup.payload.election.public_key) {
-    throw new Error("Election Public Key doesn't correspond to trustees")
+  if (
+    rev(pJointPublicKey.toHex()) !== state.setup.payload.election.public_key
+  ) {
+    throw new Error("Election Public Key doesn't correspond to trustees");
   }
-  
+
   return true;
 }
 

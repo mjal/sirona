@@ -22,13 +22,13 @@ export default function (fileEntries) {
   };
 
   state.ballots = findEvents(state.files, "Ballot").map((ballot) => {
-      ballot.payloadHash = ballot.payload;
-      ballot.tracker = sjcl.codec.base64
-        .fromBits(sjcl.codec.hex.toBits(ballot.payloadHash))
-        .replace(/=+$/, "");
-      ballot.payload = findData(state.files, ballot.payload);
-      return ballot;
-    });
+    ballot.payloadHash = ballot.payload;
+    ballot.tracker = sjcl.codec.base64
+      .fromBits(sjcl.codec.hex.toBits(ballot.payloadHash))
+      .replace(/=+$/, "");
+    ballot.payload = findData(state.files, ballot.payload);
+    return ballot;
+  });
 
   state.shuffles = findEvents(state.files, "Shuffle").map((shuffle) => {
     shuffle.payload = findData(state.files, shuffle.payload);
@@ -48,8 +48,8 @@ export default function (fileEntries) {
     );
   }
 
-  state.partialDecryptions = findEvents(state.files, "PartialDecryption")
-  .map((partialDecryption) => {
+  state.partialDecryptions = findEvents(state.files, "PartialDecryption").map(
+    (partialDecryption) => {
       partialDecryption.payload = findData(
         state.files,
         partialDecryption.payload,
@@ -59,7 +59,8 @@ export default function (fileEntries) {
         partialDecryption.payload.payload,
       );
       return partialDecryption;
-    });
+    },
+  );
 
   state.result = findEvent(state.files, "Result");
   if (state.result) {
@@ -145,10 +146,11 @@ function findEvent(entries, eventType) {
 }
 
 function findEvents(entries, eventType) {
-  return entries.filter((entry) => {
-    return entry[1] === "event" && entry[2].type === eventType;
-  })
-  .map((entry) => entry[2]);
+  return entries
+    .filter((entry) => {
+      return entry[1] === "event" && entry[2].type === eventType;
+    })
+    .map((entry) => entry[2]);
 }
 
 function findData(entries, hash) {

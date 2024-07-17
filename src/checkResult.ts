@@ -11,8 +11,12 @@ export default function (state) {
         const pBeta = parsePoint(et[i][j].beta);
         const pResult = pBeta.add(df[i][j].negate());
         const nAnswer = BigInt(res[i][j]);
-        if (!((res[i][j] === 0 && pResult.toHex() === zero.toHex()) ||
-          (res[i][j] !== 0 && pResult.toHex() === g.multiply(nAnswer).toHex()))) {
+        if (
+          !(
+            (res[i][j] === 0 && pResult.toHex() === zero.toHex()) ||
+            (res[i][j] !== 0 && pResult.toHex() === g.multiply(nAnswer).toHex())
+          )
+        ) {
           throw new Error("Invalid result");
         }
       }

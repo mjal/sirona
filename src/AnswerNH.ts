@@ -40,7 +40,7 @@ export function check(
 
 function checkValidPoints(answer: Serialized.t) {
   const ct = Ciphertext.parse(answer.choices);
-  return (isValidPoint(ct.pAlpha) && isValidPoint(ct.pBeta));
+  return isValidPoint(ct.pAlpha) && isValidPoint(ct.pBeta);
 }
 
 function checkProof(
@@ -56,5 +56,5 @@ function checkProof(
   const A = formula(Point.g, proof.nResponse, ct.pAlpha, proof.nChallenge);
   const S = `${electionFingerprint}|${ballot.credential}`;
 
-  return (Hraweg(S, y, ct.pAlpha, ct.pBeta, A) === proof.nChallenge);
+  return Hraweg(S, y, ct.pAlpha, ct.pBeta, A) === proof.nChallenge;
 }

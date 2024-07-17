@@ -29,17 +29,35 @@ export function check(
     Serialized.IsAnswerH(answer, question) &&
     Question.IsQuestionH(question)
   ) {
-    return AnswerH.check(election, electionFingerprint, ballot, question, answer);
+    return AnswerH.check(
+      election,
+      electionFingerprint,
+      ballot,
+      question,
+      answer,
+    );
   } else if (
     Serialized.IsAnswerNH(answer, question) &&
     Question.IsQuestionNH(question)
   ) {
-    return AnswerNH.check(election, electionFingerprint, ballot, question, answer);
+    return AnswerNH.check(
+      election,
+      electionFingerprint,
+      ballot,
+      question,
+      answer,
+    );
   } else if (
     Serialized.IsAnswerL(answer, question) &&
     Question.IsQuestionL(question)
   ) {
-    return AnswerL.check(election, electionFingerprint, ballot, question, answer);
+    return AnswerL.check(
+      election,
+      electionFingerprint,
+      ballot,
+      question,
+      answer,
+    );
   } else {
     throw new Error("Unknown question type");
   }

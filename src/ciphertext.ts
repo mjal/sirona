@@ -23,14 +23,12 @@ export function parse(c: Serialized.t): t {
   };
 }
 
-
 export function serialize(c: t): Serialized.t {
   return {
     alpha: Point.serialize(c.pAlpha),
     beta: Point.serialize(c.pBeta),
   };
 }
-
 
 export const zero = { pAlpha: Point.zero, pBeta: Point.zero };
 

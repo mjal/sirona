@@ -137,11 +137,11 @@ export function Hraweg(
   y: Point.t,
   alpha: Point.t,
   beta: Point.t,
-  A: Point.t
+  A: Point.t,
 ) {
   let prefix = `raweg|${S}|`;
   prefix += Point.serialize(y) + ",";
   prefix += Point.serialize(alpha) + ",";
-  prefix += Point.serialize(beta)
+  prefix += Point.serialize(beta);
   return H(prefix, A);
 }

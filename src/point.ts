@@ -22,5 +22,9 @@ export function parse(str: Serialized.t): t {
   return ed25519.ExtendedPoint.fromHex(reverseByteOrder(str));
 }
 
+export function combine(points: Array<t>): t {
+  return points.reduce((acc, p) => acc.add(p), zero);
+}
+
 export const g = ed25519.ExtendedPoint.BASE;
 export const zero = ed25519.ExtendedPoint.ZERO;

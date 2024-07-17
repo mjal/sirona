@@ -60,30 +60,40 @@ export function check(
   ballot: Ballot.t,
   question: Question.QuestionL.t,
   answer: Serialized.t,
-) : boolean {
+): boolean {
   if (!checkValidPoints(question, answer)) {
     throw new Error("Invalid curve points");
   }
-  if (!checkIndividualProofs(
-    election,
-    electionFingerprint,
-    ballot,
-    question,
-    answer)) {
+  if (
+    !checkIndividualProofs(
+      election,
+      electionFingerprint,
+      ballot,
+      question,
+      answer,
+    )
+  ) {
     throw new Error("Invalid individual proofs");
   }
-  if (!checkOverallProofLists(
-    election,
-    electionFingerprint,
-    ballot,
-    question,
-    answer)) {
-      throw new Error("Invalid overall proof (lists)");
+  if (
+    !checkOverallProofLists(
+      election,
+      electionFingerprint,
+      ballot,
+      question,
+      answer,
+    )
+  ) {
+    throw new Error("Invalid overall proof (lists)");
   }
-  if (!checkNonZeroProof(election, electionFingerprint, ballot, question, answer)) {
+  if (
+    !checkNonZeroProof(election, electionFingerprint, ballot, question, answer)
+  ) {
     throw new Error("Invalid non zero proof (lists)");
   }
-  if (!checkListProofs(election, electionFingerprint, ballot, question, answer)) {
+  if (
+    !checkListProofs(election, electionFingerprint, ballot, question, answer)
+  ) {
     throw new Error("Invalid list proof");
   }
 
@@ -93,7 +103,7 @@ export function check(
 export function checkValidPoints(
   question: Question.QuestionL.t,
   answer: Serialized.t,
-) : boolean {
+): boolean {
   for (let i = 0; i < question.value.answers.length; i++) {
     for (let j = 0; j < question.value.answers[i].length; j++) {
       const ct = Ciphertext.parse(answer.choices[i][j]);
@@ -111,7 +121,7 @@ export function checkIndividualProofs(
   ballot: Ballot.t,
   question: Question.QuestionL.t,
   answer: Serialized.t,
-) : boolean {
+): boolean {
   const pY = parsePoint(election.public_key);
 
   const S = `${electionFingerprint}|${ballot.credential}`;
@@ -120,12 +130,14 @@ export function checkIndividualProofs(
   const aaazIndividualProofs = map3(answer.individual_proofs, Proof.parse);
   for (let j = 0; j < question.value.answers.length; j++) {
     for (let k = 0; k < question.value.answers[j].length; k++) {
-      if (!Proof.checkIndividualProof(
-        S,
-        aaazIndividualProofs[j][k],
-        pY,
-        aaeChoices[j][k],
-      )) {
+      if (
+        !Proof.checkIndividualProof(
+          S,
+          aaazIndividualProofs[j][k],
+          pY,
+          aaeChoices[j][k],
+        )
+      ) {
         return false;
       }
     }
@@ -139,7 +151,7 @@ function checkOverallProofLists(
   ballot: Ballot.t,
   question: Question.QuestionL.t,
   answer: Serialized.t,
-) : boolean {
+): boolean {
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerL.parse(answer);
 
@@ -166,7 +178,9 @@ function checkOverallProofLists(
     })
     .join(",");
 
-  return (Hiprove(S, sumc.pAlpha, sumc.pBeta, pA, pB) === a.overall_proof.nChallenge);
+  return (
+    Hiprove(S, sumc.pAlpha, sumc.pBeta, pA, pB) === a.overall_proof.nChallenge
+  );
 }
 
 function checkNonZeroProof(
@@ -175,7 +189,7 @@ function checkNonZeroProof(
   ballot: Ballot.t,
   _question: Question.QuestionL.t,
   answer: Serialized.t,
-) : boolean {
+): boolean {
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerL.parse(answer);
 
@@ -210,7 +224,7 @@ function checkNonZeroProof(
     })
     .join(",");
 
-  return (Hnonzero(S, A0, A1, A2) === c);
+  return Hnonzero(S, A0, A1, A2) === c;
 }
 
 function checkListProofs(
@@ -219,7 +233,7 @@ function checkListProofs(
   ballot: Ballot.t,
   question: Question.QuestionL.t,
   answer: Serialized.t,
-) : boolean {
+): boolean {
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerL.parse(answer);
 
@@ -251,7 +265,9 @@ function checkListProofs(
 
     const nSumChallenges = mod(proofs[0].nChallenge + proofs[1].nChallenge, L);
 
-    return (a.choices[i].length === question.value.answers[i].length
-      && Hlproof(S, A0, B0, A1, B1) === nSumChallenges);
+    return (
+      a.choices[i].length === question.value.answers[i].length &&
+      Hlproof(S, A0, B0, A1, B1) === nSumChallenges
+    );
   }
 }

@@ -69,37 +69,48 @@ export function check(
   ballot: Ballot.t,
   question: Question.QuestionH.t,
   answer: Serialized.t,
-) : boolean {
+): boolean {
   if (!checkValidPoints(question, answer)) {
     throw new Error("Invalid curve points");
   }
-  if (!checkIndividualProofs(
-    election,
-    electionFingerprint,
-    ballot,
-    question,
-    answer)) {
+  if (
+    !checkIndividualProofs(
+      election,
+      electionFingerprint,
+      ballot,
+      question,
+      answer,
+    )
+  ) {
     throw new Error("Invalid individual proofs");
   }
   if (question.blank) {
-    if (!checkBlankProof(election, electionFingerprint, ballot, question, answer)) {
+    if (
+      !checkBlankProof(election, electionFingerprint, ballot, question, answer)
+    ) {
       throw new Error("Invalid blank proof");
     }
-    if (!checkOverallProofWithBlank(
-      election,
-      electionFingerprint,
-      ballot,
-      question,
-      answer)) {
+    if (
+      !checkOverallProofWithBlank(
+        election,
+        electionFingerprint,
+        ballot,
+        question,
+        answer,
+      )
+    ) {
       throw new Error("Invalid blank proof");
     }
   } else {
-    if (!checkOverallProofWithoutBlank(
-      election,
-      electionFingerprint,
-      ballot,
-      question,
-      answer)) {
+    if (
+      !checkOverallProofWithoutBlank(
+        election,
+        electionFingerprint,
+        ballot,
+        question,
+        answer,
+      )
+    ) {
       throw new Error("Invalid overall proof (without blank vote)");
     }
   }
@@ -109,7 +120,7 @@ export function check(
 export function checkValidPoints(
   question: Question.QuestionH.t,
   answer: Serialized.t,
-) : boolean {
+): boolean {
   for (let j = 0; j < question.answers.length; j++) {
     const ct = Ciphertext.parse(answer.choices[j]);
     if (!isValidPoint(ct.pAlpha) || !isValidPoint(ct.pBeta)) {
@@ -125,17 +136,19 @@ export function checkIndividualProofs(
   ballot: Ballot.t,
   question: Question.QuestionH.t,
   answer: Serialized.t,
-) : boolean {
+): boolean {
   const pY = parsePoint(election.public_key);
   const S = `${electionFingerprint}|${ballot.credential}`;
   const a = Answer.AnswerH.parse(answer);
   for (let j = 0; j < question.answers.length + (question.blank ? 1 : 0); j++) {
-    if (!Proof.checkIndividualProof(
-      S,
-      a.aazIndividualProofs[j],
-      pY,
-      a.aeChoices[j],
-    )) {
+    if (
+      !Proof.checkIndividualProof(
+        S,
+        a.aazIndividualProofs[j],
+        pY,
+        a.aeChoices[j],
+      )
+    ) {
       return false;
     }
   }
@@ -148,7 +161,7 @@ export function checkOverallProofWithoutBlank(
   ballot: Ballot.t,
   question: Question.QuestionH.t,
   answer: Serialized.t,
-) : boolean {
+): boolean {
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerH.parse(answer);
 
@@ -180,7 +193,7 @@ export function checkOverallProofWithoutBlank(
   let S = `${electionFingerprint}|${ballot.credential}|`;
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
 
-  return (Hiprove(S, sumc.pAlpha, sumc.pBeta, ...commitments) === nSumChallenges);
+  return Hiprove(S, sumc.pAlpha, sumc.pBeta, ...commitments) === nSumChallenges;
 }
 
 export function checkOverallProofWithBlank(
@@ -189,7 +202,7 @@ export function checkOverallProofWithBlank(
   ballot: Ballot.t,
   question: Question.QuestionH.t,
   answer: Serialized.t,
-) : boolean {
+): boolean {
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerH.parse(answer);
 
@@ -230,7 +243,7 @@ export function checkOverallProofWithBlank(
   let S = `${electionFingerprint}|${ballot.credential}|`;
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
 
-  return (Hbproof1(S, ...commitments) === nSumChallenges);
+  return Hbproof1(S, ...commitments) === nSumChallenges;
 }
 
 export function checkBlankProof(
@@ -239,7 +252,7 @@ export function checkBlankProof(
   ballot: Ballot.t,
   _question: Question.QuestionH.t,
   answer: Serialized.t,
-) : boolean {
+): boolean {
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerH.parse(answer);
 
@@ -274,5 +287,5 @@ export function checkBlankProof(
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
   S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
-  return (Hbproof0(S, ...[pA0, pB0, pAS, pBS]) === nSumChallenges);
+  return Hbproof0(S, ...[pA0, pB0, pAS, pBS]) === nSumChallenges;
 }
