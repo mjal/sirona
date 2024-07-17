@@ -19,11 +19,11 @@ export default async function (fileEntries) {
     for (let i = 0; i < state.ballots.length; i++) {
       await _async(Ballot.check, state, state.ballots[i]);
     }
-    for (let i = 0; i < state.shuffles.length; i++) {
-      await _async(Shuffle.check, state, state.shuffles[i]);
-    }
     if (state.encryptedTally) {
       await _async(checkEncryptedTally, state);
+    }
+    for (let i = 0; i < state.shuffles.length; i++) {
+      await _async(Shuffle.check, state, state.shuffles[i]);
     }
     if (state.partialDecryptions.length > 0) {
       await _async(checkPartialDecryptions, state);
