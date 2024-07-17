@@ -22,6 +22,8 @@ export default function (state): boolean {
         });
       });
       encryptedTally.push(matrix);
+    } else if (questions[i].type === "NonHomomorphic") {
+      // Skip
     } else {
       throw new Error("Unsupported question type");
     }
@@ -62,6 +64,8 @@ export default function (state): boolean {
             );
           }
         }
+      } else if (questions[j].type === "NonHomomorphic") {
+        // Skip
       } else {
         throw new Error("Unsupported question type");
       }
@@ -100,6 +104,8 @@ export default function (state): boolean {
           }
         }
       }
+    } else if (questions[i].type === "NonHomomorphic") {
+      // Skip
     } else {
       throw new Error("Unsupported question type");
     }
