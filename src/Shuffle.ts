@@ -5,7 +5,7 @@ import * as Ciphertext from "./ciphertext";
 import * as Question from "./question";
 import sjcl from "sjcl";
 import { ed25519 } from "@noble/curves/ed25519";
-import { q, mod, L, rev } from "./math";
+import { g, mod, L } from "./math";
 
 // -- Types
 
@@ -86,18 +86,15 @@ export function check(state: any, ballotEvent: Event.t<t>) {
       const choices: Array<Ciphertext.Serialized.t> =
         state.encryptedTally.payload.encrypted_tally[i];
 
-      CheckShuffleProof(
+      console.log("shuffle_proof", CheckShuffleProof(
         y,
         state.electionFingerprint,
         choices,
         shuffle.payload.ciphertexts[i],
         shuffle.payload.proofs[i],
-      );
-
-      throw new Error("Unsupported event type (Shuffle)");
+      ));
     }
   }
-  throw new Error("Unsupported event type (Shuffle)");
 }
 
 function hasDuplicates(array: any) {
@@ -112,7 +109,7 @@ function CheckShuffleProof(
   proof: shuffle_proof,
 ) {
   const [t, s, cc, cc_hat] = proof;
-  const [t1, t2, t3, [t4_1, t4_2], t_hat] = t;
+  const [t1, t2, t3, [t41, t42], t_hat] = t;
   const [s1, s2, s3, s4, s_hat, s_prime] = s;
 
   if (
@@ -149,8 +146,8 @@ function CheckShuffleProof(
     `shuffle-challenges|${electionFingerprint}|${str_c}`,
   );
 
-  const str_t =
-    [t1, t2, t3, t4_1, t4_2].concat(t_hat).map(Point.serialize).join(",") + ",";
+  const str_t = [t1, t2, t3, t41, t42].concat(t_hat)
+    .map(Point.serialize).join(",") + ",";
 
   const str_y =
     "" +
@@ -164,18 +161,56 @@ function CheckShuffleProof(
   );
 
   const c_bar = Point.combine(cc).add(Point.combine(hh).negate());
-  console.log("c_bar", Point.serialize(c_bar));
-
   const u = uu.reduce((acc, ui) => mod(acc * ui, L), 1n);
-  console.log("u", u);
-
-  const c0_hat = h;
   const c_hat = cc_hat[cc_hat.length - 1].add(h.multiply(u).negate());
   const c_tilde = Point.combine(cc.map((ci, i) => ci.multiply(uu[i])));
 
-  console.log("c_tilde", Point.serialize(c_hat));
+  const alpha_prime = Point.combine(input.map((ei, i) => Ciphertext.parse(ei).pAlpha.multiply(uu[i])));
+  const beta_prime  = Point.combine(input.map((ei, i) => Ciphertext.parse(ei).pBeta.multiply(uu[i])));
 
-  //console.log(str_c);
+  const t1_prime = c_bar.multiply(c).negate().add(g.multiply(s1));
+  const t2_prime = c_hat.multiply(c).negate().add(g.multiply(s2));
+  const t3_prime = c_tilde.multiply(c).negate().add(g.multiply(s3))
+    .add(Point.combine(hh.map((hi, i) => hi.multiply(s_prime[i]))));
+
+  console.log("t1_prime", Point.serialize(t1_prime));
+  console.log("t2_prime", Point.serialize(t2_prime));
+  console.log("t3_prime", Point.serialize(t3_prime));
+
+  const t41_prime = beta_prime.multiply(c).negate()
+    .add(y.multiply(s4).negate())
+    .add(Point.combine(output.map((ei, i) => ei.pBeta.multiply(s_prime[i]))));
+
+  const t42_prime = alpha_prime.multiply(c).negate()
+    .add(g.multiply(s4).negate())
+    .add(Point.combine(output.map((ei, i) => ei.pAlpha.multiply(s_prime[i]))));
+  
+  const tt_prime_hat = [...Array(input.length).keys()].map((i) => {
+    return cc_hat[i].multiply(c).negate()
+      .add(g.multiply(s_hat[i]))
+      .add(((i == 0) ? h : cc_hat[i - 1]).multiply(s_prime[i]));
+  });
+
+  // Log everything from previous test
+  console.log("t1", Point.serialize(t1), Point.serialize(t1_prime));
+  console.log("t2", Point.serialize(t2), Point.serialize(t2_prime));
+  console.log("t3", Point.serialize(t3), Point.serialize(t3_prime));
+  console.log("t41", Point.serialize(t41), Point.serialize(t41_prime));
+  console.log("t42", Point.serialize(t42), Point.serialize(t42_prime));
+  console.log("t_hat", t_hat.map(Point.serialize).join(","), tt_prime_hat.map(Point.serialize).join(","));
+
+  if  (!(
+    Point.serialize(t1) == Point.serialize(t1_prime) &&
+    Point.serialize(t2) == Point.serialize(t2_prime) &&
+    Point.serialize(t3) == Point.serialize(t3_prime) &&
+    Point.serialize(t41) == Point.serialize(t41_prime) &&
+    Point.serialize(t42) == Point.serialize(t42_prime) &&
+    t_hat.map(Point.serialize).join(",") == tt_prime_hat.map(Point.serialize).join(",")))
+  {
+    throw new Error("Invalid shuffle proof");
+  }
+
+  return true;
 }
 
 function getNextPoint(b: bigint): Point.t {
