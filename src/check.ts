@@ -22,12 +22,18 @@ export default async function (fileEntries) {
     if (state.encryptedTally) {
       await _async(checkEncryptedTally, state);
     }
+
+    // Check shuffles
+    let tally = state.encryptedTally.payload.encrypted_tally;
     for (let i = 0; i < state.shuffles.length; i++) {
-      await _async(Shuffle.check, state, state.shuffles[i]);
+      await _async(Shuffle.check, state, state.shuffles[i], tally);
+      tally = state.shuffles[i].payload.payload.ciphertexts;
     }
+
     if (state.partialDecryptions.length > 0) {
       await _async(checkPartialDecryptions, state);
     }
+
     if (state.result) {
       await _async(checkResult, state);
     }

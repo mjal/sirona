@@ -77,24 +77,28 @@ export function parse(o: any): t {
 
 // -- Check
 
-export function check(state: any, ballotEvent: Event.t<t>) {
+export function check(
+  state: any,
+  ballotEvent: Event.t<t>,
+  tally: Array<Array<Ciphertext.Serialized.t>>
+) : boolean {
   const shuffle = parse(ballotEvent.payload);
   const y = Point.parse(state.setup.payload.election.public_key);
   for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
     const question = state.setup.payload.election.questions[i];
     if (Question.IsQuestionNH(question)) {
-      const choices: Array<Ciphertext.Serialized.t> =
-        state.encryptedTally.payload.encrypted_tally[i];
-
-      console.log("shuffle_proof", CheckShuffleProof(
+      if (!CheckShuffleProof(
         y,
         state.electionFingerprint,
-        choices,
+        tally[i],
         shuffle.payload.ciphertexts[i],
         shuffle.payload.proofs[i],
-      ));
+      )) {
+        throw new Error("Invalid shuffle proof");
+      }
     }
   }
+  return true;
 }
 
 function hasDuplicates(array: any) {
@@ -127,10 +131,6 @@ function CheckShuffleProof(
   if (hasDuplicates(hh.map(Point.serialize).concat([Point.serialize(h)]))) {
     throw new Error("Generators collision");
   }
-
-  //console.log("ee", input.map(Ciphertext.Serialized.toString).join(','));
-  //console.log("ee_prime", output.map(Ciphertext.toString).join(','));
-  //console.log("c", c.map(Point.serialize).join(','));
 
   const str_c =
     "" +
@@ -173,10 +173,6 @@ function CheckShuffleProof(
   const t3_prime = c_tilde.multiply(c).negate().add(g.multiply(s3))
     .add(Point.combine(hh.map((hi, i) => hi.multiply(s_prime[i]))));
 
-  console.log("t1_prime", Point.serialize(t1_prime));
-  console.log("t2_prime", Point.serialize(t2_prime));
-  console.log("t3_prime", Point.serialize(t3_prime));
-
   const t41_prime = beta_prime.multiply(c).negate()
     .add(y.multiply(s4).negate())
     .add(Point.combine(output.map((ei, i) => ei.pBeta.multiply(s_prime[i]))));
@@ -190,14 +186,6 @@ function CheckShuffleProof(
       .add(g.multiply(s_hat[i]))
       .add(((i == 0) ? h : cc_hat[i - 1]).multiply(s_prime[i]));
   });
-
-  // Log everything from previous test
-  console.log("t1", Point.serialize(t1), Point.serialize(t1_prime));
-  console.log("t2", Point.serialize(t2), Point.serialize(t2_prime));
-  console.log("t3", Point.serialize(t3), Point.serialize(t3_prime));
-  console.log("t41", Point.serialize(t41), Point.serialize(t41_prime));
-  console.log("t42", Point.serialize(t42), Point.serialize(t42_prime));
-  console.log("t_hat", t_hat.map(Point.serialize).join(","), tt_prime_hat.map(Point.serialize).join(","));
 
   if  (!(
     Point.serialize(t1) == Point.serialize(t1_prime) &&
