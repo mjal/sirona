@@ -35,7 +35,7 @@ Two commands implemented:
 - [x] C.1 Verify "Lists" questions
 - [ ] C.2 Generate "List" questions
 
-- [ ] B.1 Verify shuffleds questions
+- [x] B.1 Verify shuffleds questions
 - [ ] B.2 Generate shuffleds questions
 
 - [x] T.1 Pedersen trustees
