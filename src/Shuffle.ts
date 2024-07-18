@@ -80,20 +80,22 @@ export function parse(o: any): t {
 export function check(
   state: any,
   ballotEvent: Event.t<t>,
-  tally: Array<Array<Ciphertext.Serialized.t>>
-) : boolean {
+  tally: Array<Array<Ciphertext.Serialized.t>>,
+): boolean {
   const shuffle = parse(ballotEvent.payload);
   const y = Point.parse(state.setup.payload.election.public_key);
   for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
     const question = state.setup.payload.election.questions[i];
     if (Question.IsQuestionNH(question)) {
-      if (!CheckShuffleProof(
-        y,
-        state.electionFingerprint,
-        tally[i],
-        shuffle.payload.ciphertexts[i],
-        shuffle.payload.proofs[i],
-      )) {
+      if (
+        !CheckShuffleProof(
+          y,
+          state.electionFingerprint,
+          tally[i],
+          shuffle.payload.ciphertexts[i],
+          shuffle.payload.proofs[i],
+        )
+      ) {
         throw new Error("Invalid shuffle proof");
       }
     }
@@ -146,8 +148,8 @@ function CheckShuffleProof(
     `shuffle-challenges|${electionFingerprint}|${str_c}`,
   );
 
-  const str_t = [t1, t2, t3, t41, t42].concat(t_hat)
-    .map(Point.serialize).join(",") + ",";
+  const str_t =
+    [t1, t2, t3, t41, t42].concat(t_hat).map(Point.serialize).join(",") + ",";
 
   const str_y =
     "" +
@@ -165,36 +167,52 @@ function CheckShuffleProof(
   const c_hat = cc_hat[cc_hat.length - 1].add(h.multiply(u).negate());
   const c_tilde = Point.combine(cc.map((ci, i) => ci.multiply(uu[i])));
 
-  const alpha_prime = Point.combine(input.map((ei, i) => Ciphertext.parse(ei).pAlpha.multiply(uu[i])));
-  const beta_prime  = Point.combine(input.map((ei, i) => Ciphertext.parse(ei).pBeta.multiply(uu[i])));
+  const alpha_prime = Point.combine(
+    input.map((ei, i) => Ciphertext.parse(ei).pAlpha.multiply(uu[i])),
+  );
+  const beta_prime = Point.combine(
+    input.map((ei, i) => Ciphertext.parse(ei).pBeta.multiply(uu[i])),
+  );
 
   const t1_prime = c_bar.multiply(c).negate().add(g.multiply(s1));
   const t2_prime = c_hat.multiply(c).negate().add(g.multiply(s2));
-  const t3_prime = c_tilde.multiply(c).negate().add(g.multiply(s3))
+  const t3_prime = c_tilde
+    .multiply(c)
+    .negate()
+    .add(g.multiply(s3))
     .add(Point.combine(hh.map((hi, i) => hi.multiply(s_prime[i]))));
 
-  const t41_prime = beta_prime.multiply(c).negate()
+  const t41_prime = beta_prime
+    .multiply(c)
+    .negate()
     .add(y.multiply(s4).negate())
     .add(Point.combine(output.map((ei, i) => ei.pBeta.multiply(s_prime[i]))));
 
-  const t42_prime = alpha_prime.multiply(c).negate()
+  const t42_prime = alpha_prime
+    .multiply(c)
+    .negate()
     .add(g.multiply(s4).negate())
     .add(Point.combine(output.map((ei, i) => ei.pAlpha.multiply(s_prime[i]))));
-  
+
   const tt_prime_hat = [...Array(input.length).keys()].map((i) => {
-    return cc_hat[i].multiply(c).negate()
+    return cc_hat[i]
+      .multiply(c)
+      .negate()
       .add(g.multiply(s_hat[i]))
-      .add(((i == 0) ? h : cc_hat[i - 1]).multiply(s_prime[i]));
+      .add((i == 0 ? h : cc_hat[i - 1]).multiply(s_prime[i]));
   });
 
-  if  (!(
-    Point.serialize(t1) == Point.serialize(t1_prime) &&
-    Point.serialize(t2) == Point.serialize(t2_prime) &&
-    Point.serialize(t3) == Point.serialize(t3_prime) &&
-    Point.serialize(t41) == Point.serialize(t41_prime) &&
-    Point.serialize(t42) == Point.serialize(t42_prime) &&
-    t_hat.map(Point.serialize).join(",") == tt_prime_hat.map(Point.serialize).join(",")))
-  {
+  if (
+    !(
+      Point.serialize(t1) == Point.serialize(t1_prime) &&
+      Point.serialize(t2) == Point.serialize(t2_prime) &&
+      Point.serialize(t3) == Point.serialize(t3_prime) &&
+      Point.serialize(t41) == Point.serialize(t41_prime) &&
+      Point.serialize(t42) == Point.serialize(t42_prime) &&
+      t_hat.map(Point.serialize).join(",") ==
+        tt_prime_hat.map(Point.serialize).join(",")
+    )
+  ) {
     throw new Error("Invalid shuffle proof");
   }
 

@@ -45,13 +45,7 @@ export function check(
     throw new Error("Unknown question type");
   }
 
-  check(
-    election,
-    electionFingerprint,
-    ballot,
-    question,
-    answer,
-  );
+  check(election, electionFingerprint, ballot, question, answer);
 }
 
 // -- Type guards

@@ -76,5 +76,5 @@ export function checkDecryptionProof(
 ) {
   const pA = formula(Point.g, proof.nResponse, y, proof.nChallenge);
   const pB = formula(e.pAlpha, proof.nResponse, factor, proof.nChallenge);
-  return (Hdecrypt(S, pA, pB) === proof.nChallenge);
+  return Hdecrypt(S, pA, pB) === proof.nChallenge;
 }

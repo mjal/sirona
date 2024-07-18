@@ -166,9 +166,11 @@ function checkOverallProofLists(
   );
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
-  S += answer.choices.map((cs) => {
-    return cs.map(Ciphertext.Serialized.toString).join(",");
-  }).join(",");
+  S += answer.choices
+    .map((cs) => {
+      return cs.map(Ciphertext.Serialized.toString).join(",");
+    })
+    .join(",");
 
   return (
     Hiprove(S, sumc.pAlpha, sumc.pBeta, pA, pB) === a.overall_proof.nChallenge
@@ -185,9 +187,11 @@ function checkNonZeroProof(
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerL.parse(answer);
 
-  const ct = Ciphertext.combine(a.choices.map((choices) => {
-    return Ciphertext.combine(choices.slice(1));
-  }));
+  const ct = Ciphertext.combine(
+    a.choices.map((choices) => {
+      return Ciphertext.combine(choices.slice(1));
+    }),
+  );
 
   const A0 = a.nonzero_proof.pCommitment;
   const c = a.nonzero_proof.nChallenge;
@@ -201,9 +205,11 @@ function checkNonZeroProof(
   const A2 = formula(ct.pBeta, t1, pY, t2).add(A0.multiply(c));
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
-  S += answer.choices.map((cs) => {
-    return cs.map(Ciphertext.Serialized.toString).join(",");
-  }).join(",");
+  S += answer.choices
+    .map((cs) => {
+      return cs.map(Ciphertext.Serialized.toString).join(",");
+    })
+    .join(",");
 
   return Hnonzero(S, A0, A1, A2) === c;
 }
@@ -236,9 +242,11 @@ function checkListProofs(
     const B1 = formula(pY, proofs[1].nResponse, ct.pBeta, proofs[1].nChallenge);
 
     let S = `${electionFingerprint}|${ballot.credential}|`;
-    S += answer.choices.map((cs) => {
-      return cs.map(Ciphertext.Serialized.toString).join(",");
-    }).join(",");
+    S += answer.choices
+      .map((cs) => {
+        return cs.map(Ciphertext.Serialized.toString).join(",");
+      })
+      .join(",");
 
     const nSumChallenges = mod(proofs[0].nChallenge + proofs[1].nChallenge, L);
 

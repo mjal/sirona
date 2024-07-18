@@ -20,8 +20,7 @@ export default async function (fileEntries) {
       await _async(Ballot.check, state, state.ballots[i]);
     }
 
-    if (!state.encryptedTally)
-      return state;
+    if (!state.encryptedTally) return state;
     await _async(checkEncryptedTally, state);
 
     // Check shuffles

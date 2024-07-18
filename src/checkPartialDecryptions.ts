@@ -47,27 +47,33 @@ export default function (state) {
       const question = election.questions[i];
       if (Question.IsQuestionH(question)) {
         for (let j = 0; j < encrypted_tally[i].length; j++) {
-          if (!Proof.checkDecryptionProof(
-            `${state.electionFingerprint}|${Point.serialize(pPublicKey)}`,
-            pPublicKey,
-            Ciphertext.parse(encrypted_tally[i][j]),
-            Point.parse(decryption_factors[i][j]),
-            Proof.parse(decryption_proofs[i][j])
-          )) {
+          if (
+            !Proof.checkDecryptionProof(
+              `${state.electionFingerprint}|${Point.serialize(pPublicKey)}`,
+              pPublicKey,
+              Ciphertext.parse(encrypted_tally[i][j]),
+              Point.parse(decryption_factors[i][j]),
+              Proof.parse(decryption_proofs[i][j]),
+            )
+          ) {
             throw new Error("Invalid decryption proof");
           }
         }
-      } else if (Question.IsQuestionL(question)
-      || Question.IsQuestionNH(question)) {
+      } else if (
+        Question.IsQuestionL(question) ||
+        Question.IsQuestionNH(question)
+      ) {
         for (let j = 0; j < encrypted_tally[i].length; j++) {
           for (let k = 0; k < encrypted_tally[i][j].length; k++) {
-            if (!Proof.checkDecryptionProof(
-              `${state.electionFingerprint}|${Point.serialize(pPublicKey)}`,
-              pPublicKey,
-              Ciphertext.parse(encrypted_tally[i][j][k]),
-              Point.parse(decryption_factors[i][j][k]),
-              Proof.parse(decryption_proofs[i][j][k])
-            )) {
+            if (
+              !Proof.checkDecryptionProof(
+                `${state.electionFingerprint}|${Point.serialize(pPublicKey)}`,
+                pPublicKey,
+                Ciphertext.parse(encrypted_tally[i][j][k]),
+                Point.parse(decryption_factors[i][j][k]),
+                Proof.parse(decryption_proofs[i][j][k]),
+              )
+            ) {
               throw new Error("Invalid decryption proof");
             }
           }
