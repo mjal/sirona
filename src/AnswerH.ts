@@ -164,14 +164,7 @@ export function checkOverallProofWithoutBlank(
 ): boolean {
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerH.parse(answer);
-
-  const sumc = a.aeChoices.reduce((acc, c) => {
-    return {
-      pAlpha: acc.pAlpha.add(c.pAlpha),
-      pBeta: acc.pBeta.add(c.pBeta),
-    };
-  }, Ciphertext.zero);
-
+  const sumc = Ciphertext.combine(a.aeChoices);
   const nSumChallenges = a.azOverallProof.reduce(
     (acc: bigint, proof: Proof.t) => mod(acc + proof.nChallenge, L),
     0n,
@@ -191,7 +184,7 @@ export function checkOverallProofWithoutBlank(
   }
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
-  S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
+  S += answer.choices.map(Ciphertext.Serialized.toString).join(",");
 
   return Hiprove(S, sumc.pAlpha, sumc.pBeta, ...commitments) === nSumChallenges;
 }
@@ -205,13 +198,7 @@ export function checkOverallProofWithBlank(
 ): boolean {
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerH.parse(answer);
-
-  const pAlphaS = a.aeChoices
-    .slice(1)
-    .reduce((acc, c) => acc.add(c.pAlpha), Point.zero);
-  const pBetaS = a.aeChoices
-    .slice(1)
-    .reduce((acc, c) => acc.add(c.pBeta), Point.zero);
+  const sumc = Ciphertext.combine(a.aeChoices.slice(1));
 
   let commitments = [];
   const [pA, pB] = formula2(
@@ -226,8 +213,8 @@ export function checkOverallProofWithBlank(
   for (let j = 1; j < question.max - question.min + 2; j++) {
     const [pA, pB] = formula2(
       pY,
-      pAlphaS,
-      pBetaS,
+      sumc.pAlpha,
+      sumc.pBeta,
       a.azOverallProof[j].nChallenge,
       a.azOverallProof[j].nResponse,
       question.min + j - 1,
@@ -241,7 +228,7 @@ export function checkOverallProofWithBlank(
   );
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
-  S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
+  S += answer.choices.map(Ciphertext.Serialized.toString).join(",");
 
   return Hbproof1(S, ...commitments) === nSumChallenges;
 }
@@ -255,14 +242,7 @@ export function checkBlankProof(
 ): boolean {
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerH.parse(answer);
-
-  const pAlphaS = a.aeChoices
-    .slice(1)
-    .reduce((acc, c) => acc.add(c.pAlpha), Point.zero);
-  const pBetaS = a.aeChoices
-    .slice(1)
-    .reduce((acc, c) => acc.add(c.pBeta), Point.zero);
-
+  const sumc = Ciphertext.combine(a.aeChoices.slice(1));
   const nSumChallenges = a.azBlankProof.reduce(
     (acc, proof) => mod(acc + BigInt(proof.nChallenge), L),
     0n,
@@ -278,14 +258,14 @@ export function checkBlankProof(
   );
   const [pAS, pBS] = formula2(
     pY,
-    pAlphaS,
-    pBetaS,
+    sumc.pAlpha,
+    sumc.pBeta,
     a.azBlankProof[1].nChallenge,
     a.azBlankProof[1].nResponse,
     0,
   );
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
-  S += answer.choices.map((c) => `${c.alpha},${c.beta}`).join(",");
+  S += answer.choices.map(Ciphertext.Serialized.toString).join(",");
   return Hbproof0(S, ...[pA0, pB0, pAS, pBS]) === nSumChallenges;
 }

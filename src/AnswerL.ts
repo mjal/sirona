@@ -154,13 +154,7 @@ function checkOverallProofLists(
 ): boolean {
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerL.parse(answer);
-
-  const sumc = a.choices.reduce((acc, c) => {
-    return {
-      pAlpha: acc.pAlpha.add(c[0].pAlpha),
-      pBeta: acc.pBeta.add(c[0].pBeta),
-    };
-  }, Ciphertext.zero);
+  const sumc = Ciphertext.combine(a.choices.map((c) => c[0]));
 
   const [pA, pB] = formula2(
     pY,
@@ -172,11 +166,9 @@ function checkOverallProofLists(
   );
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
-  S += answer.choices
-    .map((cs) => {
-      return cs.map((c) => `${c.alpha},${c.beta}`).join(",");
-    })
-    .join(",");
+  S += answer.choices.map((cs) => {
+    return cs.map(Ciphertext.Serialized.toString).join(",");
+  }).join(",");
 
   return (
     Hiprove(S, sumc.pAlpha, sumc.pBeta, pA, pB) === a.overall_proof.nChallenge
@@ -193,18 +185,9 @@ function checkNonZeroProof(
   const pY = parsePoint(election.public_key);
   const a = Answer.AnswerL.parse(answer);
 
-  const ct = a.choices.reduce((acc, choices) => {
-    const temp = choices.slice(1).reduce((acc, c) => {
-      return {
-        pAlpha: acc.pAlpha.add(c.pAlpha),
-        pBeta: acc.pBeta.add(c.pBeta),
-      };
-    }, Ciphertext.zero);
-    return {
-      pAlpha: acc.pAlpha.add(temp.pAlpha),
-      pBeta: acc.pBeta.add(temp.pBeta),
-    };
-  }, Ciphertext.zero);
+  const ct = Ciphertext.combine(a.choices.map((choices) => {
+    return Ciphertext.combine(choices.slice(1));
+  }));
 
   const A0 = a.nonzero_proof.pCommitment;
   const c = a.nonzero_proof.nChallenge;
@@ -218,11 +201,9 @@ function checkNonZeroProof(
   const A2 = formula(ct.pBeta, t1, pY, t2).add(A0.multiply(c));
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
-  S += answer.choices
-    .map((cs) => {
-      return cs.map((c) => `${c.alpha},${c.beta}`).join(",");
-    })
-    .join(",");
+  S += answer.choices.map((cs) => {
+    return cs.map(Ciphertext.Serialized.toString).join(",");
+  }).join(",");
 
   return Hnonzero(S, A0, A1, A2) === c;
 }
@@ -240,9 +221,7 @@ function checkListProofs(
   for (let i = 0; i < question.value.answers.length; i++) {
     const proofs = a.list_proofs[i];
     const ct0 = a.choices[i][0];
-    const ct = a.choices[i]
-      .slice(1)
-      .reduce(Ciphertext.combine, Ciphertext.zero);
+    const ct = Ciphertext.combine(a.choices[i].slice(1));
 
     const [A0, B0] = formula2(
       pY,
@@ -257,11 +236,9 @@ function checkListProofs(
     const B1 = formula(pY, proofs[1].nResponse, ct.pBeta, proofs[1].nChallenge);
 
     let S = `${electionFingerprint}|${ballot.credential}|`;
-    S += answer.choices
-      .map((cs) => {
-        return cs.map((c) => `${c.alpha},${c.beta}`).join(",");
-      })
-      .join(",");
+    S += answer.choices.map((cs) => {
+      return cs.map(Ciphertext.Serialized.toString).join(",");
+    }).join(",");
 
     const nSumChallenges = mod(proofs[0].nChallenge + proofs[1].nChallenge, L);
 

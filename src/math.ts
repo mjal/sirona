@@ -65,6 +65,7 @@ export function rand(): bigint {
   return mod(BigInt("0x" + hNumber), L);
 }
 
+// p1**e1 + p2**e2
 export function formula(p1: Point.t, e1: bigint, p2: Point.t, e2: bigint) {
   return p1.multiply(e1).add(p2.multiply(e2));
 }

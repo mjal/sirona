@@ -19,9 +19,10 @@ export default async function (fileEntries) {
     for (let i = 0; i < state.ballots.length; i++) {
       await _async(Ballot.check, state, state.ballots[i]);
     }
-    if (state.encryptedTally) {
-      await _async(checkEncryptedTally, state);
-    }
+
+    if (!state.encryptedTally)
+      return state;
+    await _async(checkEncryptedTally, state);
 
     // Check shuffles
     let tally = state.encryptedTally.payload.encrypted_tally;

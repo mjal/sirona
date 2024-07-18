@@ -30,13 +30,17 @@ export function serialize(c: t): Serialized.t {
   };
 }
 
+// -- Helpers
+
 export const zero = { pAlpha: Point.zero, pBeta: Point.zero };
 
-export function combine(a: t, b: t) {
-  return {
-    pAlpha: a.pAlpha.add(b.pAlpha),
-    pBeta: a.pBeta.add(b.pBeta),
-  };
+export function combine(cts: Array<t>) {
+  return cts.reduce((a, b) => {
+    return {
+      pAlpha: a.pAlpha.add(b.pAlpha),
+      pBeta: a.pBeta.add(b.pBeta),
+    };
+  }, zero);
 }
 
 export namespace Serialized {
