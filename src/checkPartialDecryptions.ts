@@ -13,36 +13,8 @@ export default function (state) {
     const partialDecryption = state.partialDecryptions[n];
     const { decryption_factors, decryption_proofs } =
       partialDecryption.payload.payload;
+    const pPublicKey = getPublicKey(state, n);
 
-    let nKey = 0;
-    let pPublicKey = null;
-    for (let i = 0; i < state.setup.payload.trustees.length; i++) {
-      if (state.setup.payload.trustees[i][0] == "Single") {
-        if (nKey === partialDecryption.payload.owner - 1) {
-          pPublicKey = state.setup.payload.trustees[i][1].public_key;
-          break;
-        }
-        nKey++;
-      } else {
-        // Pedersen
-        for (
-          let j = 0;
-          j < state.setup.payload.trustees[i][1].verification_keys.length;
-          j++
-        ) {
-          if (nKey === partialDecryption.payload.owner - 1) {
-            pPublicKey =
-              state.setup.payload.trustees[i][1].verification_keys[j]
-                .public_key;
-          }
-          nKey++;
-        }
-        if (nKey > partialDecryption.payload.owner - 1) {
-          break;
-        }
-      }
-    }
-    pPublicKey = parsePoint(pPublicKey);
     for (let i = 0; i < election.questions.length; i++) {
       const question = election.questions[i];
       if (Question.IsQuestionH(question)) {
@@ -79,9 +51,36 @@ export default function (state) {
           }
         }
       } else {
-        console.log(decryption_factors);
         throw new Error("Invalid question type");
       }
     }
   }
+}
+
+function getPublicKey(state, n) {
+  const partialDecryption = state.partialDecryptions[n];
+  let nKey = 0;
+  for (let i = 0; i < state.setup.payload.trustees.length; i++) {
+    if (state.setup.payload.trustees[i][0] == "Single") {
+      if (nKey === partialDecryption.payload.owner - 1) {
+        return parsePoint(state.setup.payload.trustees[i][1].public_key);
+      }
+      nKey++;
+    } else {
+      // Pedersen
+      for (
+        let j = 0;
+        j < state.setup.payload.trustees[i][1].verification_keys.length;
+        j++
+      ) {
+        if (nKey === partialDecryption.payload.owner - 1) {
+          return parsePoint(state.setup.payload.trustees[i][1]
+                            .verification_keys[j].public_key);
+        }
+        nKey++;
+      }
+    }
+  }
+
+  return null;
 }
