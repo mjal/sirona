@@ -8,12 +8,15 @@
     "preview": "vite preview",
     "lint": "prettier --write .",
     "cli": "ts-node src/cli.ts",
-    "test": "sh tests/test.sh"
+    "test": "sh tests/test.sh",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
     "@types/sjcl": "^1.0.34",
     "@vitejs/plugin-vue": "^5.0.4",
+    "husky": "^9.1.1",
+    "lint-staged": "^15.2.7",
     "prettier": "3.2.5",
     "typescript": "^5.4.5",
     "vite": "^5.2.0"
@@ -24,5 +27,8 @@
     "js-untar": "^2.0.0",
     "sjcl": "^1.0.8",
     "vue": "^3.4.21"
+  },
+  "lint-staged": {
+    "*.{js,css,md}": "prettier --write"
   }
 }
