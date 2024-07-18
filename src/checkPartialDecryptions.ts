@@ -9,8 +9,8 @@ export default function (state) {
   const election = state.setup.payload.election;
   const encrypted_tally = state.encryptedTally.payload.encrypted_tally;
 
-  for (let k = 0; k < state.partialDecryptions.length; k++) {
-    const partialDecryption = state.partialDecryptions[k];
+  for (let n = 0; n < state.partialDecryptions.length; n++) {
+    const partialDecryption = state.partialDecryptions[n];
     const { decryption_factors, decryption_proofs } =
       partialDecryption.payload.payload;
 
