@@ -6,10 +6,13 @@ import { rev, g, L, mod, formula, parsePoint, Hdecrypt } from "./math";
 import sjcl from "sjcl";
 
 export default function (state) {
-  const et = state.encryptedTally.payload.encrypted_tally;
+  const election = state.setup.payload.election;
+  const encrypted_tally = state.encryptedTally.payload.encrypted_tally;
 
   for (let k = 0; k < state.partialDecryptions.length; k++) {
     const partialDecryption = state.partialDecryptions[k];
+    const { decryption_factors, decryption_proofs } =
+      partialDecryption.payload.payload;
 
     let nKey = 0;
     let pPublicKey = null;
@@ -40,25 +43,36 @@ export default function (state) {
       }
     }
     pPublicKey = parsePoint(pPublicKey);
-    const df = partialDecryption.payload.payload.decryption_factors;
-    const dp = partialDecryption.payload.payload.decryption_proofs;
-
-    for (let i = 0; i < et.length; i++) {
-      const question = state.setup.payload.election.questions[i];
+    for (let i = 0; i < election.questions.length; i++) {
+      const question = election.questions[i];
       if (Question.IsQuestionH(question)) {
-        for (let j = 0; j < et[i].length; j++) {
+        for (let j = 0; j < encrypted_tally[i].length; j++) {
           if (!Proof.checkDecryptionProof(
             `${state.electionFingerprint}|${Point.serialize(pPublicKey)}`,
             pPublicKey,
-            Ciphertext.parse(et[i][j]),
-            Point.parse(df[i][j]),
-            Proof.parse(dp[i][j])
+            Ciphertext.parse(encrypted_tally[i][j]),
+            Point.parse(decryption_factors[i][j]),
+            Proof.parse(decryption_proofs[i][j])
           )) {
             throw new Error("Invalid decryption proof");
           }
         }
+      } else if (Question.IsQuestionL(question)) {
+        for (let j = 0; j < encrypted_tally[i].length; j++) {
+          for (let k = 0; k < encrypted_tally[i][j].length; k++) {
+            if (!Proof.checkDecryptionProof(
+              `${state.electionFingerprint}|${Point.serialize(pPublicKey)}`,
+              pPublicKey,
+              Ciphertext.parse(encrypted_tally[i][j][k]),
+              Point.parse(decryption_factors[i][j][k]),
+              Proof.parse(decryption_proofs[i][j][k])
+            )) {
+              throw new Error("Invalid decryption proof");
+            }
+          }
+        }
       } else {
-        continue; // TODO
+        throw new Error("Invalid question type");
       }
     }
   }
