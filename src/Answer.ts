@@ -25,42 +25,33 @@ export function check(
   question: Question.t,
   answer: Serialized.t,
 ) {
+  let check = null;
   if (
     Serialized.IsAnswerH(answer, question) &&
     Question.IsQuestionH(question)
   ) {
-    return AnswerH.check(
-      election,
-      electionFingerprint,
-      ballot,
-      question,
-      answer,
-    );
+    check = AnswerH.check;
   } else if (
     Serialized.IsAnswerNH(answer, question) &&
     Question.IsQuestionNH(question)
   ) {
-    return AnswerNH.check(
-      election,
-      electionFingerprint,
-      ballot,
-      question,
-      answer,
-    );
+    check = AnswerNH.check;
   } else if (
     Serialized.IsAnswerL(answer, question) &&
     Question.IsQuestionL(question)
   ) {
-    return AnswerL.check(
-      election,
-      electionFingerprint,
-      ballot,
-      question,
-      answer,
-    );
+    check = AnswerL.check;
   } else {
     throw new Error("Unknown question type");
   }
+
+  check(
+    election,
+    electionFingerprint,
+    ballot,
+    question,
+    answer,
+  );
 }
 
 // -- Type guards
