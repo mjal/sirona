@@ -1,7 +1,7 @@
 import * as Proof from "./proof";
 import * as Ciphertext from "./ciphertext";
 import * as Point from "./point";
-import { L, mod, formula2, Hiprove } from "./math";
+import { L, mod, formula2, formula, Hiprove, Hdecrypt } from "./math";
 
 export type t = {
   nChallenge: bigint;
@@ -65,4 +65,16 @@ export function checkIndividualProof(
     pB1,
   );
   return nSumChallenges === nH;
+}
+
+export function checkDecryptionProof(
+  S: string,
+  y: Point.t,
+  e: Ciphertext.t,
+  factor: Point.t,
+  proof: Proof.t,
+) {
+  const pA = formula(Point.g, proof.nResponse, y, proof.nChallenge);
+  const pB = formula(e.pAlpha, proof.nResponse, factor, proof.nChallenge);
+  return (Hdecrypt(S, pA, pB) === proof.nChallenge);
 }

@@ -1,4 +1,8 @@
-import { rev, g, L, mod, parsePoint, Hdecrypt } from "./math";
+import * as Ciphertext from "./ciphertext";
+import * as Proof from "./proof";
+import * as Point from "./point";
+import * as Question from "./question";
+import { rev, g, L, mod, formula, parsePoint, Hdecrypt } from "./math";
 import sjcl from "sjcl";
 
 export default function (state) {
@@ -41,22 +45,15 @@ export default function (state) {
 
     for (let i = 0; i < et.length; i++) {
       const question = state.setup.payload.election.questions[i];
-      if (question.type === undefined) {
-        // question_h
+      if (Question.IsQuestionH(question)) {
         for (let j = 0; j < et[i].length; j++) {
-          const pAlpha = parsePoint(et[i][j].alpha);
-          const pFactor = parsePoint(df[i][j]);
-          const nChallenge = BigInt(dp[i][j].challenge);
-          const nResponse = BigInt(dp[i][j].response);
-
-          const pA = g.multiply(nResponse).add(pPublicKey.multiply(nChallenge));
-          const pB = pAlpha
-            .multiply(nResponse)
-            .add(pFactor.multiply(nChallenge));
-
-          const S = `${state.electionFingerprint}|${rev(pPublicKey.toHex())}`;
-
-          if (Hdecrypt(S, pA, pB) !== nChallenge) {
+          if (!Proof.checkDecryptionProof(
+            `${state.electionFingerprint}|${Point.serialize(pPublicKey)}`,
+            pPublicKey,
+            Ciphertext.parse(et[i][j]),
+            Point.parse(df[i][j]),
+            Proof.parse(dp[i][j])
+          )) {
             throw new Error("Invalid decryption proof");
           }
         }
@@ -65,7 +62,4 @@ export default function (state) {
       }
     }
   }
-
-  // TODO: Check that there is a partial decryption for every trustee
-  // (Maybe in checkResult)
 }
