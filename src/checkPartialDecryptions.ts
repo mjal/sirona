@@ -57,7 +57,8 @@ export default function (state) {
             throw new Error("Invalid decryption proof");
           }
         }
-      } else if (Question.IsQuestionL(question)) {
+      } else if (Question.IsQuestionL(question)
+      || Question.IsQuestionNH(question)) {
         for (let j = 0; j < encrypted_tally[i].length; j++) {
           for (let k = 0; k < encrypted_tally[i][j].length; k++) {
             if (!Proof.checkDecryptionProof(
@@ -72,6 +73,7 @@ export default function (state) {
           }
         }
       } else {
+        console.log(decryption_factors);
         throw new Error("Invalid question type");
       }
     }
