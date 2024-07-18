@@ -197,7 +197,7 @@ function checkNonZeroProof(
   const c = a.nonzero_proof.nChallenge;
   const [t1, t2] = a.nonzero_proof.nResponse;
 
-  if (Point.serialize(A0) === Point.serialize(Point.zero)) {
+  if (Point.isEqual(A0, Point.zero)) {
     return false;
   }
 

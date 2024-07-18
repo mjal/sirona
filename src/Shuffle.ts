@@ -204,11 +204,11 @@ function CheckShuffleProof(
 
   if (
     !(
-      Point.serialize(t1) == Point.serialize(t1_prime) &&
-      Point.serialize(t2) == Point.serialize(t2_prime) &&
-      Point.serialize(t3) == Point.serialize(t3_prime) &&
-      Point.serialize(t41) == Point.serialize(t41_prime) &&
-      Point.serialize(t42) == Point.serialize(t42_prime) &&
+      Point.isEqual(t1, t1_prime) &&
+      Point.isEqual(t2, t2_prime) &&
+      Point.isEqual(t3, t3_prime) &&
+      Point.isEqual(t41, t41_prime) &&
+      Point.isEqual(t42, t42_prime) &&
       t_hat.map(Point.serialize).join(",") ==
         tt_prime_hat.map(Point.serialize).join(",")
     )

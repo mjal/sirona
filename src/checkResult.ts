@@ -1,4 +1,5 @@
 import { g, L, zero, mod, modInverse, parsePoint } from "./math";
+import * as Point from "./point";
 
 export default function (state) {
   const et = state.encryptedTally.payload.encrypted_tally;
@@ -13,8 +14,8 @@ export default function (state) {
         const nAnswer = BigInt(res[i][j]);
         if (
           !(
-            (res[i][j] === 0 && pResult.toHex() === zero.toHex()) ||
-            (res[i][j] !== 0 && pResult.toHex() === g.multiply(nAnswer).toHex())
+            (res[i][j] === 0 && Point.isEqual(pResult, zero) ||
+            (res[i][j] !== 0 && Point.isEqual(pResult, g.multiply(nAnswer))))
           )
         ) {
           throw new Error("Invalid result");
