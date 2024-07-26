@@ -1,39 +1,64 @@
 import { g, L, zero, mod, modInverse, parsePoint } from "./math";
 import * as Point from "./point";
+import * as Question from "./question";
 
 export default function (state) {
+  const election = state.setup.payload.election;
   const et = state.encryptedTally.payload.encrypted_tally;
   const res = state.result.payload.result;
   const df = getDecryptionFactors(state);
-  for (let i = 0; i < res.length; i++) {
-    const question = state.setup.payload.election.questions[i];
-    if (question.type === undefined) {
-      for (let j = 0; j < res[i].length; j++) {
-        const pBeta = parsePoint(et[i][j].beta);
-        const pResult = pBeta.add(df[i][j].negate());
-        const nAnswer = BigInt(res[i][j]);
-        if (
-          !(
-            (res[i][j] === 0 && Point.isEqual(pResult, zero) ||
-            (res[i][j] !== 0 && Point.isEqual(pResult, g.multiply(nAnswer))))
-          )
-        ) {
+  for (let i = 0; i < election.questions.length; i++) {
+    let question = election.questions[i];
+    if (Question.IsQuestionH(question)) {
+      for (let j = 0; j < question.answers.length; j++) {
+        if (!verifyOne(et[i][j], df[i][j], res[i][j])) {
           throw new Error("Invalid result");
         }
       }
+    } else if (Question.IsQuestionL(question)) {
+      for (let j = 0; j < res[i].length; j++) {
+        for (let k = 0; k < res[i][j].length; k++) {
+          if (!verifyOne(et[i][j][k], df[i][j][k], res[i][j][k])) {
+            throw new Error("Invalid result");
+          }
+        }
+      }
+    } else if (Question.IsQuestionNH(question)) {
+      throw new Error("Not Implemented");
     } else {
-      continue; // TODO
+      throw new Error("Unknown question type");
     }
   }
 }
 
+function verifyOne(et: any, df: any, res: any) {
+  const pBeta = parsePoint(et.beta);
+  const pResult = pBeta.add(df.negate());
+  const nAnswer = BigInt(res);
+  return (
+    (res === 0 && Point.isEqual(pResult, zero) ||
+    (res !== 0 && Point.isEqual(pResult, g.multiply(nAnswer))))
+  );
+}
+
 function getDecryptionFactors(state) {
+  const election = state.setup.payload.election;
   const et = state.encryptedTally.payload.encrypted_tally;
+
   let df = [];
-  for (let i = 0; i < et.length; i++) {
+  for (let i = 0; i < election.questions.length; i++) {
+    let question = election.questions[i];
     let row = [];
-    for (let j = 0; j < et[i].length; j++) {
-      row.push(zero);
+    if (Question.IsQuestionH(election.questions[i])) {
+      row = [...Array(question.answers.length).keys()].map(() => Point.zero)
+    } else if (Question.IsQuestionL(election.questions[i])) {
+      row = [...Array(question.value.answers.length).keys()].map((_, i) => {
+        return [...Array(question.value.answers[i].length).keys()].map(() => Point.zero)
+      });
+    } else if (Question.IsQuestionNH(question)) {
+      throw new Error("Not Implemented");
+    } else {
+      throw new Error("Unknown question type");
     }
     df.push(row);
   }
@@ -53,9 +78,7 @@ function getDecryptionFactors(state) {
         throw new Error(`No partial decryption found for trustee ${i}`);
       }
       df = multiplyDfPow(df, parseDf(partialDecryption), 1);
-    } else {
-      //  "Pedersen"
-
+    } else { // Pedersen
       let pds = state.partialDecryptions.filter((pd) => {
         return state.ownerToTrusteeIndex[pd.payload.owner][1] === i;
       });
@@ -71,10 +94,19 @@ function getDecryptionFactors(state) {
 
       // INIT PERDERSON DF
       let res = [];
-      for (let i = 0; i < et.length; i++) {
+      for (let i = 0; i < election.questions.length; i++) {
+        let question = election.questions[i];
         let row = [];
-        for (let j = 0; j < et[i].length; j++) {
-          row.push(zero);
+        if (Question.IsQuestionH(election.questions[i])) {
+          row = [...Array(question.answers.length).keys()].map(() => Point.zero)
+        } else if (Question.IsQuestionL(election.questions[i])) {
+          row = [...Array(question.value.answers.length).keys()].map((_, i) => {
+            return [...Array(question.value.answers[i].length).keys()].map(() => Point.zero)
+          });
+        } else if (Question.IsQuestionNH(question)) {
+          throw new Error("Not Implemented");
+        } else {
+          throw new Error("Unknown question type");
         }
         res.push(row);
       }
