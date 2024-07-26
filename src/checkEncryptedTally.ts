@@ -23,6 +23,7 @@ export default function (state): boolean {
       });
       encryptedTally.push(matrix);
     } else if (questions[i].type === "NonHomomorphic") {
+      throw new Error("Unimplemented");
       // Skip
     } else {
       throw new Error("Unsupported question type");
@@ -105,6 +106,7 @@ export default function (state): boolean {
         }
       }
     } else if (questions[i].type === "NonHomomorphic") {
+      throw new Error("Unimplemented");
       // Skip
     } else {
       throw new Error("Unsupported question type");
