@@ -30,6 +30,17 @@ electionCommand
       const files = tarReader.getFiles();
       const state = await check(files);
 
+      console.log("Election fingerprint: " + state.electionFingerprint);
+      console.log(state.files.length + " files found.");
+      for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
+        let question = state.setup.payload.election.questions[i];
+        let questionType = question.type ? question.type : "Homomorphic";
+        console.log(
+          `Question ${i + 1} (${questionType})`,
+        );
+      }
+      console.log(state.ballots.length + " ballots found.");
+
       const sectionLogs = getLogs();
       const sections = Object.keys(sectionLogs);
       for (let i = 0; i < sections.length; i++) {
