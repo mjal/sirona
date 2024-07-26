@@ -43,8 +43,6 @@ function verifyOne(et: any, df: any, res: any) {
 
 function getDecryptionFactors(state) {
   const election = state.setup.payload.election;
-  const et = state.encryptedTally.payload.encrypted_tally;
-
   let df = [];
   for (let i = 0; i < election.questions.length; i++) {
     let question = election.questions[i];
