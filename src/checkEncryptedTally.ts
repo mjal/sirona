@@ -1,72 +1,68 @@
-import { rev, zero, parsePoint } from "./math";
+import * as Question from "./question";
+import * as Ciphertext from "./ciphertext";
+import { rev, } from "./math";
 
-export default function (state): boolean {
-  const ballots = state.ballots.filter((ballot) => ballot.accepted);
-
-  const questions = state.setup.payload.election.questions;
+export default function (state: any): boolean {
+  const election = state.setup.payload.election;
+  const ballots = state.ballots.filter((ballot: any) => ballot.accepted);
   const encryptedTally = [];
-  for (let i = 0; i < questions.length; i++) {
-    if (questions[i].type === undefined) {
-      // question_h
-      const row = questions[i].answers.map((_) => {
-        return { alpha: zero, beta: zero };
+  for (let i = 0; i < election.questions.length; i++) {
+    const question = election.questions[i];
+    let row = null;
+    if (Question.IsQuestionH(question)) {
+      const size = question.answers.length + (question.blank ? 1 : 0);
+      row = [...Array(size).keys()].map(() => Ciphertext.zero)
+    } else if (Question.IsQuestionL(question)) {
+      row = [...Array(question.value.answers.length).keys()].map((_, i) => {
+        return [...Array(question.value.answers[i].length).keys()].map(() => Ciphertext.zero)
       });
-      if (questions[i].blank) {
-        row.push({ alpha: zero, beta: zero });
-      }
-      encryptedTally.push(row);
-    } else if (questions[i].type === "Lists") {
-      const matrix = questions[i].value.answers.map((l) => {
-        return l.map((_) => {
-          return { alpha: zero, beta: zero };
-        });
-      });
-      encryptedTally.push(matrix);
-    } else if (questions[i].type === "NonHomomorphic") {
+    } else if (Question.IsQuestionNH(question)) {
       throw new Error("Unimplemented");
-      // Skip
     } else {
       throw new Error("Unsupported question type");
     }
+    encryptedTally.push(row);
   }
 
-  for (let i = 0; i < ballots.length; i++) {
-    for (let j = 0; j < questions.length; j++) {
-      if (questions[j].type === undefined) {
-        // question_h
-        const answer = ballots[i].payload.answers[j];
+  for (let n = 0; n < ballots.length; n++) {
+    for (let j = 0; j < election.questions.length; j++) {
+      const question = election.questions[j];
+      if (Question.IsQuestionH(question)) {
+        const answer = ballots[n].payload.answers[j];
         for (let k = 0; k < encryptedTally[j].length; k++) {
-          const pAlpha = parsePoint(answer.choices[k].alpha);
-          const pBeta = parsePoint(answer.choices[k].beta);
+          const ct = Ciphertext.parse(answer.choices[k]);
           const weight = state.credentialsWeights.find(
-            (line) => line.credential === ballots[i].payload.credential,
+            (line) => line.credential === ballots[n].payload.credential,
           ).weight;
-          encryptedTally[j][k].alpha = encryptedTally[j][k].alpha.add(
-            pAlpha.multiply(BigInt(weight)),
-          );
-          encryptedTally[j][k].beta = encryptedTally[j][k].beta.add(
-            pBeta.multiply(BigInt(weight)),
-          );
+          encryptedTally[j][k] = {
+            pAlpha: encryptedTally[j][k].pAlpha.add(
+              ct.pAlpha.multiply(BigInt(weight)),
+            ),
+            pBeta: encryptedTally[j][k].pBeta.add(
+              ct.pBeta.multiply(BigInt(weight)),
+            ),
+          };
         }
-      } else if (questions[j].type === "Lists") {
-        const answer = ballots[i].payload.answers[j];
+      } else if (Question.IsQuestionL(question)) {
+        const answer = ballots[n].payload.answers[j];
         for (let k = 0; k < encryptedTally[j].length; k++) {
           for (let l = 0; l < encryptedTally[j][k].length; l++) {
-            const pAlpha = parsePoint(answer.choices[k][l].alpha);
-            const pBeta = parsePoint(answer.choices[k][l].beta);
+            const ct = Ciphertext.parse(answer.choices[k][l]);
             const weight = state.credentialsWeights.find(
-              (line) => line.credential === ballots[i].payload.credential,
+              (line) => line.credential === ballots[n].payload.credential,
             ).weight;
-            encryptedTally[j][k][l].alpha = encryptedTally[j][k][l].alpha.add(
-              pAlpha.multiply(BigInt(weight)),
-            );
-            encryptedTally[j][k][l].beta = encryptedTally[j][k][l].beta.add(
-              pBeta.multiply(BigInt(weight)),
-            );
+            encryptedTally[j][k][l] = {
+              pAlpha: encryptedTally[j][k][l].pAlpha.add(
+                ct.pAlpha.multiply(BigInt(weight)),
+              ),
+              pBeta: encryptedTally[j][k][l].pBeta.add(
+                ct.pBeta.multiply(BigInt(weight)),
+              )
+            };
           }
         }
-      } else if (questions[j].type === "NonHomomorphic") {
-        // Skip
+      } else if (Question.IsQuestionNH(question)) {
+        throw new Error("Unimplemented");
       } else {
         throw new Error("Unsupported question type");
       }
@@ -74,40 +70,28 @@ export default function (state): boolean {
   }
 
   const et = state.encryptedTally.payload.encrypted_tally;
-  for (let i = 0; i < et.length; i++) {
-    if (questions[i].type === undefined) {
-      // question_h
+  for (let i = 0; i < election.questions.length; i++) {
+    const question = election.questions[i];
+    if (Question.IsQuestionH(question)) {
       for (let j = 0; j < et[i].length; j++) {
-        if (
-          !(
-            et[i][j].alpha === rev(encryptedTally[i][j].alpha.toHex()) &&
-            et[i][j].beta === rev(encryptedTally[i][j].beta.toHex())
-          )
-        ) {
+        if (Ciphertext.Serialized.toString(et[i][j]) !== Ciphertext.toString(encryptedTally[i][j])) {
           throw new Error(
             "Encrypted tally microballot does not correspond to the weighted sum of all ballots",
           );
         }
       }
-    } else if (questions[i].type === "Lists") {
+    } else if (Question.IsQuestionL(question)) {
       for (let j = 0; j < et[i].length; j++) {
         for (let k = 0; k < et[i][j].length; k++) {
-          if (
-            !(
-              et[i][j][k].alpha ===
-                rev(encryptedTally[i][j][k].alpha.toHex()) &&
-              et[i][j][k].beta === rev(encryptedTally[i][j][k].beta.toHex())
-            )
-          ) {
+          if (Ciphertext.Serialized.toString(et[i][j][k]) !== Ciphertext.toString(encryptedTally[i][j][k])) {
             throw new Error(
               "Encrypted tally microballot does not correspond to the weighted sum of all ballots",
             );
           }
         }
       }
-    } else if (questions[i].type === "NonHomomorphic") {
+    } else if (Question.IsQuestionNH(question)) {
       throw new Error("Unimplemented");
-      // Skip
     } else {
       throw new Error("Unsupported question type");
     }
