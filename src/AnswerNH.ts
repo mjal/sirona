@@ -4,7 +4,7 @@ import * as Ciphertext from "./ciphertext";
 import * as Election from "./election";
 import * as Question from "./question";
 import * as Ballot from "./ballot";
-import { isValidPoint, formula, Hraweg } from "./math";
+import { formula, Hraweg } from "./math";
 
 // -- Types
 
@@ -40,7 +40,7 @@ export function verify(
 
 function checkValidPoints(answer: Serialized.t) {
   const ct = Ciphertext.parse(answer.choices);
-  return isValidPoint(ct.pAlpha) && isValidPoint(ct.pBeta);
+  return Point.isValid(ct.pAlpha) && Point.isValid(ct.pBeta);
 }
 
 function checkProof(

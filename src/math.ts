@@ -28,16 +28,6 @@ export const mod = (a: bigint, b: bigint) => {
   return remainder;
 };
 
-// TODO: Move to point.ts
-export const isValidPoint = (point: Point.t) => {
-  try {
-    point.assertValidity();
-  } catch (e) {
-    return false;
-  }
-  return true;
-};
-
 // TODO: Remove
 export const parsePoint = (str: string) => {
   return ed25519.ExtendedPoint.fromHex(rev(str));

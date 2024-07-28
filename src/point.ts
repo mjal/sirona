@@ -30,5 +30,14 @@ export function isEqual(a: t, b: t): boolean {
   return (a.toHex() === b.toHex());
 }
 
+export function isValid(p: t): boolean {
+  try {
+    p.assertValidity();
+  } catch (e) {
+    return false;
+  }
+  return true;
+};
+
 export const g = ed25519.ExtendedPoint.BASE;
 export const zero = ed25519.ExtendedPoint.ZERO;

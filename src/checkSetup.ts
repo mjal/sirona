@@ -1,4 +1,5 @@
-import { g, rev, zero, isValidPoint, parsePoint, Hpok } from "./math";
+import * as Point from "./point";
+import { g, rev, zero, Hpok } from "./math";
 
 export default function (state: any) {
   return (
@@ -28,10 +29,10 @@ function checkTrustees(state: any) {
 }
 
 function checkElectionPublicKey(state: any) {
-  const pElectionPublicKey = parsePoint(
+  const pElectionPublicKey = Point.parse(
     state.setup.payload.election.public_key,
   );
-  if (!isValidPoint(pElectionPublicKey)) {
+  if (!Point.isValid(pElectionPublicKey)) {
     throw new Error("Invalid curve point");
   }
 
@@ -39,7 +40,7 @@ function checkElectionPublicKey(state: any) {
   for (let i = 0; i < state.setup.payload.trustees.length; i++) {
     const trustee = state.setup.payload.trustees[i];
     if (trustee[0] === "Single") {
-      const pX = parsePoint(trustee[1].public_key);
+      const pX = Point.parse(trustee[1].public_key);
       pJointPublicKey = pJointPublicKey.add(pX);
     } else {
       // "Pedersen"
@@ -48,7 +49,7 @@ function checkElectionPublicKey(state: any) {
       });
       let sum = zero;
       for (let j = 0; j < coefexps.length; j++) {
-        sum = sum.add(parsePoint(coefexps[j]));
+        sum = sum.add(Point.parse(coefexps[j]));
       }
       pJointPublicKey = pJointPublicKey.add(sum);
     }
@@ -64,9 +65,9 @@ function checkElectionPublicKey(state: any) {
 }
 
 function checkTrusteePublicKey(state: any, trustee: any) {
-  const pX = parsePoint(trustee.public_key);
+  const pX = Point.parse(trustee.public_key);
 
-  if (!isValidPoint(pX)) {
+  if (!Point.isValid(pX)) {
     throw new Error("Invalid curve point");
   }
 
@@ -85,7 +86,7 @@ function checkTrusteePublicKey(state: any, trustee: any) {
 
 function checkCredentials(state: any) {
   for (let i = 0; i < state.credentialsWeights.length; i++) {
-    if (!isValidPoint(parsePoint(state.credentialsWeights[i].credential))) {
+    if (!Point.isValid(Point.parse(state.credentialsWeights[i].credential))) {
       throw new Error(`Credential ${i} is invalid`);
     }
   }

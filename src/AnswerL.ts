@@ -12,7 +12,6 @@ import {
   L,
   mod,
   parsePoint,
-  isValidPoint,
   formula,
   formula2,
   Hiprove,
@@ -107,7 +106,7 @@ export function checkValidPoints(
   for (let i = 0; i < question.value.answers.length; i++) {
     for (let j = 0; j < question.value.answers[i].length; j++) {
       const ct = Ciphertext.parse(answer.choices[i][j]);
-      if (!isValidPoint(ct.pAlpha) || !isValidPoint(ct.pBeta)) {
+      if (!Point.isValid(ct.pAlpha) || !Point.isValid(ct.pBeta)) {
         return false;
       }
     }
