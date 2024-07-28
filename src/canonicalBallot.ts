@@ -6,32 +6,20 @@ import * as Answer from "./Answer";
 import * as Election from "./election";
 import * as Ballot from "./ballot";
 
-// NOTE: Instead of canonical* could also use serialize(parse()) when we have all serialize/parse functions and serialize function are all canonicals
-
 function canonicalCiphertext(
   ciphertext: Ciphertext.Serialized.t,
 ): Ciphertext.Serialized.t {
-  return {
-    alpha: ciphertext.alpha,
-    beta: ciphertext.beta,
-  };
+  return Ciphertext.serialize(Ciphertext.parse(ciphertext));
 }
 
 function canonicalProof(proof: Proof.Serialized.t): Proof.Serialized.t {
-  return {
-    challenge: proof.challenge,
-    response: proof.response,
-  };
+  return Proof.serialize(Proof.parse(proof));
 }
 
 function canonicalNonZeroProof(
   proof: NonZeroProof.Serialized.t,
 ): NonZeroProof.Serialized.t {
-  return {
-    commitment: proof.commitment,
-    challenge: proof.challenge,
-    response: proof.response,
-  };
+  return NonZeroProof.serialize(NonZeroProof.parse(proof));
 }
 
 function canonicalAnswerH(
