@@ -28,11 +28,6 @@ export const mod = (a: bigint, b: bigint) => {
   return remainder;
 };
 
-// TODO: Remove
-export const parsePoint = (str: string) => {
-  return ed25519.ExtendedPoint.fromHex(rev(str));
-};
-
 function egcd(a: bigint, b: bigint): [bigint, bigint, bigint] {
   if (b === 0n) {
     return [a, 1n, 0n];

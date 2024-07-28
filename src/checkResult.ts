@@ -1,4 +1,4 @@
-import { g, L, zero, mod, modInverse, parsePoint } from "./math";
+import { g, L, zero, mod, modInverse } from "./math";
 import * as Point from "./point";
 import * as Question from "./question";
 
@@ -32,7 +32,7 @@ export default function (state) {
 }
 
 function verifyOne(et: any, df: any, res: any) {
-  const pBeta = parsePoint(et.beta);
+  const pBeta = Point.parse(et.beta);
   const pResult = pBeta.add(df.negate());
   const nAnswer = BigInt(res);
   return (
@@ -151,9 +151,9 @@ function parseDf(df) {
     let row = [];
     for (let j = 0; j < m[i].length; j++) {
       if (Array.isArray(m[i][j])) {
-        row.push(m[i][j].map(parsePoint));
+        row.push(m[i][j].map(Point.parse));
       } else {
-        row.push(parsePoint(m[i][j]));
+        row.push(Point.parse(m[i][j]));
       }
     }
     res.push(row);

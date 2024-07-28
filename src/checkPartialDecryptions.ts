@@ -2,7 +2,7 @@ import * as Ciphertext from "./ciphertext";
 import * as Proof from "./proof";
 import * as Point from "./point";
 import * as Question from "./question";
-import { rev, g, L, mod, formula, parsePoint, Hdecrypt } from "./math";
+import { rev, g, L, mod, formula, Hdecrypt } from "./math";
 import sjcl from "sjcl";
 
 export default function (state) {
@@ -63,7 +63,7 @@ function getPublicKey(state, n) {
   for (let i = 0; i < state.setup.payload.trustees.length; i++) {
     if (state.setup.payload.trustees[i][0] == "Single") {
       if (nKey === partialDecryption.payload.owner - 1) {
-        return parsePoint(state.setup.payload.trustees[i][1].public_key);
+        return Point.parse(state.setup.payload.trustees[i][1].public_key);
       }
       nKey++;
     } else {
@@ -74,7 +74,7 @@ function getPublicKey(state, n) {
         j++
       ) {
         if (nKey === partialDecryption.payload.owner - 1) {
-          return parsePoint(state.setup.payload.trustees[i][1]
+          return Point.parse(state.setup.payload.trustees[i][1]
                             .verification_keys[j].public_key);
         }
         nKey++;

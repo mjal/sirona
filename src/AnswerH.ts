@@ -9,7 +9,6 @@ import * as Point from "./point";
 import {
   L,
   mod,
-  parsePoint,
   formula2,
   Hiprove,
   Hbproof0,
@@ -136,7 +135,7 @@ export function checkIndividualProofs(
   question: Question.QuestionH.t,
   answer: Serialized.t,
 ): boolean {
-  const pY = parsePoint(election.public_key);
+  const pY = Point.parse(election.public_key);
   const S = `${electionFingerprint}|${ballot.credential}`;
   const a = Answer.AnswerH.parse(answer);
   for (let j = 0; j < question.answers.length + (question.blank ? 1 : 0); j++) {
@@ -161,7 +160,7 @@ export function checkOverallProofWithoutBlank(
   question: Question.QuestionH.t,
   answer: Serialized.t,
 ): boolean {
-  const pY = parsePoint(election.public_key);
+  const pY = Point.parse(election.public_key);
   const a = Answer.AnswerH.parse(answer);
   const sumc = Ciphertext.combine(a.aeChoices);
   const nSumChallenges = a.azOverallProof.reduce(
@@ -195,7 +194,7 @@ export function checkOverallProofWithBlank(
   question: Question.QuestionH.t,
   answer: Serialized.t,
 ): boolean {
-  const pY = parsePoint(election.public_key);
+  const pY = Point.parse(election.public_key);
   const a = Answer.AnswerH.parse(answer);
   const sumc = Ciphertext.combine(a.aeChoices.slice(1));
 
@@ -239,7 +238,7 @@ export function checkBlankProof(
   _question: Question.QuestionH.t,
   answer: Serialized.t,
 ): boolean {
-  const pY = parsePoint(election.public_key);
+  const pY = Point.parse(election.public_key);
   const a = Answer.AnswerH.parse(answer);
   const sumc = Ciphertext.combine(a.aeChoices.slice(1));
   const nSumChallenges = a.azBlankProof.reduce(

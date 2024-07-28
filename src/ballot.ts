@@ -1,10 +1,11 @@
 import sjcl from "sjcl";
 import * as Event from "./event";
 import * as Proof from "./proof";
+import * as Point from "./point";
 import * as Answer from "./Answer";
 import * as Election from "./election";
 import canonicalBallot from "./canonicalBallot";
-import { g, parsePoint, formula, Hsignature } from "./math";
+import { g, formula, Hsignature } from "./math";
 
 export type t = {
   election_uuid: string;
@@ -109,7 +110,7 @@ export function checkSignature(ballot: t, election: Election.t) {
   const nChallenge = BigInt(signature.proof.challenge);
   const nResponse = BigInt(signature.proof.response);
 
-  const pA = formula(g, nResponse, parsePoint(ballot.credential), nChallenge);
+  const pA = formula(g, nResponse, Point.parse(ballot.credential), nChallenge);
   const nH = Hsignature(signature.hash, pA);
 
   if (nH !== nChallenge) {

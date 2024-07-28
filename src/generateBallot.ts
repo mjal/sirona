@@ -12,7 +12,6 @@ import {
   rand,
   formula2,
   formula,
-  parsePoint,
   Hiprove,
   Hbproof0,
   Hbproof1,
@@ -211,7 +210,7 @@ function generateAnswerWithoutBlank(
   sPriv: string,
   choices: Array<number>,
 ): Answer.AnswerH.Serialized.t {
-  const pY = parsePoint(state.setup.payload.election.public_key);
+  const pY = Point.parse(state.setup.payload.election.public_key);
   const { hPublicCredential } = deriveCredential(state, sPriv);
   const { anR, aeChoices, aazIndividualProofs } = generateEncryptions(
     state,
@@ -297,7 +296,7 @@ function overallProofBlank(
   const pBetaS = aeCiphertexts
     .slice(1)
     .reduce((acc, c) => acc.add(c.pBeta), zero);
-  const pY = parsePoint(state.setup.payload.election.public_key);
+  const pY = Point.parse(state.setup.payload.election.public_key);
   const mS = anChoices.slice(1).reduce((acc, c) => c + acc, 0);
   const M = Array.from({ length: question.max - question.min + 1 }).map(
     (_, i) => i + question.min,
@@ -418,7 +417,7 @@ function generateAnswerWithBlank(
   sPriv: string,
   choices: Array<number>,
 ): Answer.AnswerH.Serialized.t {
-  const pY = parsePoint(state.setup.payload.election.public_key);
+  const pY = Point.parse(state.setup.payload.election.public_key);
   const { hPublicCredential } = deriveCredential(state, sPriv);
   const { anR, aeChoices, aazIndividualProofs } = generateEncryptions(
     state,

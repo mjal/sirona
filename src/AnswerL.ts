@@ -11,7 +11,6 @@ import {
   g,
   L,
   mod,
-  parsePoint,
   formula,
   formula2,
   Hiprove,
@@ -121,7 +120,7 @@ export function checkIndividualProofs(
   question: Question.QuestionL.t,
   answer: Serialized.t,
 ): boolean {
-  const pY = parsePoint(election.public_key);
+  const pY = Point.parse(election.public_key);
 
   const S = `${electionFingerprint}|${ballot.credential}`;
   // TODO: parseAnswerL
@@ -151,7 +150,7 @@ function checkOverallProofLists(
   question: Question.QuestionL.t,
   answer: Serialized.t,
 ): boolean {
-  const pY = parsePoint(election.public_key);
+  const pY = Point.parse(election.public_key);
   const a = Answer.AnswerL.parse(answer);
   const sumc = Ciphertext.combine(a.choices.map((c) => c[0]));
 
@@ -183,7 +182,7 @@ function checkNonZeroProof(
   _question: Question.QuestionL.t,
   answer: Serialized.t,
 ): boolean {
-  const pY = parsePoint(election.public_key);
+  const pY = Point.parse(election.public_key);
   const a = Answer.AnswerL.parse(answer);
 
   const ct = Ciphertext.combine(
@@ -220,7 +219,7 @@ function checkListProofs(
   question: Question.QuestionL.t,
   answer: Serialized.t,
 ): boolean {
-  const pY = parsePoint(election.public_key);
+  const pY = Point.parse(election.public_key);
   const a = Answer.AnswerL.parse(answer);
 
   for (let i = 0; i < question.value.answers.length; i++) {
