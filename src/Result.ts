@@ -2,7 +2,9 @@ import { g, L, zero, mod, modInverse } from "./math";
 import * as Point from "./point";
 import * as Question from "./question";
 
-export default function (state) {
+export type t = Array<Array<number>>;
+
+export function verify(state: any): boolean {
   const election = state.setup.payload.election;
   const et = state.encryptedTally.payload.encrypted_tally;
   const res = state.result.payload.result;
@@ -29,6 +31,8 @@ export default function (state) {
       throw new Error("Unknown question type");
     }
   }
+
+  return true;
 }
 
 function verifyOne(et: any, df: any, res: any) {

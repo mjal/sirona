@@ -5,9 +5,9 @@ import checkFiles from "./checkFiles";
 import checkSetup from "./checkSetup";
 import checkEncryptedTally from "./checkEncryptedTally";
 import checkPartialDecryptions from "./checkPartialDecryptions";
-import checkResult from "./checkResult";
 import * as Ballot from "./ballot";
 import * as Shuffle from "./Shuffle";
+import * as Result from "./Result";
 
 export default async function (fileEntries) {
   try {
@@ -35,7 +35,7 @@ export default async function (fileEntries) {
     }
 
     if (state.result) {
-      await _async(checkResult, state);
+      await _async(Result.verify, state);
     }
     log("top", true, "Verification done.");
     return state;
