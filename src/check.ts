@@ -17,7 +17,7 @@ export default async function (fileEntries) {
     await _async(checkFiles, state);
     await _async(checkSetup, state);
     for (let i = 0; i < state.ballots.length; i++) {
-      await _async(Ballot.check, state, state.ballots[i]);
+      await _async(Ballot.verify, state, state.ballots[i]);
     }
 
     if (!state.encryptedTally) return state;
@@ -26,7 +26,7 @@ export default async function (fileEntries) {
     // Check shuffles
     let tally = state.encryptedTally.payload.encrypted_tally;
     for (let i = 0; i < state.shuffles.length; i++) {
-      await _async(Shuffle.check, state, state.shuffles[i], tally);
+      await _async(Shuffle.verify, state, state.shuffles[i], tally);
       tally = state.shuffles[i].payload.payload.ciphertexts;
     }
 

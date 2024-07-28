@@ -17,9 +17,9 @@ export type t = {
   };
 };
 
-// -- Check
+// -- Verify
 
-export function check(state: any, ballotEvent: Event.t<t>) {
+export function verify(state: any, ballotEvent: Event.t<t>) {
   const ballot = ballotEvent.payload;
   const election = state.setup.payload.election;
   checkMisc(
@@ -33,7 +33,7 @@ export function check(state: any, ballotEvent: Event.t<t>) {
   checkSignature(ballot, election);
 
   for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
-    Answer.check(
+    Answer.verify(
       election,
       state.electionFingerprint,
       ballot,

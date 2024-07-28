@@ -18,34 +18,34 @@ export namespace Serialized {
 
 // -- Check
 
-export function check(
+export function verify(
   election: Election.t,
   electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.t,
   answer: Serialized.t,
 ) {
-  let check = null;
+  let verify = null;
   if (
     Serialized.IsAnswerH(answer, question) &&
     Question.IsQuestionH(question)
   ) {
-    check = AnswerH.check;
+    verify = AnswerH.verify;
   } else if (
     Serialized.IsAnswerNH(answer, question) &&
     Question.IsQuestionNH(question)
   ) {
-    check = AnswerNH.check;
+    verify = AnswerNH.verify;
   } else if (
     Serialized.IsAnswerL(answer, question) &&
     Question.IsQuestionL(question)
   ) {
-    check = AnswerL.check;
+    verify = AnswerL.verify;
   } else {
     throw new Error("Unknown question type");
   }
 
-  check(election, electionFingerprint, ballot, question, answer);
+  verify(election, electionFingerprint, ballot, question, answer);
 }
 
 // -- Type guards

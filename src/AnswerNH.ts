@@ -22,7 +22,7 @@ export namespace Serialized {
 
 // -- Check
 
-export function check(
+export function verify(
   election: Election.t,
   electionFingerprint: string,
   ballot: Ballot.t,

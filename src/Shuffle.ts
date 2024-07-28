@@ -75,9 +75,9 @@ export function parse(o: any): t {
   return res;
 }
 
-// -- Check
+// -- Verify
 
-export function check(
+export function verify(
   state: any,
   ballotEvent: Event.t<t>,
   tally: Array<Array<Ciphertext.Serialized.t>>,

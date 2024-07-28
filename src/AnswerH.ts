@@ -63,7 +63,7 @@ export function serialize(answer: t): Serialized.t {
 
 // -- Check
 
-export function check(
+export function verify(
   election: Election.t,
   electionFingerprint: string,
   ballot: Ballot.t,
