@@ -1,6 +1,4 @@
-import * as Point from "./point";
-
-// -- Types
+import * as Point from "./Point";
 
 export type t = {
   pAlpha: Point.t;
@@ -14,7 +12,6 @@ export namespace Serialized {
   };
 }
 
-// -- Parse and serialize
 
 export function parse(c: Serialized.t): t {
   return {
@@ -30,7 +27,6 @@ export function serialize(c: t): Serialized.t {
   };
 }
 
-// -- Helpers
 
 export const zero = { pAlpha: Point.zero, pBeta: Point.zero };
 

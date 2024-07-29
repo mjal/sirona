@@ -1,6 +1,6 @@
-import * as Point from "./point"
-import * as Proof from "./proof"
-import * as Election from "./election"
+import * as Point from "./Point"
+import * as Proof from "./Proof"
+import * as Election from "./Election"
 import { Hpok } from "./math"
 
 export type t = single | pedersen;

@@ -1,10 +1,10 @@
 import { map2, map3 } from "./utils";
-import * as Proof from "./proof";
-import * as NonZeroProof from "./nonZeroProof";
-import * as Ciphertext from "./ciphertext";
+import * as Proof from "./Proof";
+import * as ProofNonZero from "./ProofNonZero";
+import * as Ciphertext from "./Ciphertext";
 import * as Answer from "./Answer";
-import * as Election from "./election";
-import * as Ballot from "./ballot";
+import * as Election from "./Election";
+import * as Ballot from "./Ballot";
 
 function canonicalCiphertext(
   ciphertext: Ciphertext.Serialized.t,
@@ -17,9 +17,9 @@ function canonicalProof(proof: Proof.Serialized.t): Proof.Serialized.t {
 }
 
 function canonicalNonZeroProof(
-  proof: NonZeroProof.Serialized.t,
-): NonZeroProof.Serialized.t {
-  return NonZeroProof.serialize(NonZeroProof.parse(proof));
+  proof: ProofNonZero.Serialized.t,
+): ProofNonZero.Serialized.t {
+  return ProofNonZero.serialize(ProofNonZero.parse(proof));
 }
 
 function canonicalAnswerH(

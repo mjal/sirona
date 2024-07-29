@@ -1,5 +1,5 @@
-import * as Event from "./event";
-import * as Point from "./point";
+import * as Event from "./Event";
+import * as Point from "./Point";
 import * as Trustee from "./Trustee";
 import * as Election from "./Election";
 

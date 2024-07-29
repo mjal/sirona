@@ -1,4 +1,4 @@
-import * as Point from "./point";
+import * as Point from "./Point";
 
 export type t = {
   pCommitment: Point.t;

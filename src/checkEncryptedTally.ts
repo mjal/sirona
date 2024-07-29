@@ -1,6 +1,5 @@
-import * as Question from "./question";
-import * as Ciphertext from "./ciphertext";
-import { rev, } from "./math";
+import * as Question from "./Question";
+import * as Ciphertext from "./Ciphertext";
 
 export default function (state: any): boolean {
   const election = state.setup.payload.election;

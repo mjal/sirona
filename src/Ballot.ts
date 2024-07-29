@@ -1,9 +1,9 @@
 import sjcl from "sjcl";
-import * as Event from "./event";
-import * as Proof from "./proof";
-import * as Point from "./point";
+import * as Event from "./Event";
+import * as Proof from "./Proof";
+import * as Point from "./Point";
 import * as Answer from "./Answer";
-import * as Election from "./election";
+import * as Election from "./Election";
 import canonicalBallot from "./canonicalBallot";
 import { g, formula, Hsignature } from "./math";
 

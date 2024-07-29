@@ -1,10 +1,8 @@
-import * as Event from "./event";
-import * as Ballot from "./ballot";
-import * as Point from "./point";
-import * as Ciphertext from "./ciphertext";
-import * as Question from "./question";
+import * as Event from "./Event";
+import * as Point from "./Point";
+import * as Ciphertext from "./Ciphertext";
+import * as Question from "./Question";
 import sjcl from "sjcl";
-import { ed25519 } from "@noble/curves/ed25519";
 import { g, mod, L } from "./math";
 
 // -- Types

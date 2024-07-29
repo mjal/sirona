@@ -1,9 +1,9 @@
-import * as Point from "./point";
-import * as Proof from "./proof";
-import * as Ciphertext from "./ciphertext";
-import * as Election from "./election";
-import * as Question from "./question";
-import * as Ballot from "./ballot";
+import * as Point from "./Point";
+import * as Proof from "./Proof";
+import * as Ciphertext from "./Ciphertext";
+import * as Election from "./Election";
+import * as Question from "./Question";
+import * as Ballot from "./Ballot";
 import { formula, Hraweg } from "./math";
 
 // -- Types

@@ -1,6 +1,6 @@
 import { g, L, zero, mod, modInverse } from "./math";
-import * as Point from "./point";
-import * as Question from "./question";
+import * as Point from "./Point";
+import * as Question from "./Question";
 
 export type t = Array<Array<number>>;
 

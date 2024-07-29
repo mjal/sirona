@@ -1,8 +1,8 @@
-import * as Event from "./event";
-import * as Ciphertext from "./ciphertext";
-import * as Proof from "./proof";
-import * as Point from "./point";
-import * as Question from "./question";
+import * as Event from "./Event";
+import * as Ciphertext from "./Ciphertext";
+import * as Proof from "./Proof";
+import * as Point from "./Point";
+import * as Question from "./Question";
 
 export type t = {
   owner: number;

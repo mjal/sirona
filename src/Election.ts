@@ -1,6 +1,6 @@
 import * as Trustee from './Trustee'
-import * as Point from './point'
-import * as Question from './question'
+import * as Point from './Point'
+import * as Question from './Question'
 
 export type t = {
   version: number,
@@ -9,7 +9,9 @@ export type t = {
   group: string,
   public_key: Point.Serialized.t,
   questions: Array<Question.t>,
-  uuid: string
+  uuid: string,
+  administrator?: string;
+  credential_authority?: string;
 }
 
 export function verify(election: t, trustees: Array<Trustee.t>) {

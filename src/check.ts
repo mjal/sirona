@@ -4,7 +4,7 @@ import load from "./load";
 import checkFiles from "./checkFiles";
 import checkEncryptedTally from "./checkEncryptedTally";
 import * as Setup from "./Setup";
-import * as Ballot from "./ballot";
+import * as Ballot from "./Ballot";
 import * as Shuffle from "./Shuffle";
 import * as PartialDecryption from "./PartialDecryption";
 import * as Result from "./Result";

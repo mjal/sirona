@@ -1,6 +1,6 @@
-import * as Election from "./election";
-import * as Question from "./question";
-import * as Ballot from "./ballot";
+import * as Election from "./Election";
+import * as Question from "./Question";
+import * as Ballot from "./Ballot";
 import * as AnswerH from "./AnswerH";
 import * as AnswerL from "./AnswerL";
 import * as AnswerNH from "./AnswerNH";

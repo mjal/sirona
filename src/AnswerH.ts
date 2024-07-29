@@ -1,11 +1,11 @@
 import { map2 } from "./utils";
-import * as Proof from "./proof";
-import * as Ciphertext from "./ciphertext";
-import * as Election from "./election";
-import * as Question from "./question";
-import * as Ballot from "./ballot";
+import * as Proof from "./Proof";
+import * as Ciphertext from "./Ciphertext";
+import * as Election from "./Election";
+import * as Question from "./Question";
+import * as Ballot from "./Ballot";
 import * as Answer from "./Answer";
-import * as Point from "./point";
+import * as Point from "./Point";
 import {
   L,
   mod,

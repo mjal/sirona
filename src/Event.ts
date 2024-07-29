@@ -1,10 +1,3 @@
-type event_type =
-  | "Setup"
-  | "Ballot"
-  | "EncryptedTally"
-  | "PartialDecryption"
-  | "Result";
-
 export type t<T> = {
   parent: string;
   height: number;
@@ -14,3 +7,10 @@ export type t<T> = {
   tracker: string;
   accepted: boolean;
 };
+
+type event_type =
+  | "Setup"
+  | "Ballot"
+  | "EncryptedTally"
+  | "PartialDecryption"
+  | "Result";

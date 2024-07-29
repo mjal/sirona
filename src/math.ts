@@ -1,4 +1,4 @@
-import * as Point from "./point";
+import * as Point from "./Point";
 
 import sjcl from "sjcl";
 import { ed25519 } from "@noble/curves/ed25519";
