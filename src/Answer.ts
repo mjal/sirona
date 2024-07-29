@@ -6,17 +6,14 @@ import * as AnswerL from "./AnswerL";
 import * as AnswerNH from "./AnswerNH";
 export { AnswerH, AnswerL, AnswerNH };
 
-// -- Types
-
 export type t = AnswerH.t | AnswerNH.t | AnswerL.t;
+
 export namespace Serialized {
   export type t =
     | AnswerH.Serialized.t
-    | AnswerNH.Serialized.t
-    | AnswerL.Serialized.t;
+    | AnswerL.Serialized.t
+    | AnswerNH.Serialized.t;
 }
-
-// -- Check
 
 export function verify(
   election: Election.t,
@@ -47,8 +44,6 @@ export function verify(
 
   verify(election, electionFingerprint, ballot, question, answer);
 }
-
-// -- Type guards
 
 export function IsAnswerH(
   answer: t,

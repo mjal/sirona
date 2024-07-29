@@ -6,7 +6,6 @@ import * as Question from "./Question";
 import * as Ballot from "./Ballot";
 import { formula, Hraweg } from "./math";
 
-// -- Types
 
 export type t = {
   choices: Ciphertext.t;
@@ -20,27 +19,33 @@ export namespace Serialized {
   };
 }
 
-// -- Check
+
+export function parse(answer: Serialized.t): t {
+  return {
+    choices: Ciphertext.parse(answer.choices),
+    proof: Proof.parse(answer.proof),
+  };
+}
+
 
 export function verify(
   election: Election.t,
   electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionNH.t,
-  answer: Serialized.t,
+  serializedAnswer: Serialized.t,
 ) {
-  if (!checkValidPoints(answer)) {
+  const answer = parse(serializedAnswer);
+
+  if (Ciphertext.isValid(answer.choices) === false) {
     throw new Error("Invalid curve points");
   }
+
   if (!checkProof(election, electionFingerprint, ballot, question, answer)) {
     throw new Error("Invalid proof");
   }
-  return true;
-}
 
-function checkValidPoints(answer: Serialized.t) {
-  const ct = Ciphertext.parse(answer.choices);
-  return Point.isValid(ct.pAlpha) && Point.isValid(ct.pBeta);
+  return true;
 }
 
 function checkProof(
@@ -48,13 +53,12 @@ function checkProof(
   electionFingerprint: string,
   ballot: Ballot.t,
   _question: Question.QuestionNH.t,
-  answer: Serialized.t,
+  answer: t,
 ) {
   const y = Point.parse(election.public_key);
-  const ct = Ciphertext.parse(answer.choices);
-  const proof = Proof.parse(answer.proof);
-  const A = formula(Point.g, proof.nResponse, ct.pAlpha, proof.nChallenge);
+  const { choices, proof } = answer;
+  const A = formula(Point.g, proof.nResponse, choices.pAlpha, proof.nChallenge);
   const S = `${electionFingerprint}|${ballot.credential}`;
 
-  return Hraweg(S, y, ct.pAlpha, ct.pBeta, A) === proof.nChallenge;
+  return Hraweg(S, y, choices.pAlpha, choices.pBeta, A) === proof.nChallenge;
 }

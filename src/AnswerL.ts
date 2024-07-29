@@ -5,10 +5,8 @@ import * as Ciphertext from "./Ciphertext";
 import * as Election from "./Election";
 import * as Question from "./Question";
 import * as Ballot from "./Ballot";
-import * as Answer from "./Answer";
 import * as Point from "./Point";
 import {
-  g,
   L,
   mod,
   formula,
@@ -18,11 +16,9 @@ import {
   Hnonzero,
 } from "./math";
 
-// -- Types
-
 export type t = {
   choices: Array<Array<Ciphertext.t>>;
-  individual_proofs: Array<Array<Proof.t>>;
+  individual_proofs: Array<Array<Array<Proof.t>>>;
   overall_proof: Proof.t;
   list_proofs: Array<Proof.t>;
   nonzero_proof: NonZeroProof.t;
@@ -38,8 +34,6 @@ export namespace Serialized {
   };
 }
 
-// -- Parse and serialize
-//
 export function parse(answer: Serialized.t): t {
   return {
     choices: map2(answer.choices, Ciphertext.parse),
@@ -50,18 +44,23 @@ export function parse(answer: Serialized.t): t {
   };
 }
 
-// -- Check
-
 export function verify(
   election: Election.t,
   electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionL.t,
-  answer: Serialized.t,
+  serializedAnswer: Serialized.t,
 ): boolean {
-  if (!checkValidPoints(question, answer)) {
-    throw new Error("Invalid curve points");
+  const answer = parse(serializedAnswer);
+
+  for (let i = 0; i < question.value.answers.length; i++) {
+    for (let j = 0; j < question.value.answers[i].length; j++) {
+      if (Ciphertext.isValid(answer.choices[i][j]) === false) {
+        throw new Error("Invalid curve point");
+      }
+    }
   }
+
   if (
     !checkIndividualProofs(
       election,
@@ -73,6 +72,7 @@ export function verify(
   ) {
     throw new Error("Invalid individual proofs");
   }
+
   if (
     !checkOverallProofLists(
       election,
@@ -84,11 +84,13 @@ export function verify(
   ) {
     throw new Error("Invalid overall proof (lists)");
   }
+
   if (
     !checkNonZeroProof(election, electionFingerprint, ballot, question, answer)
   ) {
     throw new Error("Invalid non zero proof (lists)");
   }
+
   if (
     !checkListProofs(election, electionFingerprint, ballot, question, answer)
   ) {
@@ -98,42 +100,24 @@ export function verify(
   return true;
 }
 
-export function checkValidPoints(
-  question: Question.QuestionL.t,
-  answer: Serialized.t,
-): boolean {
-  for (let i = 0; i < question.value.answers.length; i++) {
-    for (let j = 0; j < question.value.answers[i].length; j++) {
-      const ct = Ciphertext.parse(answer.choices[i][j]);
-      if (!Point.isValid(ct.pAlpha) || !Point.isValid(ct.pBeta)) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
 export function checkIndividualProofs(
   election: Election.t,
   electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionL.t,
-  answer: Serialized.t,
+  answer: t,
 ): boolean {
   const pY = Point.parse(election.public_key);
 
   const S = `${electionFingerprint}|${ballot.credential}`;
-  // TODO: parseAnswerL
-  const aaeChoices = map2(answer.choices, Ciphertext.parse);
-  const aaazIndividualProofs = map3(answer.individual_proofs, Proof.parse);
   for (let j = 0; j < question.value.answers.length; j++) {
     for (let k = 0; k < question.value.answers[j].length; k++) {
       if (
         !Proof.checkIndividualProof(
           S,
-          aaazIndividualProofs[j][k],
+          answer.individual_proofs[j][k],
           pY,
-          aaeChoices[j][k],
+          answer.choices[j][k],
         )
       ) {
         return false;
@@ -147,31 +131,30 @@ function checkOverallProofLists(
   election: Election.t,
   electionFingerprint: string,
   ballot: Ballot.t,
-  question: Question.QuestionL.t,
-  answer: Serialized.t,
+  _question: Question.QuestionL.t,
+  answer: t,
 ): boolean {
   const pY = Point.parse(election.public_key);
-  const a = Answer.AnswerL.parse(answer);
-  const sumc = Ciphertext.combine(a.choices.map((c) => c[0]));
+  const sumc = Ciphertext.combine(answer.choices.map((c) => c[0]));
 
   const [pA, pB] = formula2(
     pY,
     sumc.pAlpha,
     sumc.pBeta,
-    a.overall_proof.nChallenge,
-    a.overall_proof.nResponse,
+    answer.overall_proof.nChallenge,
+    answer.overall_proof.nResponse,
     1,
   );
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
   S += answer.choices
-    .map((cs) => {
+    .map((cs: any) => {
       return cs.map(Ciphertext.Serialized.toString).join(",");
     })
     .join(",");
 
   return (
-    Hiprove(S, sumc.pAlpha, sumc.pBeta, pA, pB) === a.overall_proof.nChallenge
+    Hiprove(S, sumc.pAlpha, sumc.pBeta, pA, pB) === answer.overall_proof.nChallenge
   );
 }
 
@@ -180,31 +163,30 @@ function checkNonZeroProof(
   electionFingerprint: string,
   ballot: Ballot.t,
   _question: Question.QuestionL.t,
-  answer: Serialized.t,
+  answer: t,
 ): boolean {
   const pY = Point.parse(election.public_key);
-  const a = Answer.AnswerL.parse(answer);
 
   const ct = Ciphertext.combine(
-    a.choices.map((choices) => {
+    answer.choices.map((choices) => {
       return Ciphertext.combine(choices.slice(1));
     }),
   );
 
-  const A0 = a.nonzero_proof.pCommitment;
-  const c = a.nonzero_proof.nChallenge;
-  const [t1, t2] = a.nonzero_proof.nResponse;
+  const A0 = answer.nonzero_proof.pCommitment;
+  const c = answer.nonzero_proof.nChallenge;
+  const [t1, t2] = answer.nonzero_proof.nResponse;
 
   if (Point.isEqual(A0, Point.zero)) {
     return false;
   }
 
-  const A1 = formula(ct.pAlpha, t1, g, t2);
+  const A1 = formula(ct.pAlpha, t1, Point.g, t2);
   const A2 = formula(ct.pBeta, t1, pY, t2).add(A0.multiply(c));
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
   S += answer.choices
-    .map((cs) => {
+    .map((cs: any) => {
       return cs.map(Ciphertext.Serialized.toString).join(",");
     })
     .join(",");
@@ -217,15 +199,14 @@ function checkListProofs(
   electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionL.t,
-  answer: Serialized.t,
+  answer: t,
 ): boolean {
   const pY = Point.parse(election.public_key);
-  const a = Answer.AnswerL.parse(answer);
 
   for (let i = 0; i < question.value.answers.length; i++) {
-    const proofs = a.list_proofs[i];
-    const ct0 = a.choices[i][0];
-    const ct = Ciphertext.combine(a.choices[i].slice(1));
+    const proofs = answer.list_proofs[i];
+    const ct0 = answer.choices[i][0];
+    const ct = Ciphertext.combine(answer.choices[i].slice(1));
 
     const [A0, B0] = formula2(
       pY,
@@ -236,12 +217,12 @@ function checkListProofs(
       1,
     );
 
-    const A1 = formula(g, proofs[1].nResponse, ct.pAlpha, proofs[1].nChallenge);
+    const A1 = formula(Point.g, proofs[1].nResponse, ct.pAlpha, proofs[1].nChallenge);
     const B1 = formula(pY, proofs[1].nResponse, ct.pBeta, proofs[1].nChallenge);
 
     let S = `${electionFingerprint}|${ballot.credential}|`;
     S += answer.choices
-      .map((cs) => {
+      .map((cs: any) => {
         return cs.map(Ciphertext.Serialized.toString).join(",");
       })
       .join(",");
@@ -249,7 +230,7 @@ function checkListProofs(
     const nSumChallenges = mod(proofs[0].nChallenge + proofs[1].nChallenge, L);
 
     return (
-      a.choices[i].length === question.value.answers[i].length &&
+      answer.choices[i].length === question.value.answers[i].length &&
       Hlproof(S, A0, B0, A1, B1) === nSumChallenges
     );
   }

@@ -4,7 +4,6 @@ import * as Ciphertext from "./Ciphertext";
 import * as Election from "./Election";
 import * as Question from "./Question";
 import * as Ballot from "./Ballot";
-import * as Answer from "./Answer";
 import * as Point from "./Point";
 import {
   L,
@@ -15,7 +14,6 @@ import {
   Hbproof1,
 } from "./math";
 
-// -- Types
 
 export type t = {
   aeChoices: Array<Ciphertext.t>;
@@ -33,7 +31,6 @@ export namespace Serialized {
   };
 }
 
-// -- Parse and serialize
 
 export function parse(answer: Serialized.t): t {
   let obj: t = {
@@ -59,18 +56,22 @@ export function serialize(answer: t): Serialized.t {
   return obj;
 }
 
-// -- Check
 
 export function verify(
   election: Election.t,
   electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionH.t,
-  answer: Serialized.t,
+  serializedAnswer: Serialized.t,
 ): boolean {
-  if (!checkValidPoints(question, answer)) {
-    throw new Error("Invalid curve points");
+  const answer = parse(serializedAnswer);
+
+  for (let j = 0; j < question.answers.length; j++) {
+    if (Ciphertext.isValid(answer.aeChoices[j]) === false) {
+      return false;
+    }
   }
+
   if (
     !checkIndividualProofs(
       election,
@@ -115,36 +116,22 @@ export function verify(
   return true;
 }
 
-export function checkValidPoints(
-  question: Question.QuestionH.t,
-  answer: Serialized.t,
-): boolean {
-  for (let j = 0; j < question.answers.length; j++) {
-    const ct = Ciphertext.parse(answer.choices[j]);
-    if (!Point.isValid(ct.pAlpha) || !Point.isValid(ct.pBeta)) {
-      return false;
-    }
-  }
-  return true;
-}
-
 export function checkIndividualProofs(
   election: Election.t,
   electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionH.t,
-  answer: Serialized.t,
+  answer: t,
 ): boolean {
   const pY = Point.parse(election.public_key);
   const S = `${electionFingerprint}|${ballot.credential}`;
-  const a = Answer.AnswerH.parse(answer);
   for (let j = 0; j < question.answers.length + (question.blank ? 1 : 0); j++) {
     if (
       !Proof.checkIndividualProof(
         S,
-        a.aazIndividualProofs[j],
+        answer.aazIndividualProofs[j],
         pY,
-        a.aeChoices[j],
+        answer.aeChoices[j],
       )
     ) {
       return false;
@@ -158,12 +145,11 @@ export function checkOverallProofWithoutBlank(
   electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionH.t,
-  answer: Serialized.t,
+  answer: t,
 ): boolean {
   const pY = Point.parse(election.public_key);
-  const a = Answer.AnswerH.parse(answer);
-  const sumc = Ciphertext.combine(a.aeChoices);
-  const nSumChallenges = a.azOverallProof.reduce(
+  const sumc = Ciphertext.combine(answer.aeChoices);
+  const nSumChallenges = answer.azOverallProof.reduce(
     (acc: bigint, proof: Proof.t) => mod(acc + proof.nChallenge, L),
     0n,
   );
@@ -174,15 +160,15 @@ export function checkOverallProofWithoutBlank(
       pY,
       sumc.pAlpha,
       sumc.pBeta,
-      a.azOverallProof[j].nChallenge,
-      a.azOverallProof[j].nResponse,
+      answer.azOverallProof[j].nChallenge,
+      answer.azOverallProof[j].nResponse,
       question.min + j,
     );
     commitments.push(pA, pB);
   }
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
-  S += answer.choices.map(Ciphertext.Serialized.toString).join(",");
+  S += answer.aeChoices.map(Ciphertext.toString).join(",");
 
   return Hiprove(S, sumc.pAlpha, sumc.pBeta, ...commitments) === nSumChallenges;
 }
@@ -192,19 +178,18 @@ export function checkOverallProofWithBlank(
   electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionH.t,
-  answer: Serialized.t,
+  answer: t,
 ): boolean {
   const pY = Point.parse(election.public_key);
-  const a = Answer.AnswerH.parse(answer);
-  const sumc = Ciphertext.combine(a.aeChoices.slice(1));
+  const sumc = Ciphertext.combine(answer.aeChoices.slice(1));
 
   let commitments = [];
   const [pA, pB] = formula2(
     pY,
-    a.aeChoices[0].pAlpha,
-    a.aeChoices[0].pBeta,
-    a.azOverallProof[0].nChallenge,
-    a.azOverallProof[0].nResponse,
+    answer.aeChoices[0].pAlpha,
+    answer.aeChoices[0].pBeta,
+    answer.azOverallProof[0].nChallenge,
+    answer.azOverallProof[0].nResponse,
     1,
   );
   commitments.push(pA, pB);
@@ -213,20 +198,20 @@ export function checkOverallProofWithBlank(
       pY,
       sumc.pAlpha,
       sumc.pBeta,
-      a.azOverallProof[j].nChallenge,
-      a.azOverallProof[j].nResponse,
+      answer.azOverallProof[j].nChallenge,
+      answer.azOverallProof[j].nResponse,
       question.min + j - 1,
     );
     commitments.push(pA, pB);
   }
 
-  const nSumChallenges = a.azOverallProof.reduce(
+  const nSumChallenges = answer.azOverallProof.reduce(
     (acc, proof) => mod(acc + BigInt(proof.nChallenge), L),
     0n,
   );
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
-  S += answer.choices.map(Ciphertext.Serialized.toString).join(",");
+  S += answer.aeChoices.map(Ciphertext.toString).join(",");
 
   return Hbproof1(S, ...commitments) === nSumChallenges;
 }
@@ -236,34 +221,33 @@ export function checkBlankProof(
   electionFingerprint: string,
   ballot: Ballot.t,
   _question: Question.QuestionH.t,
-  answer: Serialized.t,
+  answer: t,
 ): boolean {
   const pY = Point.parse(election.public_key);
-  const a = Answer.AnswerH.parse(answer);
-  const sumc = Ciphertext.combine(a.aeChoices.slice(1));
-  const nSumChallenges = a.azBlankProof.reduce(
+  const sumc = Ciphertext.combine(answer.aeChoices.slice(1));
+  const nSumChallenges = answer.azBlankProof.reduce(
     (acc, proof) => mod(acc + BigInt(proof.nChallenge), L),
     0n,
   );
 
   const [pA0, pB0] = formula2(
     pY,
-    a.aeChoices[0].pAlpha,
-    a.aeChoices[0].pBeta,
-    a.azBlankProof[0].nChallenge,
-    a.azBlankProof[0].nResponse,
+    answer.aeChoices[0].pAlpha,
+    answer.aeChoices[0].pBeta,
+    answer.azBlankProof[0].nChallenge,
+    answer.azBlankProof[0].nResponse,
     0,
   );
   const [pAS, pBS] = formula2(
     pY,
     sumc.pAlpha,
     sumc.pBeta,
-    a.azBlankProof[1].nChallenge,
-    a.azBlankProof[1].nResponse,
+    answer.azBlankProof[1].nChallenge,
+    answer.azBlankProof[1].nResponse,
     0,
   );
 
   let S = `${electionFingerprint}|${ballot.credential}|`;
-  S += answer.choices.map(Ciphertext.Serialized.toString).join(",");
+  S += answer.aeChoices.map(Ciphertext.toString).join(",");
   return Hbproof0(S, ...[pA0, pB0, pAS, pBS]) === nSumChallenges;
 }

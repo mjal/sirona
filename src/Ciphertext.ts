@@ -48,3 +48,7 @@ export namespace Serialized {
 export function toString(ct: t) {
   return Serialized.toString(serialize(ct));
 }
+
+export function isValid(ct: t) {
+  return Point.isValid(ct.pAlpha) && Point.isValid(ct.pBeta);
+}
