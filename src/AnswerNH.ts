@@ -30,7 +30,6 @@ export function parse(answer: Serialized.t): t {
 
 export function verify(
   election: Election.t,
-  electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionNH.t,
   serializedAnswer: Serialized.t,
@@ -41,16 +40,15 @@ export function verify(
     throw new Error("Invalid curve points");
   }
 
-  if (!checkProof(election, electionFingerprint, ballot, question, answer)) {
+  if (!verifyProof(election, ballot, question, answer)) {
     throw new Error("Invalid proof");
   }
 
   return true;
 }
 
-function checkProof(
+function verifyProof(
   election: Election.t,
-  electionFingerprint: string,
   ballot: Ballot.t,
   _question: Question.QuestionNH.t,
   answer: t,
@@ -58,7 +56,7 @@ function checkProof(
   const y = Point.parse(election.public_key);
   const { choices, proof } = answer;
   const A = formula(Point.g, proof.nResponse, choices.pAlpha, proof.nChallenge);
-  const S = `${electionFingerprint}|${ballot.credential}`;
+  const S = `${election.fingerprint}|${ballot.credential}`;
 
   return Hraweg(S, y, choices.pAlpha, choices.pBeta, A) === proof.nChallenge;
 }

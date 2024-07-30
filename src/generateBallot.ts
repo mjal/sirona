@@ -84,7 +84,7 @@ export default function (
   const ballotWithoutSignature = {
     answers,
     credential: hPublicCredential,
-    election_hash: state.electionFingerprint,
+    election_hash: state.setup.payload.election.fingerprint,
     election_uuid: state.setup.payload.election.uuid,
     signature: {
       hash: null,
@@ -193,7 +193,7 @@ function generateEncryptions(
     const pAlpha = g.multiply(nR);
     const pBeta = pY.multiply(nR).add(gPowerM);
 
-    const S = `${state.electionFingerprint}|${hPublicCredential}`;
+    const S = `${state.setup.payload.election.fingerprint}|${hPublicCredential}`;
     const proof = iproof(S, pY, pAlpha, pBeta, nR, choices[i], [0, 1]);
 
     aeChoices.push({ pAlpha, pBeta });
@@ -227,7 +227,7 @@ function generateAnswerWithoutBlank(
   );
   const nR = anR.reduce((acc, r) => mod(acc + r, L), BigInt(0));
 
-  let S = `${state.electionFingerprint}|${hPublicCredential}|`;
+  let S = `${state.setup.payload.election.fingerprint}|${hPublicCredential}|`;
   S += aeChoices
     .map((c) => `${rev(c.pAlpha.toHex())},${rev(c.pBeta.toHex())}`)
     .join(",");
@@ -258,7 +258,7 @@ function blankProof(
   const pA0 = g.multiply(nW);
   const pB0 = pY.multiply(nW);
 
-  let S = `${state.electionFingerprint}|${hPub}|`;
+  let S = `${state.setup.payload.election.fingerprint}|${hPub}|`;
   S += choices
     .map(Ciphertext.serialize)
     .map((c) => `${c.alpha},${c.beta}`)
@@ -348,7 +348,7 @@ function overallProofBlank(
       }
     }
 
-    let S = `${state.electionFingerprint}|${hPub}|`;
+    let S = `${state.setup.payload.election.fingerprint}|${hPub}|`;
     S += aeCiphertexts
       .map(Ciphertext.serialize)
       .map((c) => `${c.alpha},${c.beta}`)
@@ -397,7 +397,7 @@ function overallProofBlank(
       commitments.push(pA, pB);
     }
 
-    let S = `${state.electionFingerprint}|${hPub}|`;
+    let S = `${state.setup.payload.election.fingerprint}|${hPub}|`;
     S += aeCiphertexts
       .map(Ciphertext.serialize)
       .map((c) => `${c.alpha},${c.beta}`)

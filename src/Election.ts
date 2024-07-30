@@ -12,6 +12,7 @@ export type t = {
   uuid: string,
   administrator?: string;
   credential_authority?: string;
+  fingerprint?: string;
 }
 
 export function verify(election: t, trustees: Array<Trustee.t>) {

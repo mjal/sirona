@@ -5,7 +5,6 @@ import Question from "./Question.vue";
 const props = defineProps(["state", "logs", "ballotLogs"]);
 const election = props.state.setup?.payload.election;
 const countBallots = props.state.ballots?.length;
-const fingerprint = props.electionFingerprint;
 
 const hasResult = props.state.result ? true : false;
 const hasError = computed(() => {
@@ -58,7 +57,7 @@ const hasError = computed(() => {
       </tr>
       <tr>
         <td>Fingerprint</td>
-        <td>{{ fingerprint }}</td>
+        <td>{{ election.fingerprint }}</td>
       </tr>
       <tr>
         <td>Number of ballots</td>

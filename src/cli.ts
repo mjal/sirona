@@ -29,8 +29,9 @@ electionCommand
       const tarReader = new TarReader(data);
       const files = tarReader.getFiles();
       const state = await check(files);
+      const election = state.setup.payload.election;
 
-      console.log("Election fingerprint: " + state.electionFingerprint);
+      console.log("Election fingerprint: " + election.fingerprint);
       console.log(state.files.length + " files found.");
       for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
         let question = state.setup.payload.election.questions[i];

@@ -17,7 +17,6 @@ export namespace Serialized {
 
 export function verify(
   election: Election.t,
-  electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.t,
   answer: Serialized.t,
@@ -42,7 +41,7 @@ export function verify(
     throw new Error("Unknown question type");
   }
 
-  verify(election, electionFingerprint, ballot, question, answer);
+  verify(election, ballot, question, answer);
 }
 
 export function IsAnswerH(

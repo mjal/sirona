@@ -26,8 +26,7 @@ export function verify(state: any, ballotEvent: Event.t<t>) {
   checkMisc(
     ballot,
     ballotEvent.payloadHash,
-    election,
-    state.electionFingerprint,
+    election
   );
   checkCredential(ballot, state.credentialsWeights);
   checkIsUnique(ballot, ballotEvent.payloadHash);
@@ -36,7 +35,6 @@ export function verify(state: any, ballotEvent: Event.t<t>) {
   for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
     Answer.verify(
       election,
-      state.electionFingerprint,
       ballot,
       state.setup.payload.election.questions[i],
       ballot.answers[i],
@@ -48,14 +46,13 @@ function checkMisc(
   ballot: t,
   ballotPayloadHash: string,
   election: Election.t,
-  electionFingerprint: string,
 ) {
   const sSerializedBallot = JSON.stringify(canonicalBallot(ballot, election));
 
   if (
     !(
       election.uuid === ballot.election_uuid &&
-      electionFingerprint === ballot.election_hash
+      election.fingerprint === ballot.election_hash
     )
   ) {
     throw new Error("election_uuid or election_hash is incorrect");

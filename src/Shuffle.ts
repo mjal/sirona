@@ -1,11 +1,10 @@
 import * as Event from "./Event";
 import * as Point from "./Point";
-import * as Ciphertext from "./Ciphertext";
 import * as Question from "./Question";
+import * as Election from "./Election";
+import * as Ciphertext from "./Ciphertext";
 import sjcl from "sjcl";
 import { g, mod, L } from "./math";
-
-// -- Types
 
 export type shuffle_commitment_rand = [
   Point.t,
@@ -39,7 +38,6 @@ export type t = {
   };
 };
 
-// -- Parse
 
 export function parse(o: any): t {
   let res: any = {};
@@ -80,15 +78,15 @@ export function verify(
   ballotEvent: Event.t<t>,
   tally: Array<Array<Ciphertext.Serialized.t>>,
 ): boolean {
+  const election = state.setup.payload.election;
   const shuffle = parse(ballotEvent.payload);
-  const y = Point.parse(state.setup.payload.election.public_key);
-  for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
-    const question = state.setup.payload.election.questions[i];
+  const y = Point.parse(election.public_key);
+  for (let i = 0; i < election.questions.length; i++) {
+    const question = election.questions[i];
     if (Question.IsQuestionNH(question)) {
       if (
         !CheckShuffleProof(
-          y,
-          state.electionFingerprint,
+          election,
           tally[i],
           shuffle.payload.ciphertexts[i],
           shuffle.payload.proofs[i],
@@ -106,12 +104,12 @@ function hasDuplicates(array: any) {
 }
 
 function CheckShuffleProof(
-  y: Point.t,
-  electionFingerprint: string,
+  election: Election.t,
   input: Array<Ciphertext.Serialized.t>,
   output: Array<Ciphertext.t>,
   proof: shuffle_proof,
 ) {
+  const y = Point.parse(election.public_key);
   const [t, s, cc, cc_hat] = proof;
   const [t1, t2, t3, [t41, t42], t_hat] = t;
   const [s1, s2, s3, s4, s_hat, s_prime] = s;
@@ -143,7 +141,7 @@ function CheckShuffleProof(
 
   const uu = GetNIZKPChallenges(
     input.length,
-    `shuffle-challenges|${electionFingerprint}|${str_c}`,
+    `shuffle-challenges|${election.fingerprint}|${str_c}`,
   );
 
   const str_t =
@@ -157,7 +155,7 @@ function CheckShuffleProof(
     Point.serialize(y);
 
   const c = GetNIZKPChallenge(
-    `shuffle-challenge|${electionFingerprint}|${str_t}${str_y}`,
+    `shuffle-challenge|${election.fingerprint}|${str_t}${str_y}`,
   );
 
   const c_bar = Point.combine(cc).add(Point.combine(hh).negate());

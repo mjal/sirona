@@ -59,7 +59,6 @@ export function serialize(answer: t): Serialized.t {
 
 export function verify(
   election: Election.t,
-  electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionH.t,
   serializedAnswer: Serialized.t,
@@ -75,7 +74,6 @@ export function verify(
   if (
     !checkIndividualProofs(
       election,
-      electionFingerprint,
       ballot,
       question,
       answer,
@@ -85,14 +83,13 @@ export function verify(
   }
   if (question.blank) {
     if (
-      !checkBlankProof(election, electionFingerprint, ballot, question, answer)
+      !checkBlankProof(election, ballot, question, answer)
     ) {
       throw new Error("Invalid blank proof");
     }
     if (
       !checkOverallProofWithBlank(
         election,
-        electionFingerprint,
         ballot,
         question,
         answer,
@@ -104,7 +101,6 @@ export function verify(
     if (
       !checkOverallProofWithoutBlank(
         election,
-        electionFingerprint,
         ballot,
         question,
         answer,
@@ -118,13 +114,12 @@ export function verify(
 
 export function checkIndividualProofs(
   election: Election.t,
-  electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionH.t,
   answer: t,
 ): boolean {
   const pY = Point.parse(election.public_key);
-  const S = `${electionFingerprint}|${ballot.credential}`;
+  const S = `${election.fingerprint}|${ballot.credential}`;
   for (let j = 0; j < question.answers.length + (question.blank ? 1 : 0); j++) {
     if (
       !Proof.checkIndividualProof(
@@ -142,7 +137,6 @@ export function checkIndividualProofs(
 
 export function checkOverallProofWithoutBlank(
   election: Election.t,
-  electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionH.t,
   answer: t,
@@ -167,7 +161,7 @@ export function checkOverallProofWithoutBlank(
     commitments.push(pA, pB);
   }
 
-  let S = `${electionFingerprint}|${ballot.credential}|`;
+  let S = `${election.fingerprint}|${ballot.credential}|`;
   S += answer.aeChoices.map(Ciphertext.toString).join(",");
 
   return Hiprove(S, sumc.pAlpha, sumc.pBeta, ...commitments) === nSumChallenges;
@@ -175,7 +169,6 @@ export function checkOverallProofWithoutBlank(
 
 export function checkOverallProofWithBlank(
   election: Election.t,
-  electionFingerprint: string,
   ballot: Ballot.t,
   question: Question.QuestionH.t,
   answer: t,
@@ -210,7 +203,7 @@ export function checkOverallProofWithBlank(
     0n,
   );
 
-  let S = `${electionFingerprint}|${ballot.credential}|`;
+  let S = `${election.fingerprint}|${ballot.credential}|`;
   S += answer.aeChoices.map(Ciphertext.toString).join(",");
 
   return Hbproof1(S, ...commitments) === nSumChallenges;
@@ -218,7 +211,6 @@ export function checkOverallProofWithBlank(
 
 export function checkBlankProof(
   election: Election.t,
-  electionFingerprint: string,
   ballot: Ballot.t,
   _question: Question.QuestionH.t,
   answer: t,
@@ -247,7 +239,7 @@ export function checkBlankProof(
     0,
   );
 
-  let S = `${electionFingerprint}|${ballot.credential}|`;
+  let S = `${election.fingerprint}|${ballot.credential}|`;
   S += answer.aeChoices.map(Ciphertext.toString).join(",");
   return Hbproof0(S, ...[pA0, pB0, pAS, pBS]) === nSumChallenges;
 }

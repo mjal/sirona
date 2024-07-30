@@ -25,7 +25,7 @@ export function verify(state: any, partialDecryption: Event.t<t>) {
       for (let j = 0; j < encrypted_tally[i].length; j++) {
         if (
           !Proof.checkDecryptionProof(
-            `${state.electionFingerprint}|${Point.serialize(pPublicKey)}`,
+            `${election.fingerprint}|${Point.serialize(pPublicKey)}`,
             pPublicKey,
             Ciphertext.parse(encrypted_tally[i][j]),
             Point.parse(decryption_factors[i][j]),
@@ -43,7 +43,7 @@ export function verify(state: any, partialDecryption: Event.t<t>) {
         for (let k = 0; k < encrypted_tally[i][j].length; k++) {
           if (
             !Proof.checkDecryptionProof(
-              `${state.electionFingerprint}|${Point.serialize(pPublicKey)}`,
+              `${election.fingerprint}|${Point.serialize(pPublicKey)}`,
               pPublicKey,
               Ciphertext.parse(encrypted_tally[i][j][k]),
               Point.parse(decryption_factors[i][j][k]),

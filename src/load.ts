@@ -11,15 +11,18 @@ export default function (fileEntries) {
     payloadHash: state.setup.payload,
     payload: findData(state.files, state.setup.payload),
   };
-  state.electionFingerprint = sjcl.codec.base64
+
+  const electionFingerprint = sjcl.codec.base64
     .fromBits(sjcl.codec.hex.toBits(state.setup.payload.election))
     .replace(/=+$/, "");
+
   state.setup.payload = {
     ...state.setup.payload,
     credentials: findData(state.files, state.setup.payload.credentials),
     election: findData(state.files, state.setup.payload.election),
     trustees: findData(state.files, state.setup.payload.trustees),
   };
+  state.setup.payload.election.fingerprint = electionFingerprint;
 
   state.ballots = findEvents(state.files, "Ballot").map((ballot) => {
     ballot.payloadHash = ballot.payload;
