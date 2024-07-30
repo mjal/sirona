@@ -14,6 +14,22 @@ program
   .description("belenios compatible implementation")
   .version("0.0.1");
 
+const setupCommand = program
+  .command("setup")
+  .description("Setup related commands");
+
+setupCommand.command("generate-token").action(() => {
+  const chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+  let uuid = '';
+
+  for (let i = 0; i < 14; i++) {
+      const randomIndex = Math.floor(Math.random() * chars.length);
+      uuid += chars[randomIndex];
+  }
+
+  console.log(uuid);
+});
+
 const electionCommand = program
   .command("election")
   .description("Election related commands");
