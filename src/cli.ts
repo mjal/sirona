@@ -1,7 +1,9 @@
 import fs from "fs";
+import sjcl from "sjcl";
 import { Command } from "commander";
 import { TarReader } from "./tarReader";
 import { getLogs, getBallotLogs } from "./logger";
+import { readStdin } from "./utils";
 import generateBallot from "./generateBallot";
 import canonicalBallot from "./canonicalBallot";
 import check from "./check";
@@ -116,6 +118,16 @@ electionCommand
     }
 
     process.exit(errors > 0 ? 1 : 0);
+  });
+
+program
+  .command("sha256-b64") .action(() => {
+    readStdin().then((data: any) => {
+      const hash = sjcl.codec.base64.fromBits(
+        sjcl.hash.sha256.hash(data),
+      );
+      console.log(hash);
+    });
   });
 
 program.parseAsync(process.argv);
