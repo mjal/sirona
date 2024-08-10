@@ -9,7 +9,7 @@ import ElectionBallotList from "./ElectionBallotList.vue";
 import GenerateBallotModal from "./GenerateBallotModal.vue";
 import { getLogs, getBallotLogs } from "../logger";
 
-import { TarReader } from "../tarReader";
+import { Archive } from "../Archive";
 
 const state = ref({});
 const logs = ref([]);
@@ -22,9 +22,10 @@ const onUploadedFile = (event) => {
   reader.onload = async () => {
     loading.value = true;
 
-    const tarReader = new TarReader(reader.result);
+    const archive = new Archive();
+    await archive.fromArrayBuffer(reader.result);
+    const files = archive.getFiles();
 
-    const files = tarReader.getFiles();
     state.value = await check(files);
 
     loaded.value = true;

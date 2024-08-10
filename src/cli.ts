@@ -1,7 +1,7 @@
 import fs from "fs";
 import sjcl from "sjcl";
 import { Command } from "commander";
-import { TarReader } from "./tarReader";
+import { Archive } from "./Archive";
 import { getLogs, getBallotLogs } from "./logger";
 import { readStdin } from "./utils";
 import generateBallot from "./generateBallot";
@@ -42,10 +42,9 @@ electionCommand
   .option("-q, --quiet", "only show the final result")
   .action(async function (filename, options) {
     const checkFile = async (filePath) => {
-      const data = await fs.promises.readFile(filePath);
-
-      const tarReader = new TarReader(data);
-      const files = tarReader.getFiles();
+      const archive = new Archive();
+      await archive.fromFile(filePath);
+      const files = archive.getFiles();
       const state = await check(files);
       const election = state.setup.payload.election;
 
