@@ -20,17 +20,18 @@ const setupCommand = program
   .command("setup")
   .description("Setup related commands");
 
-setupCommand.command("generate-token").action(() => {
-  const chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-  let uuid = '';
-
-  for (let i = 0; i < 14; i++) {
+setupCommand.command("generate-token")
+  .action(() => {
+    const chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+  
+    let uuid = Array.from({ length: 14 }, (_, i) => {
       const randomIndex = Math.floor(Math.random() * chars.length);
-      uuid += chars[randomIndex];
-  }
+      return chars[randomIndex];
+    }).join('');
+  
+    console.log(uuid);
+  });
 
-  console.log(uuid);
-});
 
 const electionCommand = program
   .command("election")
