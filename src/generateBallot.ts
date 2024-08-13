@@ -63,7 +63,7 @@ export default function (
   choices: Array<Array<number>>,
 ) {
   if (!checkVotingCode(state, sPriv)) {
-    return false;
+    return null;
   }
 
   const { hPublicCredential, nPrivateCredential } = deriveCredential(
