@@ -1,54 +1,14 @@
 import fs from "fs";
-import sjcl from "sjcl";
 import { Command } from "commander";
-import { Archive } from "./Archive";
-import { getLogs, getBallotLogs } from "./logger";
-import { readStdin } from "./utils";
-import generateBallot from "./generateBallot";
-import canonicalBallot from "./canonicalBallot";
-import check from "./check";
+import { Archive } from "../Archive";
+import generateBallot from "../generateBallot";
+import canonicalBallot from "../canonicalBallot";
+import { getLogs, getBallotLogs } from "../logger";
+import check from "../check";
 
 const program = new Command();
-let errors = 0;
 
 program
-  .name("sirona")
-  .description("belenios compatible implementation")
-  .version("0.0.1");
-
-const setupCommand = program
-  .command("setup")
-  .description("Setup related commands");
-
-setupCommand.command("generate-token")
-  .action(() => {
-    const chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-  
-    let uuid = Array.from({ length: 14 }, (_, i) => {
-      const randomIndex = Math.floor(Math.random() * chars.length);
-      return chars[randomIndex];
-    }).join('');
-  
-    console.log(uuid);
-  });
-
-setupCommand.command("generate-credentials")
-  .option("--file <FILE>", "Read  identities  from  FILE.  One credential will be generated for each line of FILE.")
-  .action(async function (options) {
-    const data = await fs.promises.readFile(options.file);
-    const lines = data.toString().split("\n");
-    lines.forEach((line) => {
-      const [email, id, weight] = line.split(",");
-      console.log(`${id} ${email} ${weight}`);
-    });
-    console.log(data);
-  });
-
-const electionCommand = program
-  .command("election")
-  .description("Election related commands");
-
-electionCommand
   .command("verify")
   .argument("<filename>", "database file (.bel)")
   .option("-q, --quiet", "only show the final result")
@@ -107,16 +67,18 @@ electionCommand
     process.exit(errors > 0 ? 1 : 0);
   });
 
-electionCommand
+let errors = 0;
+
+program
   .command("generate-ballot")
   .argument("<filename>", "database file (.bel)")
   .requiredOption("--privcred <privcred>", "private credentiel")
   .requiredOption("--choice <choice>", "choice")
   .action(async function (filename, options) {
     try {
-      const data = await fs.promises.readFile(filename);
-      const tarReader = new TarReader(data);
-      const files = tarReader.getFiles();
+      const archive = new Archive();
+      await archive.fromFile(filename);
+      const files = archive.getFiles();
       const state = await check(files);
       const choice = JSON.parse(options.choice);
       const ballot = generateBallot(state, options.privcred, choice);
@@ -129,16 +91,6 @@ electionCommand
     }
 
     process.exit(errors > 0 ? 1 : 0);
-  });
-
-program
-  .command("sha256-b64") .action(() => {
-    readStdin().then((data: any) => {
-      const hash = sjcl.codec.base64.fromBits(
-        sjcl.hash.sha256.hash(data),
-      );
-      console.log(hash);
-    });
   });
 
 program.parseAsync(process.argv);

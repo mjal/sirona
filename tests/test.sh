@@ -4,7 +4,7 @@ check_errors() {
     local f="$1"
     local output
 
-    output=$(ts-node src/cli.ts election verify $f)
+    output=$(node -r ts-node/register src/cli/sirona.ts election verify $f)
 
     if echo "$output" | grep -q "0 errors found."; then
         echo "PASS: $f"
