@@ -32,6 +32,17 @@ setupCommand.command("generate-token")
     console.log(uuid);
   });
 
+setupCommand.command("generate-credentials")
+  .option("--file <FILE>", "Read  identities  from  FILE.  One credential will be generated for each line of FILE.")
+  .action(async function (options) {
+    const data = await fs.promises.readFile(options.file);
+    const lines = data.toString().split("\n");
+    lines.forEach((line) => {
+      const [email, id, weight] = line.split(",");
+      console.log(`${id} ${email} ${weight}`);
+    });
+    console.log(data);
+  });
 
 const electionCommand = program
   .command("election")
