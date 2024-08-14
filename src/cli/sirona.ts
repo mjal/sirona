@@ -9,7 +9,8 @@ program
   .description("belenios compatible implementation")
   .version("0.0.1")
   .command("setup", "Setup related commands")
-  .command("election", "Election related commands");
+  .command("election", "Election related commands")
+  .command("archive", "Archive related commands");
 
 program
   .command("sha256-b64") .action(() => {

@@ -22,10 +22,7 @@ const onUploadedFile = (event) => {
   reader.onload = async () => {
     loading.value = true;
 
-    const archive = new Archive();
-    await archive.fromArrayBuffer(reader.result);
-    const files = archive.getFiles();
-
+    const files = await Archive.readArrayBuffer(reader.result);
     state.value = await check(files);
 
     loaded.value = true;

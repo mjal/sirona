@@ -1,6 +1,6 @@
 import fs from "fs";
 import { Command } from "commander";
-import { Archive } from "../Archive";
+import * as Archive from "../Archive";
 import generateBallot from "../generateBallot";
 import canonicalBallot from "../canonicalBallot";
 import { getLogs, getBallotLogs } from "../logger";
@@ -14,9 +14,7 @@ program
   .option("-q, --quiet", "only show the final result")
   .action(async function (filename, options) {
     const checkFile = async (filePath) => {
-      const archive = new Archive();
-      await archive.fromFile(filePath);
-      const files = archive.getFiles();
+      const files = await Archive.readFile(filePath);
       const state = await check(files);
       const election = state.setup.payload.election;
 
@@ -76,9 +74,7 @@ program
   .requiredOption("--choice <choice>", "choice")
   .action(async function (filename, options) {
     try {
-      const archive = new Archive();
-      await archive.fromFile(filename);
-      const files = archive.getFiles();
+      const files = await Archive.readFile(filename);
       const state = await check(files);
       const choice = JSON.parse(options.choice);
       const ballot = generateBallot(state, options.privcred, choice);
