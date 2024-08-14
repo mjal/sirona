@@ -14,3 +14,12 @@ type event_type =
   | "EncryptedTally"
   | "PartialDecryption"
   | "Result";
+
+export function toJSON(event: t<any>) {
+  return {
+    parent: event.parent,
+    height: event.height,
+    type: event.type,
+    payload: event.payload,
+  };
+}
