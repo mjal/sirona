@@ -1,10 +1,6 @@
 import sjcl from "sjcl";
 import * as Point from "./Point";
-import {
-  g,
-  L,
-  mod,
-} from "./math";
+import { g, L, mod } from "./math";
 
 export function derive(uuid: string, privcred: string) {
   const prefix = `derive_credential|${uuid}`;

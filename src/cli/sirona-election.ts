@@ -23,9 +23,7 @@ program
       for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
         let question = state.setup.payload.election.questions[i];
         let questionType = question.type ? question.type : "Homomorphic";
-        console.log(
-          `Question ${i + 1} (${questionType})`,
-        );
+        console.log(`Question ${i + 1} (${questionType})`);
       }
       console.log(state.ballots.length + " ballots found.");
 

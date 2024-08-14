@@ -40,8 +40,8 @@ function verifyOne(et: any, df: any, res: any) {
   const pResult = pBeta.add(df.negate());
   const nAnswer = BigInt(res);
   return (
-    (res === 0 && Point.isEqual(pResult, zero) ||
-    (res !== 0 && Point.isEqual(pResult, g.multiply(nAnswer))))
+    (res === 0 && Point.isEqual(pResult, zero)) ||
+    (res !== 0 && Point.isEqual(pResult, g.multiply(nAnswer)))
   );
 }
 
@@ -52,10 +52,12 @@ function getDecryptionFactors(state) {
     let question = election.questions[i];
     let row = [];
     if (Question.IsQuestionH(election.questions[i])) {
-      row = [...Array(question.answers.length).keys()].map(() => Point.zero)
+      row = [...Array(question.answers.length).keys()].map(() => Point.zero);
     } else if (Question.IsQuestionL(election.questions[i])) {
       row = [...Array(question.value.answers.length).keys()].map((_, i) => {
-        return [...Array(question.value.answers[i].length).keys()].map(() => Point.zero)
+        return [...Array(question.value.answers[i].length).keys()].map(
+          () => Point.zero,
+        );
       });
     } else if (Question.IsQuestionNH(question)) {
       throw new Error("Not Implemented");
@@ -80,7 +82,8 @@ function getDecryptionFactors(state) {
         throw new Error(`No partial decryption found for trustee ${i}`);
       }
       df = multiplyDfPow(df, parseDf(partialDecryption), 1);
-    } else { // Pedersen
+    } else {
+      // Pedersen
       let pds = state.partialDecryptions.filter((pd) => {
         return state.ownerToTrusteeIndex[pd.payload.owner][1] === i;
       });
@@ -100,10 +103,14 @@ function getDecryptionFactors(state) {
         let question = election.questions[i];
         let row = [];
         if (Question.IsQuestionH(election.questions[i])) {
-          row = [...Array(question.answers.length).keys()].map(() => Point.zero)
+          row = [...Array(question.answers.length).keys()].map(
+            () => Point.zero,
+          );
         } else if (Question.IsQuestionL(election.questions[i])) {
           row = [...Array(question.value.answers.length).keys()].map((_, i) => {
-            return [...Array(question.value.answers[i].length).keys()].map(() => Point.zero)
+            return [...Array(question.value.answers[i].length).keys()].map(
+              () => Point.zero,
+            );
           });
         } else if (Question.IsQuestionNH(question)) {
           throw new Error("Not Implemented");

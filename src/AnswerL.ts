@@ -6,15 +6,7 @@ import * as Election from "./Election";
 import * as Question from "./Question";
 import * as Ballot from "./Ballot";
 import * as Point from "./Point";
-import {
-  L,
-  mod,
-  formula,
-  formula2,
-  Hiprove,
-  Hlproof,
-  Hnonzero,
-} from "./math";
+import { L, mod, formula, formula2, Hiprove, Hlproof, Hnonzero } from "./math";
 
 export type t = {
   choices: Array<Array<Ciphertext.t>>;
@@ -60,37 +52,19 @@ export function verify(
     }
   }
 
-  if (
-    !checkIndividualProofs(
-      election,
-      ballot,
-      question,
-      answer,
-    )
-  ) {
+  if (!checkIndividualProofs(election, ballot, question, answer)) {
     throw new Error("Invalid individual proofs");
   }
 
-  if (
-    !checkOverallProofLists(
-      election,
-      ballot,
-      question,
-      answer,
-    )
-  ) {
+  if (!checkOverallProofLists(election, ballot, question, answer)) {
     throw new Error("Invalid overall proof (lists)");
   }
 
-  if (
-    !checkNonZeroProof(election, ballot, question, answer)
-  ) {
+  if (!checkNonZeroProof(election, ballot, question, answer)) {
     throw new Error("Invalid non zero proof (lists)");
   }
 
-  if (
-    !checkListProofs(election, ballot, question, answer)
-  ) {
+  if (!checkListProofs(election, ballot, question, answer)) {
     throw new Error("Invalid list proof");
   }
 
@@ -149,7 +123,8 @@ function checkOverallProofLists(
     .join(",");
 
   return (
-    Hiprove(S, sumc.pAlpha, sumc.pBeta, pA, pB) === answer.overall_proof.nChallenge
+    Hiprove(S, sumc.pAlpha, sumc.pBeta, pA, pB) ===
+    answer.overall_proof.nChallenge
   );
 }
 
@@ -210,7 +185,12 @@ function checkListProofs(
       1,
     );
 
-    const A1 = formula(Point.g, proofs[1].nResponse, ct.pAlpha, proofs[1].nChallenge);
+    const A1 = formula(
+      Point.g,
+      proofs[1].nResponse,
+      ct.pAlpha,
+      proofs[1].nChallenge,
+    );
     const B1 = formula(pY, proofs[1].nResponse, ct.pBeta, proofs[1].nChallenge);
 
     let S = `${election.fingerprint}|${ballot.credential}|`;

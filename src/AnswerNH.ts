@@ -6,7 +6,6 @@ import * as Question from "./Question";
 import * as Ballot from "./Ballot";
 import { formula, Hraweg } from "./math";
 
-
 export type t = {
   choices: Ciphertext.t;
   proof: Proof.t;
@@ -19,14 +18,12 @@ export namespace Serialized {
   };
 }
 
-
 export function parse(answer: Serialized.t): t {
   return {
     choices: Ciphertext.parse(answer.choices),
     proof: Proof.parse(answer.proof),
   };
 }
-
 
 export function verify(
   election: Election.t,

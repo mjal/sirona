@@ -10,10 +10,12 @@ export default function (state: any): boolean {
     let row = null;
     if (Question.IsQuestionH(question)) {
       const size = question.answers.length + (question.blank ? 1 : 0);
-      row = [...Array(size).keys()].map(() => Ciphertext.zero)
+      row = [...Array(size).keys()].map(() => Ciphertext.zero);
     } else if (Question.IsQuestionL(question)) {
       row = [...Array(question.value.answers.length).keys()].map((_, i) => {
-        return [...Array(question.value.answers[i].length).keys()].map(() => Ciphertext.zero)
+        return [...Array(question.value.answers[i].length).keys()].map(
+          () => Ciphertext.zero,
+        );
       });
     } else if (Question.IsQuestionNH(question)) {
       throw new Error("Unimplemented");
@@ -56,7 +58,7 @@ export default function (state: any): boolean {
               ),
               pBeta: encryptedTally[j][k][l].pBeta.add(
                 ct.pBeta.multiply(BigInt(weight)),
-              )
+              ),
             };
           }
         }
@@ -73,7 +75,10 @@ export default function (state: any): boolean {
     const question = election.questions[i];
     if (Question.IsQuestionH(question)) {
       for (let j = 0; j < et[i].length; j++) {
-        if (Ciphertext.Serialized.toString(et[i][j]) !== Ciphertext.toString(encryptedTally[i][j])) {
+        if (
+          Ciphertext.Serialized.toString(et[i][j]) !==
+          Ciphertext.toString(encryptedTally[i][j])
+        ) {
           throw new Error(
             "Encrypted tally microballot does not correspond to the weighted sum of all ballots",
           );
@@ -82,7 +87,10 @@ export default function (state: any): boolean {
     } else if (Question.IsQuestionL(question)) {
       for (let j = 0; j < et[i].length; j++) {
         for (let k = 0; k < et[i][j].length; k++) {
-          if (Ciphertext.Serialized.toString(et[i][j][k]) !== Ciphertext.toString(encryptedTally[i][j][k])) {
+          if (
+            Ciphertext.Serialized.toString(et[i][j][k]) !==
+            Ciphertext.toString(encryptedTally[i][j][k])
+          ) {
             throw new Error(
               "Encrypted tally microballot does not correspond to the weighted sum of all ballots",
             );

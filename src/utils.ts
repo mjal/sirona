@@ -18,17 +18,17 @@ export function error(str: string) {
 
 export function readStdin() {
   return new Promise((resolve, reject) => {
-    let data = '';
+    let data = "";
 
-    process.stdin.on('data', chunk => {
+    process.stdin.on("data", (chunk) => {
       data += chunk;
     });
 
-    process.stdin.on('end', () => {
+    process.stdin.on("end", () => {
       resolve(data);
     });
 
-    process.stdin.on('error', err => {
+    process.stdin.on("error", (err) => {
       reject(err);
     });
   });

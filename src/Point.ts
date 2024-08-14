@@ -27,7 +27,7 @@ export function combine(points: Array<t>): t {
 }
 
 export function isEqual(a: t, b: t): boolean {
-  return (a.toHex() === b.toHex());
+  return a.toHex() === b.toHex();
 }
 
 export function isValid(p: t): boolean {
@@ -37,7 +37,7 @@ export function isValid(p: t): boolean {
     return false;
   }
   return true;
-};
+}
 
 export const g = ed25519.ExtendedPoint.BASE;
 export const zero = ed25519.ExtendedPoint.ZERO;

@@ -1,19 +1,19 @@
-import * as Trustee from './Trustee'
-import * as Point from './Point'
-import * as Question from './Question'
+import * as Trustee from "./Trustee";
+import * as Point from "./Point";
+import * as Question from "./Question";
 
 export type t = {
-  version: number,
-  description: string,
-  name: string,
-  group: string,
-  public_key: Point.Serialized.t,
-  questions: Array<Question.t>,
-  uuid: string,
+  version: number;
+  description: string;
+  name: string;
+  group: string;
+  public_key: Point.Serialized.t;
+  questions: Array<Question.t>;
+  uuid: string;
   administrator?: string;
   credential_authority?: string;
   fingerprint?: string;
-}
+};
 
 export function verify(election: t, trustees: Array<Trustee.t>) {
   const pElectionPublicKey = Point.parse(election.public_key);
@@ -40,9 +40,7 @@ export function verify(election: t, trustees: Array<Trustee.t>) {
     }
   }
 
-  if (
-    Point.serialize(pJointPublicKey) !== election.public_key
-  ) {
+  if (Point.serialize(pJointPublicKey) !== election.public_key) {
     throw new Error("Election Public Key doesn't correspond to trustees");
   }
 

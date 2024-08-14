@@ -76,8 +76,9 @@ function getPublicKey(state, ownerIndex) {
         j++
       ) {
         if (nKey === ownerIndex) {
-          return Point.parse(state.setup.payload.trustees[i][1]
-                            .verification_keys[j].public_key);
+          return Point.parse(
+            state.setup.payload.trustees[i][1].verification_keys[j].public_key,
+          );
         }
         nKey++;
       }

@@ -38,7 +38,6 @@ export type t = {
   };
 };
 
-
 export function parse(o: any): t {
   let res: any = {};
   res.owner = o.owner;

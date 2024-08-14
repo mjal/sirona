@@ -30,7 +30,11 @@ export default async function (fileEntries) {
     }
 
     for (let i = 0; i < state.partialDecryptions.length; i++) {
-      await _async(PartialDecryption.verify, state, state.partialDecryptions[i]);
+      await _async(
+        PartialDecryption.verify,
+        state,
+        state.partialDecryptions[i],
+      );
     }
 
     if (state.result) {

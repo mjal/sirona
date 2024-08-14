@@ -23,11 +23,7 @@ export type t = {
 export function verify(state: any, ballotEvent: Event.t<t>) {
   const ballot = ballotEvent.payload;
   const election = state.setup.payload.election;
-  checkMisc(
-    ballot,
-    ballotEvent.payloadHash,
-    election
-  );
+  checkMisc(ballot, ballotEvent.payloadHash, election);
   checkCredential(ballot, state.credentialsWeights);
   checkIsUnique(ballot, ballotEvent.payloadHash);
   checkSignature(ballot, election);
@@ -42,11 +38,7 @@ export function verify(state: any, ballotEvent: Event.t<t>) {
   }
 }
 
-function checkMisc(
-  ballot: t,
-  ballotPayloadHash: string,
-  election: Election.t,
-) {
+function checkMisc(ballot: t, ballotPayloadHash: string, election: Election.t) {
   const sSerializedBallot = JSON.stringify(canonicalBallot(ballot, election));
 
   if (

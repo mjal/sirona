@@ -5,15 +5,7 @@ import * as Election from "./Election";
 import * as Question from "./Question";
 import * as Ballot from "./Ballot";
 import * as Point from "./Point";
-import {
-  L,
-  mod,
-  formula2,
-  Hiprove,
-  Hbproof0,
-  Hbproof1,
-} from "./math";
-
+import { L, mod, formula2, Hiprove, Hbproof0, Hbproof1 } from "./math";
 
 export type t = {
   aeChoices: Array<Ciphertext.t>;
@@ -30,7 +22,6 @@ export namespace Serialized {
     blank_proof?: Array<Proof.Serialized.t>;
   };
 }
-
 
 export function parse(answer: Serialized.t): t {
   let obj: t = {
@@ -56,7 +47,6 @@ export function serialize(answer: t): Serialized.t {
   return obj;
 }
 
-
 export function verify(
   election: Election.t,
   ballot: Ballot.t,
@@ -71,41 +61,18 @@ export function verify(
     }
   }
 
-  if (
-    !checkIndividualProofs(
-      election,
-      ballot,
-      question,
-      answer,
-    )
-  ) {
+  if (!checkIndividualProofs(election, ballot, question, answer)) {
     throw new Error("Invalid individual proofs");
   }
   if (question.blank) {
-    if (
-      !checkBlankProof(election, ballot, question, answer)
-    ) {
+    if (!checkBlankProof(election, ballot, question, answer)) {
       throw new Error("Invalid blank proof");
     }
-    if (
-      !checkOverallProofWithBlank(
-        election,
-        ballot,
-        question,
-        answer,
-      )
-    ) {
+    if (!checkOverallProofWithBlank(election, ballot, question, answer)) {
       throw new Error("Invalid blank proof");
     }
   } else {
-    if (
-      !checkOverallProofWithoutBlank(
-        election,
-        ballot,
-        question,
-        answer,
-      )
-    ) {
+    if (!checkOverallProofWithoutBlank(election, ballot, question, answer)) {
       throw new Error("Invalid overall proof (without blank vote)");
     }
   }

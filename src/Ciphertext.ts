@@ -12,7 +12,6 @@ export namespace Serialized {
   };
 }
 
-
 export function parse(c: Serialized.t): t {
   return {
     pAlpha: Point.parse(c.alpha),
@@ -26,7 +25,6 @@ export function serialize(c: t): Serialized.t {
     beta: Point.serialize(c.pBeta),
   };
 }
-
 
 export const zero = { pAlpha: Point.zero, pBeta: Point.zero };
 
