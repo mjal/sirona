@@ -5,6 +5,7 @@ import * as Proof from "./Proof";
 import * as Answer from "./Answer";
 import * as Ballot from "./Ballot";
 import * as Credential from "./Credential";
+import canonicalBallot from "./canonicalBallot";
 import {
   g,
   L,
@@ -46,7 +47,10 @@ export default function (
     return null;
   }
 
-  const { hPublicCredential, nPrivateCredential } = Credential.derive(state.setup.payload.election.uuid, sPriv);
+  const { hPublicCredential, nPrivateCredential } = Credential.derive(
+    state.setup.payload.election.uuid,
+    sPriv,
+  );
 
   let answers: Array<Answer.AnswerH.Serialized.t> = [];
   for (let i = 0; i < choices.length; i++) {
@@ -73,7 +77,7 @@ export default function (
   };
 
   const hH = Ballot.hashWithoutSignature(
-    { payload: ballotWithoutSignature },
+    ballotWithoutSignature,
     state.setup.payload.election,
   );
 
@@ -82,7 +86,16 @@ export default function (
     signature: signature(nPrivateCredential, hH),
   };
 
-  Ballot.check(state, { payload: ballot });
+  const sSerializedBallot = JSON.stringify(
+    canonicalBallot(ballot, state.setup.payload.election),
+  );
+  const payloadHash = sjcl.codec.hex.fromBits(
+    sjcl.hash.sha256.hash(sSerializedBallot),
+  );
+  Ballot.verify(state, {
+    payload: ballot,
+    payloadHash,
+  });
 
   return ballot;
 }
@@ -95,7 +108,10 @@ function checkVotingCode(state: any, sPriv: string) {
     return false;
   }
 
-  const { hPublicCredential } = Credential.derive(state.setup.payload.election.uuid, sPriv);
+  const { hPublicCredential } = Credential.derive(
+    state.setup.payload.election.uuid,
+    sPriv,
+  );
 
   const electionPublicCredentials = state.credentialsWeights.map(
     (c: any) => c.credential,
@@ -188,7 +204,10 @@ function generateAnswerWithoutBlank(
   choices: Array<number>,
 ): Answer.AnswerH.Serialized.t {
   const pY = Point.parse(state.setup.payload.election.public_key);
-  const { hPublicCredential } = Credential.derive(state.setup.payload.election.uuid, sPriv);
+  const { hPublicCredential } = Credential.derive(
+    state.setup.payload.election.uuid,
+    sPriv,
+  );
   const { anR, aeChoices, aazIndividualProofs } = generateEncryptions(
     state,
     pY,
@@ -395,7 +414,10 @@ function generateAnswerWithBlank(
   choices: Array<number>,
 ): Answer.AnswerH.Serialized.t {
   const pY = Point.parse(state.setup.payload.election.public_key);
-  const { hPublicCredential } = Credential.derive(state.setup.payload.election.uuid, sPriv);
+  const { hPublicCredential } = Credential.derive(
+    state.setup.payload.election.uuid,
+    sPriv,
+  );
   const { anR, aeChoices, aazIndividualProofs } = generateEncryptions(
     state,
     pY,

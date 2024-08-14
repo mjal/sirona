@@ -83,10 +83,12 @@ export default function (ballot: Ballot.t, election: Election.t): Ballot.t {
     }
   }
 
-  obj["signature"] = {
-    hash: ballot.signature.hash,
-    proof: canonicalProof(ballot.signature.proof),
-  };
+  if (ballot.signature.hash) {
+    obj["signature"] = {
+      hash: ballot.signature.hash,
+      proof: canonicalProof(ballot.signature.proof),
+    };
+  }
 
   return obj;
 }
