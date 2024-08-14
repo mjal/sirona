@@ -63,9 +63,9 @@ export async function addFile(filePath, name, content) {
 
   const header = new Uint8Array(512);
   header.set(new TextEncoder().encode(padString(name, 100)), 0);
-  header.set(new TextEncoder().encode(padString(mode, 8, '0')), 100);
-  header.set(new TextEncoder().encode(padString(uid, 8, '0')), 108);
-  header.set(new TextEncoder().encode(padString(gid, 8, '0')), 116);
+  header.set(new TextEncoder().encode(padString(mode, 8, "0")), 100);
+  header.set(new TextEncoder().encode(padString(uid, 8, "0")), 108);
+  header.set(new TextEncoder().encode(padString(gid, 8, "0")), 116);
   header.set(new TextEncoder().encode(toOctalString(size, 12)), 124);
   header.set(new TextEncoder().encode(toOctalString(mtime, 12)), 136);
   header.set(new TextEncoder().encode("        "), 148);
@@ -97,10 +97,12 @@ function readString(buffer, start, length) {
     .trim();
 }
 
-function padString(str, length, padChar = '\0') {
-  return str.length >= length ? str.slice(0, length) : str + padChar.repeat(length - str.length);
+function padString(str, length, padChar = "\0") {
+  return str.length >= length
+    ? str.slice(0, length)
+    : str + padChar.repeat(length - str.length);
 }
 
 function toOctalString(value, length) {
-  return padString(value.toString(8), length, '0');
+  return padString(value.toString(8), length, "0");
 }
