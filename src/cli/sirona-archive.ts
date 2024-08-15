@@ -2,7 +2,7 @@ import { Command } from "commander";
 import sjcl from "sjcl";
 import * as Archive from "../Archive";
 import * as Event from "../Event";
-import fs from "fs";
+import { readStdin } from "../utils";
 
 const program = new Command();
 
@@ -16,10 +16,10 @@ program
     const lastEvent = files
       .reverse()
       .find((file: any) => file.name.split(".")[1] === "event");
-    const lastEventHash = lastEvent ? lastEvent.name.split(".")[0] : "";
+    const lastEventHash = lastEvent.name.split(".")[0];
 
-    var stdin = fs.readFileSync(0);
-    const lines = stdin.toString().split("\n").filter((line) => line.length > 0);
+    const data = await readStdin();
+    const lines = data.toString().split("\n").filter((line) => line.length > 0);
     let fileHash = "";
     for (let i = 0; i < lines.length; i++) {
       const payload = lines[i];
