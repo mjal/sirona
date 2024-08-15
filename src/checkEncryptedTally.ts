@@ -3,7 +3,8 @@ import * as Ciphertext from "./Ciphertext";
 
 export default function (state: any): boolean {
   const election = state.setup.payload.election;
-  const ballots = state.ballots.filter((ballot: any) => ballot.accepted);
+  let ballots = state.ballots.filter((ballot: any) => ballot.accepted);
+
   const encryptedTally = [];
   for (let i = 0; i < election.questions.length; i++) {
     const question = election.questions[i];
@@ -18,7 +19,11 @@ export default function (state: any): boolean {
         );
       });
     } else if (Question.IsQuestionNH(question)) {
-      throw new Error("Unimplemented");
+      if (state.shuffles.length === 0) {
+        throw new Error("No shuffles found");
+      } else {
+        row = [];
+      }
     } else {
       throw new Error("Unsupported question type");
     }
@@ -28,8 +33,8 @@ export default function (state: any): boolean {
   for (let n = 0; n < ballots.length; n++) {
     for (let j = 0; j < election.questions.length; j++) {
       const question = election.questions[j];
+      const answer = ballots[n].payload.answers[j];
       if (Question.IsQuestionH(question)) {
-        const answer = ballots[n].payload.answers[j];
         for (let k = 0; k < encryptedTally[j].length; k++) {
           const ct = Ciphertext.parse(answer.choices[k]);
           const weight = state.credentialsWeights.find(
@@ -45,7 +50,6 @@ export default function (state: any): boolean {
           };
         }
       } else if (Question.IsQuestionL(question)) {
-        const answer = ballots[n].payload.answers[j];
         for (let k = 0; k < encryptedTally[j].length; k++) {
           for (let l = 0; l < encryptedTally[j][k].length; l++) {
             const ct = Ciphertext.parse(answer.choices[k][l]);
@@ -63,10 +67,16 @@ export default function (state: any): boolean {
           }
         }
       } else if (Question.IsQuestionNH(question)) {
-        throw new Error("Unimplemented");
+        encryptedTally[j].push(answer.choices);
       } else {
         throw new Error("Unsupported question type");
       }
+    }
+  }
+
+  for (let j = 0; j < election.questions.length; j++) {
+    if (Question.IsQuestionNH(election.questions[j])) {
+      encryptedTally[j].sort()
     }
   }
 
@@ -79,9 +89,7 @@ export default function (state: any): boolean {
           Ciphertext.Serialized.toString(et[i][j]) !==
           Ciphertext.toString(encryptedTally[i][j])
         ) {
-          throw new Error(
-            "Encrypted tally microballot does not correspond to the weighted sum of all ballots",
-          );
+          throw new Error("Incorrect encrypted tally");
         }
       }
     } else if (Question.IsQuestionL(question)) {
@@ -92,13 +100,22 @@ export default function (state: any): boolean {
             Ciphertext.toString(encryptedTally[i][j][k])
           ) {
             throw new Error(
-              "Encrypted tally microballot does not correspond to the weighted sum of all ballots",
+              "Incorrect encrypted tally",
             );
           }
         }
       }
     } else if (Question.IsQuestionNH(question)) {
-      throw new Error("Unimplemented");
+      const a = et[i].slice().sort((e1, e2) => e1.alpha > e2.alpha);
+      const b = encryptedTally[i].slice().sort((e1, e2) => e1.alpha > e2.alpha);
+      if (a.length !== b.length) {
+        throw new Error("Incorrect encrypted tally");
+      }
+      for (let j = 0; j < a.length; j++) {
+        if (a.alpha !== b.alpha || a.beta !== b.beta) {
+          throw new Error("Incorrect encrypted tally");
+        }
+      }
     } else {
       throw new Error("Unsupported question type");
     }
