@@ -1,4 +1,5 @@
-import fs from "fs";
+#!/usr/bin/env node
+
 import { execSync } from "child_process";
 import { Command } from "commander";
 import * as Archive from "../Archive";
