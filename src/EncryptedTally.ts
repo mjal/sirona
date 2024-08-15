@@ -58,7 +58,7 @@ export function verify(
       const a = encryptedTally.encrypted_tally[i]
         .slice()
         .sort((e1, e2) => e1.alpha > e2.alpha);
-      const b = recomputedEncryptedTally.encryptedTally[i]
+      const b = recomputedEncryptedTally.encrypted_tally[i]
         .slice()
         .sort((e1, e2) => e1.alpha > e2.alpha);
       if (a.length !== b.length) {
