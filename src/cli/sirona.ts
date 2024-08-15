@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import sjcl from "sjcl";
 import { Command } from "commander";
 import { readStdin } from "../utils";
