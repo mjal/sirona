@@ -16,7 +16,7 @@ program.command("generate-token").action(() => {
 
 program
   .command("generate-credentials")
-  .option(
+  .requiredOption(
     "--file <FILE>",
     "Read  identities  from  FILE.  One credential will be generated for each line of FILE.",
   )

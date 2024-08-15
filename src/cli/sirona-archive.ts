@@ -8,8 +8,8 @@ const program = new Command();
 
 program
   .command("add-event")
-  .option("--type <TYPE>", "Type of event.")
-  .option("--uuid <UUID>")
+  .requiredOption("--type <TYPE>", "Type of event.")
+  .requiredOption("--uuid <UUID>")
   .action(async (options) => {
     const archiveFilename = options.uuid + ".bel";
     const files = await Archive.readFile(archiveFilename);
