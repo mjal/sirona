@@ -2,7 +2,7 @@ import { log } from "./logger";
 import { _async } from "./utils";
 import load from "./load";
 import checkFiles from "./checkFiles";
-import checkEncryptedTally from "./checkEncryptedTally";
+import * as EncryptedTally from "./EncryptedTally";
 import * as Setup from "./Setup";
 import * as Ballot from "./Ballot";
 import * as Shuffle from "./Shuffle";
@@ -21,7 +21,8 @@ export default async function (fileEntries) {
     }
 
     if (!state.encryptedTally) return state;
-    await _async(checkEncryptedTally, state);
+
+    await _async(EncryptedTally.verify, state.setup.payload.election, state.encryptedTally.payload, state.ballots, state.setup.payload.credentials);
 
     let tally = state.encryptedTally.payload.encrypted_tally;
     for (let i = 0; i < state.shuffles.length; i++) {

@@ -74,12 +74,6 @@ export default function (state: any): boolean {
     }
   }
 
-  for (let j = 0; j < election.questions.length; j++) {
-    if (Question.IsQuestionNH(election.questions[j])) {
-      encryptedTally[j].sort()
-    }
-  }
-
   const et = state.encryptedTally.payload.encrypted_tally;
   for (let i = 0; i < election.questions.length; i++) {
     const question = election.questions[i];
