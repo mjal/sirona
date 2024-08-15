@@ -5,7 +5,6 @@ export type t<T> = {
   payload: T;
   payloadHash?: string;
   tracker?: string;
-  accepted?: boolean;
 };
 
 type event_type =
