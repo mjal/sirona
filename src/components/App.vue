@@ -35,7 +35,7 @@ const onUploadedFile = (event) => {
 };
 
 const goToBallotList = () => {
-  UIkit.tab(document.querySelector(".uk-tab")).show(1);
+  window.UIkit.tab(document.querySelector(".uk-tab")).show(1);
 };
 </script>
 
