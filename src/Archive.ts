@@ -54,30 +54,30 @@ export function read(data) {
 }
 
 export async function addFile(filePath, name, content) {
-  const size = content.length;
-  const mode = "0000777";
+  const mode = "0000644";
   const uid = "0000000";
   const gid = "0000000";
-  const mtime = toOctalString(Math.floor(Date.now() / 1000), 11);
+  const size = content.length.toString(8).padStart(11, '0');
+  const mtime = Math.floor(Date.now() / 1000).toString(8).padStart(11, '0');
   const type = "0";
 
   const header = new Uint8Array(512);
   header.set(new TextEncoder().encode(padString(name, 100)), 0);
-  header.set(new TextEncoder().encode(padString(mode, 8, "0")), 100);
-  header.set(new TextEncoder().encode(padString(uid, 8, "0")), 108);
-  header.set(new TextEncoder().encode(padString(gid, 8, "0")), 116);
-  header.set(new TextEncoder().encode(toOctalString(size, 12)), 124);
-  header.set(new TextEncoder().encode(toOctalString(mtime, 12)), 136);
+  header.set(new TextEncoder().encode(padString(mode, 8)), 100);
+  header.set(new TextEncoder().encode(padString(uid, 8)), 108);
+  header.set(new TextEncoder().encode(padString(gid, 8)), 116);
+  header.set(new TextEncoder().encode(padString(size, 12)), 124);
+  header.set(new TextEncoder().encode(padString(mtime, 12)), 136);
   header.set(new TextEncoder().encode("        "), 148);
   header.set(new TextEncoder().encode(type), 156);
   header.set(new TextEncoder().encode(padString("", 100)), 157);
-  header.set(new TextEncoder().encode(padString("ustar", 6)), 257);
+  header.set(new TextEncoder().encode(padString("", 6)), 257);
 
   let nChecksum = 0;
   for (let i = 0; i < 512; i++) {
     nChecksum += header[i];
   }
-  const checksum = toOctalString(nChecksum, 6) + "\0 ";
+  const checksum = nChecksum.toString(8).padStart(6, '0') + "\0 ";
   header.set(new TextEncoder().encode(checksum), 148);
 
   const contentBuffer = new TextEncoder().encode(content);
@@ -103,6 +103,10 @@ function padString(str, length, padChar = "\0") {
     : str + padChar.repeat(length - str.length);
 }
 
-function toOctalString(value, length) {
-  return padString(value.toString(8), length, "0");
+function toOctalString(value, length, padChar = "\0") {
+  const str = value.toString(8);
+
+  return str.length >= length
+    ? str.slice(0, length)
+    : padChar.repeat(length - str.length) + str;
 }
