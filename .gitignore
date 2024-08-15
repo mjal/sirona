@@ -2,3 +2,4 @@ node_modules/
 public/*.bel
 public/tmp/
 tests/*.bel
+dist/

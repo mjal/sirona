@@ -3,9 +3,9 @@ export type t<T> = {
   height: number;
   type: event_type;
   payload: T;
-  payloadHash: string;
-  tracker: string;
-  accepted: boolean;
+  payloadHash?: string;
+  tracker?: string;
+  accepted?: boolean;
 };
 
 type event_type =

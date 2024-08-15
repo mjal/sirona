@@ -15,8 +15,8 @@ program
     const files = await Archive.readFile(archiveFilename);
     const lastEvent = files
       .reverse()
-      .find((file) => file.name.split(".")[1] === "event");
-    const lastEventHash = lastEvent.name.split(".")[0];
+      .find((file: any) => file.name.split(".")[1] === "event");
+    const lastEventHash = lastEvent ? lastEvent.name.split(".")[0] : "";
 
     var stdin = fs.readFileSync(0);
     const lines = stdin.toString().split("\n").filter((line) => line.length > 0);

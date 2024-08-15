@@ -93,6 +93,9 @@ export default function (
     sjcl.hash.sha256.hash(sSerializedBallot),
   );
   Ballot.verify(state, {
+    parent: "",
+    height: 0,
+    type: "Ballot",
     payload: ballot,
     payloadHash,
   });

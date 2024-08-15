@@ -1,6 +1,5 @@
 {
   "name": "sirona",
-  "private": true,
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
@@ -10,6 +9,9 @@
     "cli": "node -r ts-node/register src/cli/sirona.ts",
     "test": "sh tests/test.sh",
     "prepare": "husky install"
+  },
+  "bin": {
+    "sirona": "./dist/cli/sirona.js"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
