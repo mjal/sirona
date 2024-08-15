@@ -14,11 +14,10 @@ program
   .command("election", "Election related commands")
   .command("archive", "Archive related commands");
 
-program.command("sha256-b64").action(() => {
-  readStdin().then((data: any) => {
-    const hash = sjcl.codec.base64.fromBits(sjcl.hash.sha256.hash(data));
-    console.log(hash);
-  });
+program.command("sha256-b64").action(async () => {
+  const data = await readStdin();
+  const hash = sjcl.codec.base64.fromBits(sjcl.hash.sha256.hash(data));
+  console.log(hash);
 });
 
 program.parseAsync(process.argv);
