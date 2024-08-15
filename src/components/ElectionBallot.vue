@@ -1,7 +1,15 @@
 <script setup>
+import EncryptedTally from "../EncryptedTally";
+
 const props = defineProps(["state", "ballot"]);
 const ballot = props.ballot;
 const isTallied = !!props.state.encryptedTally;
+const isAccepted = computed(() => {
+  if (!isTallied) {
+    return false;
+  }
+  return EncryptedTally.keepLastBallots(props.state.ballots).find((e) => e.payloadHash === ballot.payloadHash);
+});
 </script>
 
 <template>
