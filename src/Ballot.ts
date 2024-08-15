@@ -24,7 +24,7 @@ export function verify(state: any, ballotEvent: Event.t<t>) {
   const ballot = ballotEvent.payload;
   const election = state.setup.payload.election;
   checkMisc(ballot, ballotEvent.payloadHash, election);
-  checkCredential(ballot, state.credentialsWeights);
+  checkCredential(ballot, state.setup.payload.credentials);
   checkIsUnique(ballot, ballotEvent.payloadHash);
   checkSignature(ballot, election);
 
@@ -67,10 +67,8 @@ export function hashWithoutSignature(ballot: t, election: Election.t) {
   return hash.replace(/=+$/, "");
 }
 
-function checkCredential(ballot: t, credentialsWeights: any) {
-  const credentials = credentialsWeights.map((cw) => cw.credential);
-
-  if (credentials.indexOf(ballot.credential) === -1) {
+function checkCredential(ballot: t, credentials: string[]) {
+  if (credentials.map((line) => line.split(",")[0]).indexOf(ballot.credential) === -1) {
     throw new Error("Credential is not valid");
   }
 }

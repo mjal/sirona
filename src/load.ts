@@ -71,15 +71,6 @@ export default function (fileEntries) {
   }
 
   // Helpers
-  // Parse weights associated with each credential
-  state.credentialsWeights = state.setup.payload.credentials
-    .map((line) => line.split(","))
-    .map((fields) => {
-      return {
-        credential: fields[0],
-        weight: fields[1] ? parseInt(fields[1]) : 1,
-      };
-    });
 
   // Associate owner index to trustees index and sub-index if pedersen
   state.ownerToTrusteeIndex = [

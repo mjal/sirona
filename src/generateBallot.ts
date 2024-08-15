@@ -116,16 +116,15 @@ function checkVotingCode(state: any, sPriv: string) {
     sPriv,
   );
 
-  const electionPublicCredentials = state.credentialsWeights.map(
-    (c: any) => c.credential,
+  const electionPublicCredentials = state.setup.payload.credentials.map(
+    (line: string) => line.split(",")[0],
   );
 
-  if (electionPublicCredentials.includes(hPublicCredential)) {
-    return true;
-  } else {
+  if (!electionPublicCredentials.includes(hPublicCredential)) {
     throw "Invalid credential.";
-    return false;
   }
+
+  return true;
 }
 
 function iproof(
