@@ -33,10 +33,6 @@ const onUploadedFile = (event) => {
   };
   reader.readAsArrayBuffer(event.target.files[0]);
 };
-
-const goToBallotList = () => {
-  window.UIkit.tab(document.querySelector(".uk-tab")).show(1);
-};
 </script>
 
 <template>
@@ -73,14 +69,6 @@ const goToBallotList = () => {
     <div id="alerts"></div>
 
     <div id="actions" class="uk-margin" v-if="loaded">
-      <button
-        id="find-your-ballot"
-        class="uk-button uk-button-default"
-        type="button"
-        @click="goToBallotList"
-      >
-        Find your ballot
-      </button>
       <button
         uk-toggle="target: #generate-ballot-modal"
         class="uk-button uk-button-default"
