@@ -21,7 +21,10 @@ program
     const lastEventHash = lastEvent.name.split(".")[0];
 
     const data = await readStdin();
-    const lines = data.toString().split("\n").filter((line) => line.length > 0);
+    const lines = data
+      .toString()
+      .split("\n")
+      .filter((line) => line.length > 0);
     let fileHash = "";
     for (let i = 0; i < lines.length; i++) {
       const payload = lines[i];

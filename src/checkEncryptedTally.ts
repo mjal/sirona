@@ -93,9 +93,7 @@ export default function (state: any): boolean {
             Ciphertext.Serialized.toString(et[i][j][k]) !==
             Ciphertext.toString(encryptedTally[i][j][k])
           ) {
-            throw new Error(
-              "Incorrect encrypted tally",
-            );
+            throw new Error("Incorrect encrypted tally");
           }
         }
       }

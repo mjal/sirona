@@ -60,7 +60,7 @@ program
       }
     };
 
-    let uuid = options.uuid
+    let uuid = options.uuid;
     if (options.url) {
       let baseUrl = "";
       const path = options.url.split("/");
@@ -73,7 +73,7 @@ program
         uuid = last.split(".")[0];
       } else {
         baseUrl = path.join("/");
-        uuid = last
+        uuid = last;
       }
 
       console.log(`Downloading ${baseUrl}/${uuid}.bel...`);

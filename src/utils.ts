@@ -16,7 +16,7 @@ export function error(str: string) {
   throw new Error(str);
 }
 
-export function readStdin() : Promise<string> {
+export function readStdin(): Promise<string> {
   return new Promise((resolve, reject) => {
     let data = "";
 

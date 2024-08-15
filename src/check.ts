@@ -22,7 +22,13 @@ export default async function (fileEntries) {
 
     if (!state.encryptedTally) return state;
 
-    await _async(EncryptedTally.verify, state.setup.payload.election, state.encryptedTally.payload, state.ballots, state.setup.payload.credentials);
+    await _async(
+      EncryptedTally.verify,
+      state.setup.payload.election,
+      state.encryptedTally.payload,
+      state.ballots,
+      state.setup.payload.credentials,
+    );
 
     let tally = state.encryptedTally.payload.encrypted_tally;
     for (let i = 0; i < state.shuffles.length; i++) {

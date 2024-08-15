@@ -8,7 +8,9 @@ const isAccepted = computed(() => {
   if (!isTallied) {
     return false;
   }
-  return EncryptedTally.keepLastBallots(props.state.ballots).find((e) => e.payloadHash === ballot.payloadHash);
+  return EncryptedTally.keepLastBallots(props.state.ballots).find(
+    (e) => e.payloadHash === ballot.payloadHash,
+  );
 });
 </script>
 

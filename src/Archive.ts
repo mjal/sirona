@@ -57,8 +57,10 @@ export async function addFile(filePath, name, content) {
   const mode = "0000644";
   const uid = "0000000";
   const gid = "0000000";
-  const size = content.length.toString(8).padStart(11, '0');
-  const mtime = Math.floor(Date.now() / 1000).toString(8).padStart(11, '0');
+  const size = content.length.toString(8).padStart(11, "0");
+  const mtime = Math.floor(Date.now() / 1000)
+    .toString(8)
+    .padStart(11, "0");
   const type = "0";
 
   const header = new Uint8Array(512);
@@ -77,7 +79,7 @@ export async function addFile(filePath, name, content) {
   for (let i = 0; i < 512; i++) {
     nChecksum += header[i];
   }
-  const checksum = nChecksum.toString(8).padStart(6, '0') + "\0 ";
+  const checksum = nChecksum.toString(8).padStart(6, "0") + "\0 ";
   header.set(new TextEncoder().encode(checksum), 148);
 
   const contentBuffer = new TextEncoder().encode(content);
