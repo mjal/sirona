@@ -1,10 +1,12 @@
-# Sirona 🎑
+# Sirona (yet another tool for Belenios elections) 🎑
 
-## An external tool to interact with Belenios elections
+## Disclaimer
 
-Focus on a subset of belenios protocol version 2.5
+Experimental. Implement a subset of belenios protocol 2.5.0. Only support ed25519.
 
-For exemple, we only support the latest recommended settings (including only the ed25519 group)
+## Without install
+
+`npx sirona election verify --url https://vote.server.org/elections/MyElectionUuid`
 
 ## Install
 
@@ -14,17 +16,22 @@ For exemple, we only support the latest recommended settings (including only the
 
 `npm run dev`
 
+TODO: Add screenshots
+
 ## Usage (cli)
 
-`npm run cli`
+`npm run cli -- COMMAND [ARGS]`
 
-Two commands implemented:
+### Supported commands
 
-`ts-node src/cli.ts election verify`
+  - setup generate-token
+  - setup generate-credentials
+  - election verify
+  - election generate-ballot
+  - archive add-event
+  - sha256-b64
 
-`ts-node src/cli.ts election generate-ballot`
-
-## Roadmap
+## Features
 
 - [x] A.1.1 Verify homomorpic questions without blank vote
 - [x] A.1.2 Verify homomorpic questions with blank vote
