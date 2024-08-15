@@ -4,7 +4,8 @@ check_errors() {
     local f="$1"
     local output
 
-    output=$(node -r ts-node/register src/cli/sirona.ts election verify $f)
+    uuid=$(basename $f '.bel')
+    output=$(node -r ts-node/register ../src/cli/sirona.ts election verify --uuid $uuid)
 
     if echo "$output" | grep -q "0 errors found."; then
         echo "PASS: $f"
@@ -14,6 +15,7 @@ check_errors() {
 }
 
 # Loop through each .bel files in tests and check for errors
-for f in tests/*.bel; do
+cd tests
+for f in *.bel; do
     check_errors "$f"
 done

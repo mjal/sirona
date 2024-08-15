@@ -10,9 +10,9 @@ const program = new Command();
 
 program
   .command("verify")
-  .argument("<filename>", "database file (.bel)")
+  .option("--uuid <UUID>", "database file (.bel)")
   .option("-q, --quiet", "only show the final result")
-  .action(async function (filename, options) {
+  .action(async function (options) {
     const checkFile = async (filePath) => {
       const files = await Archive.readFile(filePath);
       const state = await check(files);
@@ -57,7 +57,7 @@ program
       }
     };
 
-    await checkFile(filename);
+    await checkFile(options.uuid + ".bel");
     console.log(`${errors} errors found.`);
 
     process.exit(errors > 0 ? 1 : 0);
