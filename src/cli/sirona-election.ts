@@ -1,4 +1,5 @@
 import fs from "fs";
+import { execSync } from "child_process";
 import { Command } from "commander";
 import * as Archive from "../Archive";
 import generateBallot from "../generateBallot";
@@ -11,6 +12,7 @@ const program = new Command();
 program
   .command("verify")
   .option("--uuid <UUID>", "database file (.bel)")
+  .option("--url <URL>", "Download election files from URL")
   .option("-q, --quiet", "only show the final result")
   .action(async function (options) {
     const checkFile = async (filePath) => {
@@ -57,7 +59,28 @@ program
       }
     };
 
-    await checkFile(options.uuid + ".bel");
+    let uuid = options.uuid
+    if (options.url) {
+      let baseUrl = "";
+      const path = options.url.split("/");
+      if (path[path.length - 1] === "") {
+        path.pop();
+      }
+      const last = path[path.length - 1];
+      if (last.split(".").length === 2 && last.split(".")[1] === "bel") {
+        baseUrl = path.slice(0, -1).join("/");
+        uuid = last.split(".")[0];
+      } else {
+        baseUrl = path.join("/");
+        uuid = last
+      }
+
+      console.log(`Downloading ${baseUrl}/${uuid}.bel...`);
+      execSync(`wget -r -np -nH -nd -P . ${baseUrl}/${uuid}.bel`);
+    }
+
+    console.log(`Checking ${uuid}.bel...`);
+    await checkFile(uuid + ".bel");
     console.log(`${errors} errors found.`);
 
     process.exit(errors > 0 ? 1 : 0);
