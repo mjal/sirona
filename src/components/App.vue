@@ -9,7 +9,7 @@ import ElectionBallotList from "./ElectionBallotList.vue";
 import GenerateBallotModal from "./GenerateBallotModal.vue";
 import { getLogs, getBallotLogs } from "../logger";
 
-import { Archive } from "../Archive";
+import * as Archive from "../Archive";
 
 const state = ref({});
 const logs = ref([]);
