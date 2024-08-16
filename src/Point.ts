@@ -34,18 +34,20 @@ export function isEqual(a: t, b: t): boolean {
 export function check(p: t): boolean {
   let a = mod(-1n, q);
   let d = mod(-(121665n * modInverse(121666n, q)), q);
-  let curve = (p: t) : bigint => {
+  let curve = (p: t): bigint => {
     let x2 = p.ex * p.ex;
     let y2 = p.ey * p.ey;
     let z2 = p.ez * p.ez;
     let t2 = p.et * p.et;
-    return mod((a * x2) + y2 - z2 - (d * t2), q);
-  }
+    return mod(a * x2 + y2 - z2 - d * t2, q);
+  };
 
-  return p.ez !== 0n
-    && mod(p.ex * p.ey, q) === mod(p.ez * p.et, q)
-    && curve(p) === 0n
-    && isEqual(p.multiply(L-1n).add(p), zero)
+  return (
+    p.ez !== 0n &&
+    mod(p.ex * p.ey, q) === mod(p.ez * p.et, q) &&
+    curve(p) === 0n &&
+    isEqual(p.multiply(L - 1n).add(p), zero)
+  );
 }
 
 export function isValid(p: t): boolean {
@@ -70,8 +72,7 @@ export function of_ints(xs: number[]) {
     const x = xs[i] & mask;
     res = (res << bits_per_int) + BigInt(x);
   }
-  res = (res << padding);
-
+  res = res << padding;
 
   let found = false;
   while (!found) {

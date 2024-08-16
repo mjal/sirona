@@ -68,7 +68,10 @@ export function hashWithoutSignature(ballot: t, election: Election.t) {
 }
 
 function checkCredential(ballot: t, credentials: string[]) {
-  if (credentials.map((line) => line.split(",")[0]).indexOf(ballot.credential) === -1) {
+  if (
+    credentials.map((line) => line.split(",")[0]).indexOf(ballot.credential) ===
+    -1
+  ) {
     throw new Error("Credential is not valid");
   }
 }

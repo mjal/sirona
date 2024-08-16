@@ -29,7 +29,8 @@ export function verify(state: any): boolean {
       if (state.shuffles.length === 0) {
         throw "No shuffles found !";
       } else {
-        const answers = state.shuffles[state.shuffles.length - 1].payload.payload.ciphertexts;
+        const answers =
+          state.shuffles[state.shuffles.length - 1].payload.payload.ciphertexts;
         for (let j = 0; j < res[i].length; j++) {
           const encodedRes = Point.of_ints(res[i][j]);
           if (!verifyNH(answers[i][j], df[i][j], encodedRes)) {
@@ -59,10 +60,15 @@ function verifyNH(et: any, df: any, encodedRes: any) {
   const pBeta = Point.parse(et.beta);
   let pResult = pBeta.add(df.negate());
   // WARN: Workaround for a difference in Point.check compared to Belenios
-  if (Point.serialize(encodedRes) === "0000000000000000000000000000000000000000000000000000000000000000") {
-    encodedRes = Point.parse("0000000000000000000000000000000000000000000000000000000000000001");
+  if (
+    Point.serialize(encodedRes) ===
+    "0000000000000000000000000000000000000000000000000000000000000000"
+  ) {
+    encodedRes = Point.parse(
+      "0000000000000000000000000000000000000000000000000000000000000001",
+    );
   }
-  return (Point.isEqual(pResult, encodedRes));
+  return Point.isEqual(pResult, encodedRes);
 }
 
 function getDecryptionFactors(state) {
@@ -75,10 +81,16 @@ function getDecryptionFactors(state) {
       row = Array.from({ length: question.answers.length }, () => Point.zero);
     } else if (Question.IsQuestionL(election.questions[i])) {
       row = [...Array(question.value.answers.length).keys()].map((_, i) => {
-        return Array.from({ length: question.value.answers[i].length }, () => Point.zero);
+        return Array.from(
+          { length: question.value.answers[i].length },
+          () => Point.zero,
+        );
       });
     } else if (Question.IsQuestionNH(question)) {
-      row = Array.from({ length: state.encryptedTally.payload.num_tallied }, () => Point.zero);
+      row = Array.from(
+        { length: state.encryptedTally.payload.num_tallied },
+        () => Point.zero,
+      );
       //throw new Error("Not Implemented");
     } else {
       throw new Error("Unknown question type");
