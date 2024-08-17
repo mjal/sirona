@@ -8,6 +8,7 @@ import * as Ballot from "./Ballot";
 import * as Shuffle from "./Shuffle";
 import * as PartialDecryption from "./PartialDecryption";
 import * as Result from "./Result";
+import * as Ciphertext from "./Ciphertext";
 
 export default async function (fileEntries) {
   try {
@@ -30,10 +31,13 @@ export default async function (fileEntries) {
       state.setup.credentials,
     );
 
-    let tally = state.encryptedTally.payload.encrypted_tally;
+    let tally = state.encryptedTally.payload.encrypted_tally.map((xs) => {
+      return xs.map(Ciphertext.parse);
+    });
+
     for (let i = 0; i < state.shuffles.length; i++) {
       await _async(Shuffle.verify, state, state.shuffles[i], tally);
-      tally = state.shuffles[i].payload.payload.ciphertexts;
+      tally = state.shuffles[i].payload.ciphertexts;
     }
 
     for (let i = 0; i < state.partialDecryptions.length; i++) {

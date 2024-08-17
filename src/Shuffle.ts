@@ -1,4 +1,3 @@
-import * as Event from "./Event";
 import * as Point from "./Point";
 import * as Question from "./Question";
 import * as Election from "./Election";
@@ -74,11 +73,10 @@ export function parse(o: any): t {
 
 export function verify(
   state: any,
-  ballotEvent: Event.t<t>,
-  tally: Array<Array<Ciphertext.Serialized.t>>,
+  shuffle: t,
+  tally: Array<Array<Ciphertext.t>>,
 ): boolean {
   const election = state.setup.election;
-  const shuffle = parse(ballotEvent.payload);
   const y = Point.parse(election.public_key);
   for (let i = 0; i < election.questions.length; i++) {
     const question = election.questions[i];
@@ -104,7 +102,7 @@ function hasDuplicates(array: any) {
 
 function CheckShuffleProof(
   election: Election.t,
-  input: Array<Ciphertext.Serialized.t>,
+  input: Array<Ciphertext.t>,
   output: Array<Ciphertext.t>,
   proof: shuffle_proof,
 ) {
@@ -131,7 +129,7 @@ function CheckShuffleProof(
 
   const str_c =
     "" +
-    input.map(Ciphertext.Serialized.toString).join(",") +
+    input.map(Ciphertext.toString).join(",") +
     "," +
     output.map(Ciphertext.toString).join(",") +
     "," +
@@ -163,10 +161,10 @@ function CheckShuffleProof(
   const c_tilde = Point.combine(cc.map((ci, i) => ci.multiply(uu[i])));
 
   const alpha_prime = Point.combine(
-    input.map((ei, i) => Ciphertext.parse(ei).pAlpha.multiply(uu[i])),
+    input.map((ei, i) => ei.pAlpha.multiply(uu[i])),
   );
   const beta_prime = Point.combine(
-    input.map((ei, i) => Ciphertext.parse(ei).pBeta.multiply(uu[i])),
+    input.map((ei, i) => ei.pBeta.multiply(uu[i])),
   );
 
   const t1_prime = c_bar.multiply(c).negate().add(g.multiply(s1));

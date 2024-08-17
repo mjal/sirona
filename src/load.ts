@@ -1,4 +1,5 @@
 import sjcl from "sjcl";
+import * as Shuffle from "./Shuffle";
 
 export default function (fileEntries) {
   const state: any = {};
@@ -31,9 +32,9 @@ export default function (fileEntries) {
   });
 
   state.shuffles = findEvents(state.files, "Shuffle").map((shuffle) => {
-    shuffle.payload = findData(state.files, shuffle.payload);
-    shuffle.payload.payload = findData(state.files, shuffle.payload.payload);
-    return shuffle;
+    const ret = findData(state.files, shuffle.payload);
+    ret.payload = findData(state.files, ret.payload);
+    return Shuffle.parse(ret);
   });
 
   state.encryptedTally = findEvent(state.files, "EncryptedTally");

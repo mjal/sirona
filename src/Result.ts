@@ -1,6 +1,7 @@
 import { g, L, zero, mod, modInverse } from "./math";
 import * as Point from "./Point";
 import * as Question from "./Question";
+import * as Ciphertext from "./Ciphertext";
 
 export type t = Array<Array<number>>;
 
@@ -30,7 +31,7 @@ export function verify(state: any): boolean {
         throw "No shuffles found !";
       } else {
         const answers =
-          state.shuffles[state.shuffles.length - 1].payload.payload.ciphertexts;
+          state.shuffles[state.shuffles.length - 1].payload.ciphertexts;
         for (let j = 0; j < res[i].length; j++) {
           const encodedRes = Point.of_ints(res[i][j]);
           if (!verifyNH(answers[i][j], df[i][j], encodedRes)) {
@@ -56,9 +57,8 @@ function verifyOne(et: any, df: any, res: any) {
   );
 }
 
-function verifyNH(et: any, df: any, encodedRes: any) {
-  const pBeta = Point.parse(et.beta);
-  let pResult = pBeta.add(df.negate());
+function verifyNH(et: Ciphertext.t, df: Point.t, encodedRes: any) {
+  let pResult = et.pBeta.add(df.negate());
   // WARN: Workaround for a difference in Point.check compared to Belenios
   if (
     Point.serialize(encodedRes) ===
@@ -112,7 +112,6 @@ function getDecryptionFactors(state) {
       if (partialDecryption === null) {
         throw new Error(`No partial decryption found for trustee ${i}`);
       }
-      //console.log(partialDecryption.payload.payload.decryption_factors);
       df = multiplyDfPow(df, parseDf(partialDecryption), 1);
     } else {
       // Pedersen
