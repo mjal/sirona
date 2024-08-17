@@ -16,11 +16,11 @@ export type t = {
 export function verify(
   election: Election.t,
   encryptedTally: t,
-  ballots: Event.t<Ballot.t>[],
+  ballots: Ballot.t[],
   credentials: string[],
 ) {
   let talliedBallots = keepLastBallots(ballots);
-  const recomputedEncryptedTally = recomputeEncryptedTally(
+  const recomputedEncryptedTally = compute(
     election,
     talliedBallots,
     credentials,
@@ -91,17 +91,17 @@ export function keepLastBallots(ballots: Event.t<Ballot.t>[]) {
   let ret = [];
   let ballotByCredential = {};
   for (let i = ballots.length - 1; i >= 0; i--) {
-    if (!ballotByCredential[ballots[i].payload.credential]) {
+    if (!ballotByCredential[ballots[i].credential]) {
       ret.push(ballots[i]);
-      ballotByCredential[ballots[i].payload.credential] = true;
+      ballotByCredential[ballots[i].credential] = true;
     }
   }
   return ret.reverse();
 }
 
-function recomputeEncryptedTally(
+export function compute(
   election: Election.t,
-  ballots: Event.t<Ballot.t>[],
+  ballots: Ballot.t[],
   credentials: string[],
 ) {
   let encryptedTally: t = {
@@ -112,7 +112,7 @@ function recomputeEncryptedTally(
 
   encryptedTally.total_weight = ballots.reduce((acc, ballot) => {
     const credential = credentials.find(
-      (line) => line.split(",")[0] === ballot.payload.credential,
+      (line) => line.split(",")[0] === ballot.credential,
     );
     const weight = credential.includes(",")
       ? Number(credential.split(",")[1])
@@ -142,14 +142,14 @@ function recomputeEncryptedTally(
 
   for (let n = 0; n < ballots.length; n++) {
     const credential = credentials.find(
-      (line) => line.split(",")[0] === ballots[n].payload.credential,
+      (line) => line.split(",")[0] === ballots[n].credential,
     );
     const weight = credential.includes(",")
       ? Number(credential.split(",")[1])
       : 1;
     for (let j = 0; j < election.questions.length; j++) {
       const question = election.questions[j];
-      const answer = ballots[n].payload.answers[j];
+      const answer = ballots[n].answers[j];
       if (Question.IsQuestionH(question)) {
         for (let k = 0; k < encryptedTally.encrypted_tally[j].length; k++) {
           const ct = Ciphertext.parse(answer.choices[k]);

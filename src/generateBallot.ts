@@ -80,7 +80,7 @@ export default function (
     state.setup.payload.election,
   );
 
-  const ballot = {
+  const ballot : Ballot.t = {
     ...ballotWithoutSignature,
     signature: signature(nPrivateCredential, hH),
   };
@@ -88,16 +88,11 @@ export default function (
   const sSerializedBallot = JSON.stringify(
     Ballot.toJSON(ballot, state.setup.payload.election),
   );
-  const payloadHash = sjcl.codec.hex.fromBits(
+  const hash = sjcl.codec.hex.fromBits(
     sjcl.hash.sha256.hash(sSerializedBallot),
   );
-  Ballot.verify(state, {
-    parent: "",
-    height: 0,
-    type: "Ballot",
-    payload: ballot,
-    payloadHash,
-  });
+  ballot.hash = hash;
+  Ballot.verify(state, ballot);
 
   return ballot;
 }

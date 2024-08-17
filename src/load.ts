@@ -24,12 +24,13 @@ export default function (fileEntries) {
   };
   state.setup.payload.election.fingerprint = electionFingerprint;
 
-  state.ballots = findEvents(state.files, "Ballot").map((ballot) => {
-    ballot.payloadHash = ballot.payload;
+  state.ballots = findEvents(state.files, "Ballot").map((ballotEvent) => {
+    const hash = ballotEvent.payload;
+    const ballot = findData(state.files, hash);
+    ballot.hash = hash;
     ballot.tracker = sjcl.codec.base64
-      .fromBits(sjcl.codec.hex.toBits(ballot.payloadHash))
+      .fromBits(sjcl.codec.hex.toBits(hash))
       .replace(/=+$/, "");
-    ballot.payload = findData(state.files, ballot.payload);
     return ballot;
   });
 

@@ -10,7 +10,7 @@ const isAccepted = computed(() => {
     return false;
   }
   return EncryptedTally.keepLastBallots(props.state.ballots).find(
-    (e) => e.payloadHash === ballot.payloadHash,
+    (e) => e.hash === ballot.hash,
   );
 });
 </script>
