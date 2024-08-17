@@ -19,7 +19,7 @@ export type t = {
   tracker?: string; // TODO: Recompute as a function of hash
 };
 
-export function toJSON(ballot: t, election: Election.t) {
+export function toJSON(ballot: t, election: Election.t) : t {
   // The order of the JSON.stringify serialization
   // correspond to the order of insertion.
   let obj = {
