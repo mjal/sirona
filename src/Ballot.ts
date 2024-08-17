@@ -15,7 +15,9 @@ export type t = {
     hash: string;
     proof: Proof.Serialized.t;
   };
-  hash?: string; // Only on runtime
+
+  // Only on runtime
+  hash?: string;
   tracker?: string; // TODO: Recompute as a function of hash
 };
 

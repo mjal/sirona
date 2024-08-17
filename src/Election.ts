@@ -12,6 +12,8 @@ export type t = {
   uuid: string;
   administrator?: string;
   credential_authority?: string;
+
+  // Only on runtime
   fingerprint?: string;
 };
 
