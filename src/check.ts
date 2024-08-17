@@ -32,7 +32,13 @@ export default async function (fileEntries) {
     );
 
     let tally = state.encryptedTally.payload.encrypted_tally.map((xs) => {
-      return xs.map(Ciphertext.parse);
+      return xs.map((x) => {
+        if (x.length) {
+          return x.map(Ciphertext.parse);
+        } else {
+          return Ciphertext.parse(x);
+        }
+      });
     });
 
     for (let i = 0; i < state.shuffles.length; i++) {
