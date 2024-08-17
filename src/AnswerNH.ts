@@ -25,6 +25,13 @@ export function parse(answer: Serialized.t): t {
   };
 }
 
+export function serialize(answer: t): Serialized.t {
+  return {
+    choices: Ciphertext.serialize(answer.choices),
+    proof: Proof.serialize(answer.proof)
+  }
+}
+
 export function verify(
   election: Election.t,
   ballot: Ballot.t,

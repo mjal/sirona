@@ -1,7 +1,7 @@
 <script setup>
 import generateBallot from "../generateBallot";
 import { ref, computed } from "vue";
-import canonicalBallot from "../canonicalBallot";
+import * as Ballot from "../Ballot";
 
 const props = defineProps(["state", "loaded"]);
 
@@ -60,7 +60,7 @@ const submitForm = (event) => {
       credential.value.trim(),
       answers,
     );
-    const sBallot = JSON.stringify(canonicalBallot(oBallot, election.value));
+    const sBallot = JSON.stringify(Ballot.toJSON(oBallot, election.value));
     serializedGeneratedBallot.value = sBallot;
   } catch (e) {
     alert(e);

@@ -5,7 +5,6 @@ import * as Proof from "./Proof";
 import * as Answer from "./Answer";
 import * as Ballot from "./Ballot";
 import * as Credential from "./Credential";
-import canonicalBallot from "./canonicalBallot";
 import {
   g,
   L,
@@ -87,7 +86,7 @@ export default function (
   };
 
   const sSerializedBallot = JSON.stringify(
-    canonicalBallot(ballot, state.setup.payload.election),
+    Ballot.toJSON(ballot, state.setup.payload.election),
   );
   const payloadHash = sjcl.codec.hex.fromBits(
     sjcl.hash.sha256.hash(sSerializedBallot),

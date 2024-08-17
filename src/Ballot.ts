@@ -4,7 +4,6 @@ import * as Proof from "./Proof";
 import * as Point from "./Point";
 import * as Answer from "./Answer";
 import * as Election from "./Election";
-import canonicalBallot from "./canonicalBallot";
 import { g, formula, Hsignature } from "./math";
 
 export type t = {
@@ -16,9 +15,41 @@ export type t = {
     hash: string;
     proof: Proof.Serialized.t;
   };
+  hash?: string; // Only on runtime
+  tracker?: string; // TODO: Recompute as a function of hash
 };
 
-// -- Verify
+export function toJSON(ballot: t, election: Election.t) {
+  // The order of the JSON.stringify serialization
+  // correspond to the order of insertion.
+  let obj = {
+    election_uuid: ballot.election_uuid,
+    election_hash: ballot.election_hash,
+    credential: ballot.credential,
+    answers: election.questions.map((question, i) => {
+      const answer = ballot.answers[i];
+      if (Answer.Serialized.IsAnswerH(answer, question)) {
+        return Answer.AnswerH.serialize(Answer.AnswerH.parse(answer));
+      } else if (Answer.Serialized.IsAnswerNH(answer, question)) {
+        return Answer.AnswerNH.serialize(Answer.AnswerNH.parse(answer));
+      } else if (Answer.Serialized.IsAnswerL(answer, question)) {
+        return Answer.AnswerL.serialize(Answer.AnswerL.parse(answer));
+      } else {
+        throw new Error("Unknown answer type");
+      }
+    }),
+    signature: { hash: "", proof: { challenge: "", response: "" } },
+  };
+
+  if (ballot.signature.hash) {
+    obj["signature"] = {
+      hash: ballot.signature.hash,
+      proof: Proof.serialize(Proof.parse(ballot.signature.proof)),
+    };
+  }
+
+  return obj;
+}
 
 export function verify(state: any, ballotEvent: Event.t<t>) {
   const ballot = ballotEvent.payload;
@@ -39,7 +70,7 @@ export function verify(state: any, ballotEvent: Event.t<t>) {
 }
 
 function checkMisc(ballot: t, ballotPayloadHash: string, election: Election.t) {
-  const sSerializedBallot = JSON.stringify(canonicalBallot(ballot, election));
+  const sSerializedBallot = JSON.stringify(toJSON(ballot, election));
 
   if (
     !(
@@ -60,7 +91,7 @@ function checkMisc(ballot: t, ballotPayloadHash: string, election: Election.t) {
 }
 
 export function hashWithoutSignature(ballot: t, election: Election.t) {
-  const copy = Object.assign({}, canonicalBallot(ballot, election));
+  const copy = Object.assign({}, toJSON(ballot, election));
   delete copy.signature;
   const serialized = JSON.stringify(copy);
   const hash = sjcl.codec.base64.fromBits(sjcl.hash.sha256.hash(serialized));

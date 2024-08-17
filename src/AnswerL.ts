@@ -36,6 +36,16 @@ export function parse(answer: Serialized.t): t {
   };
 }
 
+export function serialize(answer: t) : Serialized.t {
+  return {
+    choices: map2(answer.choices, Ciphertext.serialize),
+    individual_proofs: map3(answer.individual_proofs, Proof.serialize),
+    overall_proof: Proof.serialize(answer.overall_proof),
+    list_proofs: map2(answer.list_proofs, Proof.serialize),
+    nonzero_proof: NonZeroProof.serialize(answer.nonzero_proof),
+  };
+}
+
 export function verify(
   election: Election.t,
   ballot: Ballot.t,

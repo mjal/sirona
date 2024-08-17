@@ -3,8 +3,8 @@
 import { execSync } from "child_process";
 import { Command } from "commander";
 import * as Archive from "../Archive";
+import * as Ballot from "../Ballot";
 import generateBallot from "../generateBallot";
-import canonicalBallot from "../canonicalBallot";
 import { getLogs, getBallotLogs } from "../logger";
 import check from "../check";
 
@@ -101,7 +101,7 @@ program
       const choice = JSON.parse(options.choice);
       const ballot = generateBallot(state, options.privcred, choice);
       const sBallot = JSON.stringify(
-        canonicalBallot(ballot, state.setup.payload.election),
+        Ballot.toJSON(ballot, state.setup.payload.election),
       );
       console.log(sBallot);
     } catch (e) {
