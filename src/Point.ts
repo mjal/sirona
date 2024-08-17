@@ -42,8 +42,16 @@ export function check(p: t): boolean {
     return mod(a * x2 + y2 - z2 - d * t2, q);
   };
 
+  // WARN: Compared to Belenios, we cannot compute p ** L due to
+  // limitations of the library. We will use the following workaround:
+  // (p ** ( L - 1 )) * p
+  // However in practice we also have to rule out the point serialized as all zeros
+  if (isEqual(p, parse("0000000000000000000000000000000000000000000000000000000000000000"))) {
+    return false;
+  }
+
   return (
-    p.ez !== 0n &&
+    p.ez > 0n &&
     mod(p.ex * p.ey, q) === mod(p.ez * p.et, q) &&
     curve(p) === 0n &&
     isEqual(p.multiply(L - 1n).add(p), zero)
@@ -54,6 +62,9 @@ export function isValid(p: t): boolean {
   try {
     p.assertValidity();
   } catch (e) {
+    if (isEqual(p, zero)) {
+      return true;
+    }
     return false;
   }
   if (!check(p)) {

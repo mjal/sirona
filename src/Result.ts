@@ -59,15 +59,6 @@ function verifyOne(et: any, df: any, res: any) {
 
 function verifyNH(et: Ciphertext.t, df: Point.t, encodedRes: any) {
   let pResult = et.pBeta.add(df.negate());
-  // WARN: Workaround for a difference in Point.check compared to Belenios
-  if (
-    Point.serialize(encodedRes) ===
-    "0000000000000000000000000000000000000000000000000000000000000000"
-  ) {
-    encodedRes = Point.parse(
-      "0000000000000000000000000000000000000000000000000000000000000001",
-    );
-  }
   return Point.isEqual(pResult, encodedRes);
 }
 
