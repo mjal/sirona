@@ -1,5 +1,6 @@
 <script setup>
-import EncryptedTally from "../EncryptedTally";
+import { computed } from "vue";
+import * as EncryptedTally from "../EncryptedTally";
 
 const props = defineProps(["state", "ballot"]);
 const ballot = props.ballot;
@@ -16,11 +17,11 @@ const isAccepted = computed(() => {
 
 <template>
   <div class="uk-card uk-card-default uk-card-body uk-margin">
-    <h3 class="uk-card-title">Ballot tracker: {{ ballot.tracker }}</h3>
+    <h5 class="">Ballot tracker: {{ ballot.tracker }}</h5>
     <div>
       <span>Status: </span>
       <template v-if="isTallied">
-        <span class="uk-label uk-label-success" v-if="ballot.accepted">
+        <span class="uk-label uk-label-success" v-if="isAccepted">
           Accepted
         </span>
         <span class="uk-label uk-label-danger" v-else> Obselete </span>

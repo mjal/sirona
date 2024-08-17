@@ -10,7 +10,12 @@ const filteredBallots = computed(() => {
   if (!ballots) {
     return [];
   }
-  return ballots.filter((ballot) => ballot.tracker.includes(search.value));
+  if (!search.value) {
+    return ballots;
+  }
+  return ballots.filter((ballot) => {
+    ballot.tracker.includes(search.value)
+  });
 });
 </script>
 
@@ -23,7 +28,7 @@ const filteredBallots = computed(() => {
     type="text"
     @change="filerBallots"
   />
-  <ul id="ballot-list" class="uk-list uk-list-disc">
+  <ul id="ballot-list" class="">
     <div v-for="(ballot, index) in filteredBallots" :key="index">
       <ElectionBallot :state="state" :ballot="ballot" />
     </div>

@@ -13,7 +13,6 @@ const supported = computed(() => {
   return props.question.type === undefined || props.question.type === "Lists";
 });
 
-console.log(props.question);
 </script>
 
 <template>
