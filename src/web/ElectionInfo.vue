@@ -3,7 +3,7 @@ import { computed } from "vue";
 import Question from "./Question.vue";
 
 const props = defineProps(["state", "logs", "ballotLogs"]);
-const election = props.state.setup?.payload.election;
+const election = props.state.setup?.election;
 const countBallots = props.state.ballots?.length;
 
 const hasResult = props.state.result ? true : false;

@@ -13,7 +13,7 @@ export type t = {
 };
 
 export function verify(state: any, partialDecryption: Event.t<t>) {
-  const election = state.setup.payload.election;
+  const election = state.setup.election;
   const encrypted_tally = state.encryptedTally.payload.encrypted_tally;
   const { decryption_factors, decryption_proofs } =
     partialDecryption.payload.payload;
@@ -62,22 +62,22 @@ export function verify(state: any, partialDecryption: Event.t<t>) {
 
 function getPublicKey(state, ownerIndex) {
   let nKey = 0;
-  for (let i = 0; i < state.setup.payload.trustees.length; i++) {
-    if (state.setup.payload.trustees[i][0] == "Single") {
+  for (let i = 0; i < state.setup.trustees.length; i++) {
+    if (state.setup.trustees[i][0] == "Single") {
       if (nKey === ownerIndex) {
-        return Point.parse(state.setup.payload.trustees[i][1].public_key);
+        return Point.parse(state.setup.trustees[i][1].public_key);
       }
       nKey++;
     } else {
       // Pedersen
       for (
         let j = 0;
-        j < state.setup.payload.trustees[i][1].verification_keys.length;
+        j < state.setup.trustees[i][1].verification_keys.length;
         j++
       ) {
         if (nKey === ownerIndex) {
           return Point.parse(
-            state.setup.payload.trustees[i][1].verification_keys[j].public_key,
+            state.setup.trustees[i][1].verification_keys[j].public_key,
           );
         }
         nKey++;

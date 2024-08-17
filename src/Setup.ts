@@ -9,8 +9,8 @@ type t = {
   credentials: Array<string>;
 };
 
-export function verify(setup: Event.t<t>) {
-  let { trustees, election, credentials } = setup.payload;
+export function verify(setup: t) {
+  let { trustees, election, credentials } = setup;
 
   for (let i = 0; i < trustees.length; i++) {
     if (Trustee.verify(election, trustees[i]) === false) {

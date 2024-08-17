@@ -5,24 +5,20 @@ export default function (fileEntries) {
 
   state.files = fileEntries.map(readFile);
 
-  state.setup = findEvent(state.files, "Setup");
-  state.setup = {
-    ...state.setup,
-    payloadHash: state.setup.payload,
-    payload: findData(state.files, state.setup.payload),
-  };
+  state.setup = findData(state.files,
+    findEvent(state.files, "Setup").payload);
 
   const electionFingerprint = sjcl.codec.base64
-    .fromBits(sjcl.codec.hex.toBits(state.setup.payload.election))
+    .fromBits(sjcl.codec.hex.toBits(state.setup.election))
     .replace(/=+$/, "");
 
-  state.setup.payload = {
-    ...state.setup.payload,
-    credentials: findData(state.files, state.setup.payload.credentials),
-    election: findData(state.files, state.setup.payload.election),
-    trustees: findData(state.files, state.setup.payload.trustees),
+  state.setup = {
+    ...state.setup,
+    credentials: findData(state.files, state.setup.credentials),
+    election: findData(state.files, state.setup.election),
+    trustees: findData(state.files, state.setup.trustees),
   };
-  state.setup.payload.election.fingerprint = electionFingerprint;
+  state.setup.election.fingerprint = electionFingerprint;
 
   state.ballots = findEvents(state.files, "Ballot").map((ballotEvent) => {
     const hash = ballotEvent.payload;
@@ -77,8 +73,8 @@ export default function (fileEntries) {
   state.ownerToTrusteeIndex = [
     ["Unused", -1, -1], // owners indexes start at 1, not 0
   ];
-  for (let i = 0; i < state.setup.payload.trustees.length; i++) {
-    const [type, content] = state.setup.payload.trustees[i];
+  for (let i = 0; i < state.setup.trustees.length; i++) {
+    const [type, content] = state.setup.trustees[i];
     if (type === "Single") {
       state.ownerToTrusteeIndex.push(["Single", i, -1]);
     } else {

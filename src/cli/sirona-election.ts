@@ -19,12 +19,12 @@ program
     const checkFile = async (filePath) => {
       const files = await Archive.readFile(filePath);
       const state = await check(files);
-      const election = state.setup.payload.election;
+      const election = state.setup.election;
 
       console.log("Election fingerprint: " + election.fingerprint);
       console.log(state.files.length + " files found.");
-      for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
-        let question = state.setup.payload.election.questions[i];
+      for (let i = 0; i < state.setup.election.questions.length; i++) {
+        let question = state.setup.election.questions[i];
         let questionType = question.type ? question.type : "Homomorphic";
         console.log(`Question ${i + 1} (${questionType})`);
       }
@@ -101,7 +101,7 @@ program
       const choice = JSON.parse(options.choice);
       const ballot = generateBallot(state, options.privcred, choice);
       const sBallot = JSON.stringify(
-        Ballot.toJSON(ballot, state.setup.payload.election),
+        Ballot.toJSON(ballot, state.setup.election),
       );
       console.log(sBallot);
     } catch (e) {

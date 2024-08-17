@@ -54,17 +54,17 @@ export function toJSON(ballot: t, election: Election.t) : t {
 }
 
 export function verify(state: any, ballot: t) {
-  const election = state.setup.payload.election;
+  const election = state.setup.election;
   checkMisc(ballot, ballot.hash, election);
-  checkCredential(ballot, state.setup.payload.credentials);
+  checkCredential(ballot, state.setup.credentials);
   checkIsUnique(ballot, ballot.hash);
   checkSignature(ballot, election);
 
-  for (let i = 0; i < state.setup.payload.election.questions.length; i++) {
+  for (let i = 0; i < state.setup.election.questions.length; i++) {
     Answer.verify(
       election,
       ballot,
-      state.setup.payload.election.questions[i],
+      state.setup.election.questions[i],
       ballot.answers[i],
     );
   }

@@ -2,7 +2,7 @@
 import { computed } from "vue";
 
 const props = defineProps(["state"]);
-const questions = props.state.setup.payload.election.questions;
+const questions = props.state.setup.election.questions;
 const result = props.state.result.payload.result;
 
 const questions_h = questions.filter((question) => question.type === undefined);

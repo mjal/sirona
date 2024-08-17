@@ -77,7 +77,7 @@ export function verify(
   ballotEvent: Event.t<t>,
   tally: Array<Array<Ciphertext.Serialized.t>>,
 ): boolean {
-  const election = state.setup.payload.election;
+  const election = state.setup.election;
   const shuffle = parse(ballotEvent.payload);
   const y = Point.parse(election.public_key);
   for (let i = 0; i < election.questions.length; i++) {

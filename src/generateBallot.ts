@@ -47,13 +47,13 @@ export default function (
   }
 
   const { hPublicCredential, nPrivateCredential } = Credential.derive(
-    state.setup.payload.election.uuid,
+    state.setup.election.uuid,
     sPriv,
   );
 
   let answers: Array<Answer.AnswerH.Serialized.t> = [];
   for (let i = 0; i < choices.length; i++) {
-    const question = state.setup.payload.election.questions[i];
+    const question = state.setup.election.questions[i];
     const f = question.blank
       ? generateAnswerWithBlank
       : generateAnswerWithoutBlank;
@@ -64,8 +64,8 @@ export default function (
   const ballotWithoutSignature = {
     answers,
     credential: hPublicCredential,
-    election_hash: state.setup.payload.election.fingerprint,
-    election_uuid: state.setup.payload.election.uuid,
+    election_hash: state.setup.election.fingerprint,
+    election_uuid: state.setup.election.uuid,
     signature: {
       hash: null,
       proof: {
@@ -77,7 +77,7 @@ export default function (
 
   const hH = Ballot.hashWithoutSignature(
     ballotWithoutSignature,
-    state.setup.payload.election,
+    state.setup.election,
   );
 
   const ballot : Ballot.t = {
@@ -86,7 +86,7 @@ export default function (
   };
 
   const sSerializedBallot = JSON.stringify(
-    Ballot.toJSON(ballot, state.setup.payload.election),
+    Ballot.toJSON(ballot, state.setup.election),
   );
   const hash = sjcl.codec.hex.fromBits(
     sjcl.hash.sha256.hash(sSerializedBallot),
@@ -106,11 +106,11 @@ function checkVotingCode(state: any, sPriv: string) {
   }
 
   const { hPublicCredential } = Credential.derive(
-    state.setup.payload.election.uuid,
+    state.setup.election.uuid,
     sPriv,
   );
 
-  const electionPublicCredentials = state.setup.payload.credentials.map(
+  const electionPublicCredentials = state.setup.credentials.map(
     (line: string) => line.split(",")[0],
   );
 
@@ -182,7 +182,7 @@ function generateEncryptions(
     const pAlpha = g.multiply(nR);
     const pBeta = pY.multiply(nR).add(gPowerM);
 
-    const S = `${state.setup.payload.election.fingerprint}|${hPublicCredential}`;
+    const S = `${state.setup.election.fingerprint}|${hPublicCredential}`;
     const proof = iproof(S, pY, pAlpha, pBeta, nR, choices[i], [0, 1]);
 
     aeChoices.push({ pAlpha, pBeta });
@@ -199,9 +199,9 @@ function generateAnswerWithoutBlank(
   sPriv: string,
   choices: Array<number>,
 ): Answer.AnswerH.Serialized.t {
-  const pY = Point.parse(state.setup.payload.election.public_key);
+  const pY = Point.parse(state.setup.election.public_key);
   const { hPublicCredential } = Credential.derive(
-    state.setup.payload.election.uuid,
+    state.setup.election.uuid,
     sPriv,
   );
   const { anR, aeChoices, aazIndividualProofs } = generateEncryptions(
@@ -219,7 +219,7 @@ function generateAnswerWithoutBlank(
   );
   const nR = anR.reduce((acc, r) => mod(acc + r, L), BigInt(0));
 
-  let S = `${state.setup.payload.election.fingerprint}|${hPublicCredential}|`;
+  let S = `${state.setup.election.fingerprint}|${hPublicCredential}|`;
   S += aeChoices
     .map((c) => `${rev(c.pAlpha.toHex())},${rev(c.pBeta.toHex())}`)
     .join(",");
@@ -250,7 +250,7 @@ function blankProof(
   const pA0 = g.multiply(nW);
   const pB0 = pY.multiply(nW);
 
-  let S = `${state.setup.payload.election.fingerprint}|${hPub}|`;
+  let S = `${state.setup.election.fingerprint}|${hPub}|`;
   S += choices
     .map(Ciphertext.serialize)
     .map((c) => `${c.alpha},${c.beta}`)
@@ -288,7 +288,7 @@ function overallProofBlank(
   const pBetaS = aeCiphertexts
     .slice(1)
     .reduce((acc, c) => acc.add(c.pBeta), zero);
-  const pY = Point.parse(state.setup.payload.election.public_key);
+  const pY = Point.parse(state.setup.election.public_key);
   const mS = anChoices.slice(1).reduce((acc, c) => c + acc, 0);
   const M = Array.from({ length: question.max - question.min + 1 }).map(
     (_, i) => i + question.min,
@@ -340,7 +340,7 @@ function overallProofBlank(
       }
     }
 
-    let S = `${state.setup.payload.election.fingerprint}|${hPub}|`;
+    let S = `${state.setup.election.fingerprint}|${hPub}|`;
     S += aeCiphertexts
       .map(Ciphertext.serialize)
       .map((c) => `${c.alpha},${c.beta}`)
@@ -389,7 +389,7 @@ function overallProofBlank(
       commitments.push(pA, pB);
     }
 
-    let S = `${state.setup.payload.election.fingerprint}|${hPub}|`;
+    let S = `${state.setup.election.fingerprint}|${hPub}|`;
     S += aeCiphertexts
       .map(Ciphertext.serialize)
       .map((c) => `${c.alpha},${c.beta}`)
@@ -409,9 +409,9 @@ function generateAnswerWithBlank(
   sPriv: string,
   choices: Array<number>,
 ): Answer.AnswerH.Serialized.t {
-  const pY = Point.parse(state.setup.payload.election.public_key);
+  const pY = Point.parse(state.setup.election.public_key);
   const { hPublicCredential } = Credential.derive(
-    state.setup.payload.election.uuid,
+    state.setup.election.uuid,
     sPriv,
   );
   const { anR, aeChoices, aazIndividualProofs } = generateEncryptions(

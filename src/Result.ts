@@ -5,7 +5,7 @@ import * as Question from "./Question";
 export type t = Array<Array<number>>;
 
 export function verify(state: any): boolean {
-  const election = state.setup.payload.election;
+  const election = state.setup.election;
   const et = state.encryptedTally.payload.encrypted_tally;
   const res = state.result.payload.result;
   const df = getDecryptionFactors(state);
@@ -72,7 +72,7 @@ function verifyNH(et: any, df: any, encodedRes: any) {
 }
 
 function getDecryptionFactors(state) {
-  const election = state.setup.payload.election;
+  const election = state.setup.election;
   let df = [];
   for (let i = 0; i < election.questions.length; i++) {
     let question = election.questions[i];
@@ -98,8 +98,8 @@ function getDecryptionFactors(state) {
     df.push(row);
   }
 
-  for (let i = 0; i < state.setup.payload.trustees.length; i++) {
-    const [type, content] = state.setup.payload.trustees[i];
+  for (let i = 0; i < state.setup.trustees.length; i++) {
+    const [type, content] = state.setup.trustees[i];
     if (type === "Single") {
       let partialDecryption = null;
       for (let j = 0; j < state.partialDecryptions.length; j++) {

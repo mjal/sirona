@@ -24,10 +24,10 @@ export default async function (fileEntries) {
 
     await _async(
       EncryptedTally.verify,
-      state.setup.payload.election,
+      state.setup.election,
       state.encryptedTally.payload,
       state.ballots,
-      state.setup.payload.credentials,
+      state.setup.credentials,
     );
 
     let tally = state.encryptedTally.payload.encrypted_tally;

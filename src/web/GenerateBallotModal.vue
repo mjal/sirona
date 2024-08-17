@@ -6,11 +6,11 @@ import * as Ballot from "../Ballot";
 const props = defineProps(["state", "loaded"]);
 
 const election = computed(() => {
-  return props.state.setup ? props.state.setup.payload.election : null;
+  return props.state.setup ? props.state.setup.election : null;
 });
 
 const questions = computed(() => {
-  return props.state.setup ? props.state.setup.payload.election.questions : [];
+  return props.state.setup ? props.state.setup.election.questions : [];
 });
 
 const credential = ref("");
