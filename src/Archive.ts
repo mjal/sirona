@@ -104,11 +104,3 @@ function padString(str, length, padChar = "\0") {
     ? str.slice(0, length)
     : str + padChar.repeat(length - str.length);
 }
-
-function toOctalString(value, length, padChar = "\0") {
-  const str = value.toString(8);
-
-  return str.length >= length
-    ? str.slice(0, length)
-    : padChar.repeat(length - str.length) + str;
-}
