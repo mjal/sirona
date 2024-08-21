@@ -68,23 +68,6 @@ export default function (fileEntries) {
     state.result.payload = findData(state.files, state.result.payload);
   }
 
-  // Helpers
-
-  // Associate owner index to trustees index and sub-index if pedersen
-  state.ownerToTrusteeIndex = [
-    ["Unused", -1, -1], // owners indexes start at 1, not 0
-  ];
-  for (let i = 0; i < state.setup.trustees.length; i++) {
-    const [type, content] = state.setup.trustees[i];
-    if (type === "Single") {
-      state.ownerToTrusteeIndex.push(["Single", i, -1]);
-    } else {
-      for (let j = 0; j < content.coefexps.length; j++) {
-        state.ownerToTrusteeIndex.push(["Pedersen", i, j]);
-      }
-    }
-  }
-
   return state;
 }
 

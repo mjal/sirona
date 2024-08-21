@@ -1,4 +1,5 @@
 import { g, L, zero, mod, modInverse } from "./math";
+import * as Trustee from "./Trustee";
 import * as Point from "./Point";
 import * as Question from "./Question";
 import * as Ciphertext from "./Ciphertext";
@@ -89,13 +90,14 @@ function getDecryptionFactors(state) {
     df.push(row);
   }
 
+  const ownerToTrusteeIndex = Trustee.ownerIndexToTrusteeIndex(state.setup.trustees)
   for (let i = 0; i < state.setup.trustees.length; i++) {
     const [type, content] = state.setup.trustees[i];
     if (type === "Single") {
       let partialDecryption = null;
       for (let j = 0; j < state.partialDecryptions.length; j++) {
         const [_type, trusteeIdx, subIdx] =
-          state.ownerToTrusteeIndex[state.partialDecryptions[j].payload.owner];
+          ownerToTrusteeIndex[state.partialDecryptions[j].payload.owner];
         if (trusteeIdx === i && subIdx === -1) {
           partialDecryption = state.partialDecryptions[j];
         }
@@ -107,7 +109,7 @@ function getDecryptionFactors(state) {
     } else {
       // Pedersen
       let pds = state.partialDecryptions.filter((pd) => {
-        return state.ownerToTrusteeIndex[pd.payload.owner][1] === i;
+        return ownerToTrusteeIndex[pd.payload.owner][1] === i;
       });
       pds = [
         ...new Map(pds.map((item) => [item.payload.owner, item])).values(),
@@ -145,10 +147,10 @@ function getDecryptionFactors(state) {
       // AGGREGATE PEDERSON DF
       for (let j = 0; j < pds.length; j++) {
         const [_type, trusteeIdx, subIdx] =
-          state.ownerToTrusteeIndex[pds[j].payload.owner];
+          ownerToTrusteeIndex[pds[j].payload.owner];
         let indexes = pds.map((pd) => {
           const [_type, _trusteeIdx, subIdx] =
-            state.ownerToTrusteeIndex[pd.payload.owner];
+            ownerToTrusteeIndex[pd.payload.owner];
           return subIdx + 1;
         });
         res = multiplyDfPow(

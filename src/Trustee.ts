@@ -62,3 +62,20 @@ function checkPublicKey(election: Election.t, trustee: public_key_with_pok) {
   }
   return true;
 }
+
+export function ownerIndexToTrusteeIndex(trustees: t[]) {
+  const ret = [
+    ["Unused", -1, -1], // owners indexes start at 1, not 0
+  ];
+  for (let i = 0; i < trustees.length; i++) {
+    const [type, content] = trustees[i];
+    if (type === "Single") {
+      ret.push(["Single", i, -1]);
+    } else {
+      for (let j = 0; j < content.coefexps.length; j++) {
+        ret.push(["Pedersen", i, j]);
+      }
+    }
+  }
+  return ret;
+}
