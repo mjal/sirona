@@ -1,5 +1,6 @@
 import sjcl from "sjcl";
 import * as Shuffle from "./Shuffle";
+import * as Trustee from "./Trustee";
 
 export default function (fileEntries) {
   const state: any = {};
@@ -17,7 +18,7 @@ export default function (fileEntries) {
     ...state.setup,
     credentials: findData(state.files, state.setup.credentials),
     election: findData(state.files, state.setup.election),
-    trustees: findData(state.files, state.setup.trustees),
+    trustees: findData(state.files, state.setup.trustees).map(Trustee.fromJSON),
   };
   state.setup.election.fingerprint = electionFingerprint;
 

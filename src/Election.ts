@@ -27,8 +27,7 @@ export function verify(election: t, trustees: Array<Trustee.t>) {
   for (let i = 0; i < trustees.length; i++) {
     const trustee = trustees[i];
     if (trustee[0] === "Single") {
-      const pX = Point.parse(trustee[1].public_key);
-      pJointPublicKey = pJointPublicKey.add(pX);
+      pJointPublicKey = pJointPublicKey.add(trustee[1].public_key);
     } else {
       // "Pedersen"
       const coefexps = trustee[1].coefexps.map((o) => {

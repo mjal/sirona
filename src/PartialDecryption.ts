@@ -2,6 +2,7 @@ import * as Event from "./Event";
 import * as Ciphertext from "./Ciphertext";
 import * as Proof from "./Proof";
 import * as Point from "./Point";
+import * as Trustee from "./Trustee";
 import * as Question from "./Question";
 
 export type t = {
@@ -17,7 +18,7 @@ export function verify(state: any, partialDecryption: Event.t<t>) {
   const encrypted_tally = state.encryptedTally.payload.encrypted_tally;
   const { decryption_factors, decryption_proofs } =
     partialDecryption.payload.payload;
-  const pPublicKey = getPublicKey(state, partialDecryption.payload.owner - 1);
+  const pPublicKey = Trustee.getPublicKeyByOwnerIndex(state.setup.trustees, partialDecryption.payload.owner - 1);
 
   for (let i = 0; i < election.questions.length; i++) {
     const question = election.questions[i];
@@ -58,32 +59,4 @@ export function verify(state: any, partialDecryption: Event.t<t>) {
       throw new Error("Invalid question type");
     }
   }
-}
-
-function getPublicKey(state, ownerIndex) {
-  let nKey = 0;
-  for (let i = 0; i < state.setup.trustees.length; i++) {
-    if (state.setup.trustees[i][0] == "Single") {
-      if (nKey === ownerIndex) {
-        return Point.parse(state.setup.trustees[i][1].public_key);
-      }
-      nKey++;
-    } else {
-      // Pedersen
-      for (
-        let j = 0;
-        j < state.setup.trustees[i][1].verification_keys.length;
-        j++
-      ) {
-        if (nKey === ownerIndex) {
-          return Point.parse(
-            state.setup.trustees[i][1].verification_keys[j].public_key,
-          );
-        }
-        nKey++;
-      }
-    }
-  }
-
-  return null;
 }

@@ -1,9 +1,8 @@
-import * as Event from "./Event";
 import * as Point from "./Point";
 import * as Trustee from "./Trustee";
 import * as Election from "./Election";
 
-type t = {
+export type t = {
   trustees: Trustee.t[];
   election: Election.t;
   credentials: Array<string>;
