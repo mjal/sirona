@@ -11,8 +11,6 @@ import * as Ciphertext from "./Ciphertext";
 
 export default async function (fileEntries) {
   try {
-
-    // TODO: Remove state variable
     let state: any = load(fileEntries);
 
     const {

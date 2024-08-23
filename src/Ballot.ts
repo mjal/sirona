@@ -3,6 +3,7 @@ import * as Proof from "./Proof";
 import * as Point from "./Point";
 import * as Answer from "./Answer";
 import * as Election from "./Election";
+import * as Setup from "./Setup";
 import { g, formula, Hsignature } from "./math";
 
 export type t = {
@@ -48,17 +49,16 @@ export function toJSON(ballot: t, election: Election.t) : t {
   return obj;
 }
 
-export function verify(state: any, ballot: t) {
-  const election = state.setup.election;
-  checkMisc(ballot, election);
-  checkCredential(ballot, state.setup.credentials);
-  checkSignature(ballot, election);
+export function verify(setup: Setup.t, ballot: t) {
+  checkMisc(ballot, setup.election);
+  checkCredential(ballot, setup.credentials);
+  checkSignature(ballot, setup.election);
 
-  for (let i = 0; i < state.setup.election.questions.length; i++) {
+  for (let i = 0; i < setup.election.questions.length; i++) {
     Answer.verify(
-      election,
+      setup.election,
       ballot,
-      state.setup.election.questions[i],
+      setup.election.questions[i],
       ballot.answers[i],
     );
   }
@@ -75,12 +75,10 @@ function checkMisc(ballot: t, election: Election.t) {
   }
 }
 
-export function hashWithoutSignature(ballot: t, election: Election.t) {
+export function b64hashWithoutSignature(ballot: t, election: Election.t) {
   const copy = Object.assign({}, toJSON(ballot, election));
   delete copy.signature;
-  const serialized = JSON.stringify(copy);
-  const hash = sjcl.codec.base64.fromBits(sjcl.hash.sha256.hash(serialized));
-  return hash.replace(/=+$/, "");
+  return b64hash(copy);
 }
 
 function checkCredential(ballot: t, credentials: string[]) {
@@ -93,7 +91,7 @@ function checkCredential(ballot: t, credentials: string[]) {
 }
 
 export function checkSignature(ballot: t, election: Election.t) {
-  if (ballot.signature.hash !== hashWithoutSignature(ballot, election)) {
+  if (ballot.signature.hash !== b64hashWithoutSignature(ballot, election)) {
     throw new Error("Hash without signature is incorrect");
   }
 

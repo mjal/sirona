@@ -76,7 +76,7 @@ export default function (
     },
   };
 
-  const hH = Ballot.hashWithoutSignature(
+  const hH = Ballot.b64hashWithoutSignature(
     ballotWithoutSignature,
     state.setup.election,
   );
