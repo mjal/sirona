@@ -4,10 +4,14 @@ export const map2 = (a: any, fn: any) => a.map((b: any) => b.map(fn));
 export const map3 = (a: any, fn: any) => a.map((b: any) => map2(b, fn));
 
 export async function _async(f: any, ...args: any) {
-  return new Promise((resolve, _reject) => {
+  return new Promise((resolve, reject) => {
     setTimeout(() => {
-      const res = f(...args);
-      resolve(res);
+      try {
+        const res = f(...args);
+        resolve(res);
+      } catch (e) {
+        reject(e);
+      }
     }, 0);
   });
 }
