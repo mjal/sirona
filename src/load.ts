@@ -77,14 +77,6 @@ export default function (rawFiles : Array<any>) {
     }
     alreadyProcessedBallots[hash] = true;
 
-    /*
-     * TODO: Remove everywhere
-    */
-    ballot.hash = hash;
-    ballot.tracker = sjcl.codec.base64
-      .fromBits(sjcl.codec.hex.toBits(hash))
-      .replace(/=+$/, "");
-
     return ballot;
   });
 

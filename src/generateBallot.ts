@@ -86,13 +86,6 @@ export default function (
     signature: signature(nPrivateCredential, hH),
   };
 
-  const sSerializedBallot = JSON.stringify(
-    Ballot.toJSON(ballot, state.setup.election),
-  );
-  const hash = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(sSerializedBallot),
-  );
-  ballot.hash = hash;
   Ballot.verify(state, ballot);
 
   return ballot;

@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from "vue";
+import * as Ballot from "../Ballot";
 import ElectionBallot from "./ElectionBallot.vue";
 
 const props = defineProps(["state"]);
@@ -14,7 +15,9 @@ const filteredBallots = computed(() => {
     return ballots;
   }
   return ballots.filter((ballot) => {
-    ballot.tracker.includes(search.value)
+    const tracker = Ballot.b64hash(ballot);
+
+    search.value.includes(tracker);
   });
 });
 </script>

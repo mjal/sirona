@@ -1,23 +1,34 @@
 <script setup>
 import { computed } from "vue";
 import * as EncryptedTally from "../EncryptedTally";
+import * as Ballot from "../Ballot";
 
 const props = defineProps(["state", "ballot"]);
-const ballot = props.ballot;
+
 const isTallied = !!props.state.encryptedTally;
+
+const hash = computed(() =>  {
+  return Ballot.hash(props.ballot);
+});
+
+const tracker = computed(() =>  {
+  return Ballot.b64hash(props.ballot);
+});
+
 const isAccepted = computed(() => {
   if (!isTallied) {
     return false;
   }
-  return EncryptedTally.keepLastBallots(props.state.ballots).find(
-    (e) => e.hash === ballot.hash,
-  );
+  return EncryptedTally.keepLastBallots(props.state.ballots).find((e) => {
+    return Ballot.hash(e) === hash.value;
+  });
 });
+
 </script>
 
 <template>
   <div class="uk-card uk-card-default uk-card-body uk-margin">
-    <h5 class="">Ballot tracker: {{ ballot.tracker }}</h5>
+    <h5 class="">Ballot tracker: {{ tracker }}</h5>
     <div>
       <span>Status: </span>
       <template v-if="isTallied">

@@ -1,5 +1,4 @@
 import sjcl from "sjcl";
-import * as Event from "./Event";
 import * as Proof from "./Proof";
 import * as Point from "./Point";
 import * as Answer from "./Answer";
@@ -15,10 +14,6 @@ export type t = {
     hash: string;
     proof: Proof.Serialized.t;
   };
-
-  // NOTE: Only on runtime
-  hash?: string; // TODO: Remove and recompute
-  tracker?: string; // TODO: Recompute as a function of hex hash
 };
 
 export function toJSON(ballot: t, election: Election.t) : t {
@@ -55,7 +50,7 @@ export function toJSON(ballot: t, election: Election.t) : t {
 
 export function verify(state: any, ballot: t) {
   const election = state.setup.election;
-  checkMisc(ballot, ballot.hash, election);
+  checkMisc(ballot, election);
   checkCredential(ballot, state.setup.credentials);
   checkSignature(ballot, election);
 
@@ -69,7 +64,7 @@ export function verify(state: any, ballot: t) {
   }
 }
 
-function checkMisc(ballot: t, ballotPayloadHash: string, election: Election.t) {
+function checkMisc(ballot: t, election: Election.t) {
   if (
     !(
       election.uuid === ballot.election_uuid &&
@@ -114,6 +109,13 @@ export function checkSignature(ballot: t, election: Election.t) {
   }
 }
 
+export function hash(ballot: t) {
+  return sjcl.codec.hex
+    .fromBits(sjcl.hash.sha256.hash(JSON.stringify(ballot)));
+}
+
 export function b64hash(ballot: t) {
-  return sjcl.codec.base64.fromBits(sjcl.codec.hex.toBits(ballot.hash)).replace(/=+$/, "");
+  return sjcl.codec.base64
+    .fromBits(sjcl.hash.sha256.hash(JSON.stringify(ballot)))
+    .replace(/=+$/, "");
 }
