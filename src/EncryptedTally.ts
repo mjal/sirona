@@ -4,6 +4,7 @@ import * as Question from "./Question";
 import * as Election from "./Election";
 import * as Ballot from "./Ballot";
 import * as Event from "./Event";
+import * as Setup from "./Setup";
 
 export type t = {
   num_tallied: number;
@@ -14,11 +15,11 @@ export type t = {
 };
 
 export function verify(
-  election: Election.t,
+  setup: Setup.t,
   encryptedTally: t,
   ballots: Ballot.t[],
-  credentials: string[],
 ) {
+  const { election, credentials } = setup;
   let talliedBallots = keepLastBallots(ballots);
   const recomputedEncryptedTally = compute(
     election,

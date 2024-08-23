@@ -72,11 +72,10 @@ export function parse(o: any): t {
 // -- Verify
 
 export function verify(
-  state: any,
   shuffle: t,
+  election: Election.t,
   tally: Array<Array<Ciphertext.t>>,
 ): boolean {
-  const election = state.setup.election;
   for (let i = 0; i < election.questions.length; i++) {
     const question = election.questions[i];
     if (Question.IsQuestionNH(question)) {

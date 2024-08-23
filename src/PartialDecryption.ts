@@ -1,4 +1,4 @@
-import * as Event from "./Event";
+import * as Setup from "./Setup";
 import * as Election from "./Election";
 import * as Ciphertext from "./Ciphertext";
 import * as Proof from "./Proof";
@@ -14,12 +14,12 @@ export type t = {
   };
 };
 
-export function verify(state: any, partialDecryption: t) {
-  const election = state.setup.election;
-  const encrypted_tally = state.encryptedTally.encrypted_tally;
+export function verify(partialDecryption: t, setup: Setup.t, encryptedTally: EncryptedTally.t) {
+  const election = setup.election;
+  const encrypted_tally = encryptedTally.encrypted_tally;
   const { decryption_factors, decryption_proofs } =
     partialDecryption.payload;
-  const pPublicKey = Trustee.getPublicKeyByOwnerIndex(state.setup.trustees, partialDecryption.owner - 1);
+  const pPublicKey = Trustee.getPublicKeyByOwnerIndex(setup.trustees, partialDecryption.owner - 1);
 
   for (let i = 0; i < election.questions.length; i++) {
     const question = election.questions[i];

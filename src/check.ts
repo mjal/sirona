@@ -25,20 +25,23 @@ export default async function (fileEntries) {
     await _async(Setup.verify, setup);
 
     for (let i = 0; i < ballots.length; i++) {
-      await _async(Ballot.verify, state, ballots[i]);
+      await _async(Ballot.verify, setup, ballots[i]);
     }
 
-    if (!encryptedTally) return state;
+    if (!encryptedTally) {
+      // No EncryptedTally: Stop here
+      return state;
+    }
 
     await _async(
       EncryptedTally.verify,
-      setup.election,
+      setup,
       encryptedTally,
       ballots,
-      setup.credentials,
     );
 
-    let tally = state.encryptedTally.encrypted_tally.map((xs) => {
+    // TODO: Move to a function ?
+    let tally = encryptedTally.encrypted_tally.map((xs) => {
       return xs.map((x) => {
         if (x.length) {
           return x.map(Ciphertext.parse);
@@ -49,21 +52,25 @@ export default async function (fileEntries) {
     });
 
     for (let i = 0; i < shuffles.length; i++) {
-      await _async(Shuffle.verify, state, shuffles[i], tally);
+      await _async(Shuffle.verify, shuffles[i], setup.election, tally);
       tally = shuffles[i].payload.ciphertexts;
     }
 
-    for (let i = 0; i < state.partialDecryptions.length; i++) {
+    for (let i = 0; i < partialDecryptions.length; i++) {
       await _async(
         PartialDecryption.verify,
-        state,
         partialDecryptions[i],
+        setup,
+        encryptedTally
       );
     }
 
-    if (state.result) {
-      await _async(Result.verify, result, setup, encryptedTally, partialDecryptions, shuffles);
+    if (!result) {
+      // No Result: Stop here
+      return state;
     }
+
+    await _async(Result.verify, result, setup, encryptedTally, partialDecryptions, shuffles);
 
     log("top", true, "Verification done.");
     return state;
