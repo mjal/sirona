@@ -3,14 +3,21 @@ import * as Trustee from "./Trustee";
 import * as Point from "./Point";
 import * as Question from "./Question";
 import * as Ciphertext from "./Ciphertext";
+import * as EncryptedTally from "./EncryptedTally";
+import * as Setup from "./Setup";
+import * as Election from "./Election";
+import * as PartialDecryption from "./PartialDecryption";
+import * as Shuffle from "./Shuffle";
 
-export type t = Array<Array<number>>;
+export type t = {
+  result: Array<Array<number>>
+};
 
-export function verify(state: any): boolean {
-  const election = state.setup.election;
-  const et = state.encryptedTally.payload.encrypted_tally;
-  const res = state.result.payload.result;
-  const df = getDecryptionFactors(state);
+export function verify(result: t, setup: Setup.t, encryptedTally: EncryptedTally.t, partialDecryptions: PartialDecryption.t[], shuffles: Shuffle.t[]): boolean {
+  const election = setup.election;
+  const et = encryptedTally.encrypted_tally;
+  const res = result.result;
+  const df = getDecryptionFactors(setup, encryptedTally, partialDecryptions);
   for (let i = 0; i < election.questions.length; i++) {
     let question = election.questions[i];
     if (Question.IsQuestionH(question)) {
@@ -28,11 +35,11 @@ export function verify(state: any): boolean {
         }
       }
     } else if (Question.IsQuestionNH(question)) {
-      if (state.shuffles.length === 0) {
+      if (shuffles.length === 0) {
         throw "No shuffles found !";
       } else {
         const answers =
-          state.shuffles[state.shuffles.length - 1].payload.ciphertexts;
+          shuffles[shuffles.length - 1].payload.ciphertexts;
         for (let j = 0; j < res[i].length; j++) {
           const encodedRes = Point.of_ints(res[i][j]);
           if (!verifyNH(answers[i][j], df[i][j], encodedRes)) {
@@ -63,15 +70,15 @@ function verifyNH(et: Ciphertext.t, df: Point.t, encodedRes: any) {
   return Point.isEqual(pResult, encodedRes);
 }
 
-function getDecryptionFactors(state) {
-  const election = state.setup.election;
+function getDecryptionFactors(setup: Setup.t, encryptedTally, partialDecryptions) {
+  const election : Election.t = setup.election;
   let df = [];
   for (let i = 0; i < election.questions.length; i++) {
     let question = election.questions[i];
     let row = [];
-    if (Question.IsQuestionH(election.questions[i])) {
+    if (Question.IsQuestionH(question)) {
       row = Array.from({ length: question.answers.length }, () => Point.zero);
-    } else if (Question.IsQuestionL(election.questions[i])) {
+    } else if (Question.IsQuestionL(question)) {
       row = [...Array(question.value.answers.length).keys()].map((_, i) => {
         return Array.from(
           { length: question.value.answers[i].length },
@@ -80,7 +87,7 @@ function getDecryptionFactors(state) {
       });
     } else if (Question.IsQuestionNH(question)) {
       row = Array.from(
-        { length: state.encryptedTally.payload.num_tallied },
+        { length: encryptedTally.num_tallied },
         () => Point.zero,
       );
       //throw new Error("Not Implemented");
@@ -90,16 +97,16 @@ function getDecryptionFactors(state) {
     df.push(row);
   }
 
-  const ownerToTrusteeIndex = Trustee.ownerIndexToTrusteeIndex(state.setup.trustees)
-  for (let i = 0; i < state.setup.trustees.length; i++) {
-    const [type, content] = state.setup.trustees[i];
+  const ownerToTrusteeIndex = Trustee.ownerIndexToTrusteeIndex(setup.trustees)
+  for (let i = 0; i < setup.trustees.length; i++) {
+    const [type, content] = setup.trustees[i];
     if (type === "Single") {
       let partialDecryption = null;
-      for (let j = 0; j < state.partialDecryptions.length; j++) {
+      for (let j = 0; j < partialDecryptions.length; j++) {
         const [_type, trusteeIdx, subIdx] =
-          ownerToTrusteeIndex[state.partialDecryptions[j].payload.owner];
+          ownerToTrusteeIndex[partialDecryptions[j].owner];
         if (trusteeIdx === i && subIdx === -1) {
-          partialDecryption = state.partialDecryptions[j];
+          partialDecryption = partialDecryptions[j];
         }
       }
       if (partialDecryption === null) {
@@ -108,11 +115,11 @@ function getDecryptionFactors(state) {
       df = multiplyDfPow(df, parseDf(partialDecryption), 1);
     } else {
       // Pedersen
-      let pds = state.partialDecryptions.filter((pd) => {
-        return ownerToTrusteeIndex[pd.payload.owner][1] === i;
+      let pds = partialDecryptions.filter((pd) => {
+        return ownerToTrusteeIndex[pd.owner][1] === i;
       });
       pds = [
-        ...new Map(pds.map((item) => [item.payload.owner, item])).values(),
+        ...new Map(pds.map((item) => [item.owner, item])).values(),
       ]; // Unique by owner
       pds = pds.slice(0, content.threshold); // Remove useless shares
       if (pds.length !== content.threshold) {
@@ -147,10 +154,10 @@ function getDecryptionFactors(state) {
       // AGGREGATE PEDERSON DF
       for (let j = 0; j < pds.length; j++) {
         const [_type, trusteeIdx, subIdx] =
-          ownerToTrusteeIndex[pds[j].payload.owner];
+          ownerToTrusteeIndex[pds[j].owner];
         let indexes = pds.map((pd) => {
           const [_type, _trusteeIdx, subIdx] =
-            ownerToTrusteeIndex[pd.payload.owner];
+            ownerToTrusteeIndex[pd.owner];
           return subIdx + 1;
         });
         res = multiplyDfPow(
@@ -180,7 +187,7 @@ function lagrange(n, indexes) {
 }
 
 function parseDf(df) {
-  let m = df.payload.payload.decryption_factors;
+  let m = df.payload.decryption_factors;
   let res = [];
   for (let i = 0; i < m.length; i++) {
     let row = [];

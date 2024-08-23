@@ -16,9 +16,9 @@ export type t = {
     proof: Proof.Serialized.t;
   };
 
-  // Only on runtime
-  hash?: string;
-  tracker?: string; // TODO: Recompute as a function of hash
+  // NOTE: Only on runtime
+  hash?: string; // TODO: Remove and recompute
+  tracker?: string; // TODO: Recompute as a function of hex hash
 };
 
 export function toJSON(ballot: t, election: Election.t) : t {
@@ -57,7 +57,6 @@ export function verify(state: any, ballot: t) {
   const election = state.setup.election;
   checkMisc(ballot, ballot.hash, election);
   checkCredential(ballot, state.setup.credentials);
-  checkIsUnique(ballot, ballot.hash);
   checkSignature(ballot, election);
 
   for (let i = 0; i < state.setup.election.questions.length; i++) {
@@ -71,8 +70,6 @@ export function verify(state: any, ballot: t) {
 }
 
 function checkMisc(ballot: t, ballotPayloadHash: string, election: Election.t) {
-  const sSerializedBallot = JSON.stringify(toJSON(ballot, election));
-
   if (
     !(
       election.uuid === ballot.election_uuid &&
@@ -80,14 +77,6 @@ function checkMisc(ballot: t, ballotPayloadHash: string, election: Election.t) {
     )
   ) {
     throw new Error("election_uuid or election_hash is incorrect");
-  }
-
-  const hash = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(sSerializedBallot),
-  );
-
-  if (hash !== ballotPayloadHash) {
-    throw new Error("Ballot payload is not canonical");
   }
 }
 
@@ -108,21 +97,6 @@ function checkCredential(ballot: t, credentials: string[]) {
   }
 }
 
-const processedBallots = {};
-
-export function resetProcessedBallots() {
-  for (const key in processedBallots) {
-    delete processedBallots[key];
-  }
-}
-
-function checkIsUnique(ballot: t, ballotPayloadHash: string) {
-  if (processedBallots[ballotPayloadHash] !== undefined) {
-    throw new Error("Ballot is not unique");
-  }
-  processedBallots[ballotPayloadHash] = ballot;
-}
-
 export function checkSignature(ballot: t, election: Election.t) {
   if (ballot.signature.hash !== hashWithoutSignature(ballot, election)) {
     throw new Error("Hash without signature is incorrect");
@@ -138,4 +112,8 @@ export function checkSignature(ballot: t, election: Election.t) {
   if (nH !== nChallenge) {
     throw new Error("Invalid signature");
   }
+}
+
+export function b64hash(ballot: t) {
+  return sjcl.codec.base64.fromBits(sjcl.codec.hex.toBits(ballot.hash)).replace(/=+$/, "");
 }

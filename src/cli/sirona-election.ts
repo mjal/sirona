@@ -23,7 +23,6 @@ program
       const election = state.setup.election;
 
       console.log("Election fingerprint: " + Election.fingerprint(election));
-      console.log(state.files.length + " files found.");
       for (let i = 0; i < state.setup.election.questions.length; i++) {
         let question = state.setup.election.questions[i];
         let questionType = question.type ? question.type : "Homomorphic";

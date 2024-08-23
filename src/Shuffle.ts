@@ -77,7 +77,6 @@ export function verify(
   tally: Array<Array<Ciphertext.t>>,
 ): boolean {
   const election = state.setup.election;
-  const y = Point.parse(election.public_key);
   for (let i = 0; i < election.questions.length; i++) {
     const question = election.questions[i];
     if (Question.IsQuestionNH(question)) {

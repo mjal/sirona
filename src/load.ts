@@ -1,71 +1,134 @@
 import sjcl from "sjcl";
+import * as Ballot from "./Ballot";
 import * as Shuffle from "./Shuffle";
+import * as Setup from "./Setup";
 import * as Trustee from "./Trustee";
+import * as EncryptedTally from "./EncryptedTally";
+import * as PartialDecryption from "./PartialDecryption";
+import * as Result from "./Result";
 
-export default function (fileEntries) {
-  const state: any = {};
+export type t = {
+  setup: Setup.t;
+  ballots: Array<Ballot.t>;
+  shuffles: Array<Shuffle.t>;
+  encryptedTally: EncryptedTally.t;
+  partialDecryptions: Array<PartialDecryption.t>;
+  result: Result.t;
+};
 
-  state.files = fileEntries.map(readFile);
-  state.setup = findData(state.files, findEvent(state.files, "Setup").payload);
+namespace File {
+  export type t = [string, string, any];
+}
 
+export default function (rawFiles : Array<any>) {
+  const files = rawFiles.map(readFile);
+
+  let height = 0;
+  let parent: string = undefined;
+  for (let i = 0; i < files.length; i++) {
+    const [contentHash, type, content] = files[i];
+
+    if (type === "event") {
+
+      if (content.parent !== parent) {
+        throw new Error(
+          "Invalid event parent hash",
+        );
+      }
+
+      if (content.height !== height) {
+        throw new Error(
+          "Invalid event height",
+        );
+      }
+
+      parent = contentHash;
+      height++;
+    }
+  }
+
+  /* @ts-ignore */
+  const state : t = {};
+
+  const setup = findData(files, findEvent(files, "Setup").payload);
   state.setup = {
-    ...state.setup,
-    credentials: findData(state.files, state.setup.credentials),
-    election: findData(state.files, state.setup.election),
-    trustees: findData(state.files, state.setup.trustees).map(Trustee.fromJSON),
+    ...setup,
+    credentials: findData(files, setup.credentials),
+    election: findData(files, setup.election),
+    trustees: findData(files, setup.trustees).map(Trustee.fromJSON),
   };
 
-  state.ballots = findEvents(state.files, "Ballot").map((ballotEvent) => {
+  const alreadyProcessedBallots = {};
+  state.ballots = findEvents(files, "Ballot").map((ballotEvent) => {
     const hash = ballotEvent.payload;
-    const ballot = findData(state.files, hash);
+    const ballot = findData(files, hash);
+
+    const canonicalBallot = JSON.stringify(Ballot.toJSON(ballot, state.setup.election));
+    const recomputedHash = sjcl.codec.hex.fromBits(
+      sjcl.hash.sha256.hash(canonicalBallot),
+    );
+
+    if (hash !== recomputedHash) {
+      throw new Error("Ballot is not canonical");
+    }
+
+    if (alreadyProcessedBallots[hash]) {
+      throw new Error("Ballot is not unique");
+    }
+    alreadyProcessedBallots[hash] = true;
+
+    /*
+     * TODO: Remove everywhere
+    */
     ballot.hash = hash;
     ballot.tracker = sjcl.codec.base64
       .fromBits(sjcl.codec.hex.toBits(hash))
       .replace(/=+$/, "");
+
     return ballot;
   });
 
-  state.shuffles = findEvents(state.files, "Shuffle").map((shuffle) => {
-    const ret = findData(state.files, shuffle.payload);
-    ret.payload = findData(state.files, ret.payload);
+  state.shuffles = findEvents(files, "Shuffle").map((shuffle) => {
+    const ret = findData(files, shuffle.payload);
+    ret.payload = findData(files, ret.payload);
     return Shuffle.parse(ret);
   });
 
-  state.encryptedTally = findEvent(state.files, "EncryptedTally");
-  if (state.encryptedTally) {
-    state.encryptedTally.payload = findData(
-      state.files,
-      state.encryptedTally.payload,
+  const encryptedTallyEvent = findEvent(files, "EncryptedTally");
+  if (encryptedTallyEvent) {
+    state.encryptedTally = findData(
+      files,
+      encryptedTallyEvent.payload,
     );
-    state.encryptedTally.payload.encrypted_tally = findData(
-      state.files,
-      state.encryptedTally.payload.encrypted_tally,
+    state.encryptedTally.encrypted_tally = findData(
+      files, /* @ts-ignore */
+      state.encryptedTally.encrypted_tally,
     );
   }
 
-  state.partialDecryptions = findEvents(state.files, "PartialDecryption").map(
-    (partialDecryption) => {
-      partialDecryption.payload = findData(
-        state.files,
-        partialDecryption.payload,
+  state.partialDecryptions = findEvents(files, "PartialDecryption").map(
+    (event) => {
+      event.payload = findData(
+        files,
+        event.payload,
       );
-      partialDecryption.payload.payload = findData(
-        state.files,
-        partialDecryption.payload.payload,
+      event.payload.payload = findData(
+        files,
+        event.payload.payload,
       );
-      return partialDecryption;
+      return event.payload;
     },
   );
 
-  state.result = findEvent(state.files, "Result");
-  if (state.result) {
-    state.result.payload = findData(state.files, state.result.payload);
+  const resultEvent = findEvent(files, "Result");
+  if (resultEvent) {
+    state.result = findData(files, resultEvent.payload);
   }
 
   return state;
 }
 
-function readFile(file) {
+function readFile(file: any) : File.t {
   if (file.name === "BELENIOS") {
     return [null, "BELENIOS", JSON.parse(file.content)];
   }
@@ -80,45 +143,51 @@ function readFile(file) {
   );
 
   if (hash !== hashContent) {
-    return null;
-  }
-
-  if (hash !== hashContent) {
     throw new Error("File integrity check failed");
   }
 
   return [hash, type, jsonContent];
 }
 
-function findEvent(entries, eventType) {
-  const entry = entries.find((entry) => {
-    const [_entryHash, type, content] = entry;
+function findEvent(files: File.t[], eventType: string) {
+  const file = files.find((file) => {
+    const [_contentHash, type, content] = file;
+
     return type === "event" && content.type === eventType;
   });
 
-  if (entry) {
-    return entry[2];
+  if (file) {
+    const [_contentHash, _type, content] = file;
+
+    return content;
   } else {
     return null;
   }
 }
 
-function findEvents(entries, eventType) {
-  return entries
-    .filter((entry) => {
-      return entry[1] === "event" && entry[2].type === eventType;
-    })
-    .map((entry) => entry[2]);
+function findEvents(files: File.t[], eventType: string) {
+  return files.filter((file: File.t) => {
+    const [_contentHash, type, content] = file;
+
+    return type === "event" && content.type === eventType;
+  }).map((file: File.t) => {
+    const [_contentHash, _type, content] = file;
+
+    return content;
+  });
 }
 
-function findData(entries, hash) {
-  const entry = entries.find((entry) => {
-    const [entryHash, _type, _content] = entry;
-    return entryHash === hash;
+function findData(files: File.t[], hash: string) {
+  const file = files.find((file) => {
+    const [contentHash, _type, _content] = file;
+
+    return contentHash === hash;
   });
 
-  if (entry) {
-    return entry[2];
+  if (file) {
+    const [_contentHash, _type, content] = file;
+
+    return content;
   } else {
     return null;
   }

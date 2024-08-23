@@ -1,7 +1,6 @@
 import { log } from "./logger";
 import { _async } from "./utils";
 import load from "./load";
-import checkFiles from "./checkFiles";
 import * as EncryptedTally from "./EncryptedTally";
 import * as Setup from "./Setup";
 import * as Ballot from "./Ballot";
@@ -12,26 +11,36 @@ import * as Ciphertext from "./Ciphertext";
 
 export default async function (fileEntries) {
   try {
-    Ballot.resetProcessedBallots();
+
+    // TODO: Remove state variable
     let state: any = load(fileEntries);
 
-    await _async(checkFiles, state);
-    await _async(Setup.verify, state.setup);
-    for (let i = 0; i < state.ballots.length; i++) {
-      await _async(Ballot.verify, state, state.ballots[i]);
+    const {
+      setup,
+      ballots,
+      encryptedTally,
+      shuffles,
+      partialDecryptions,
+      result
+    } = state;
+
+    await _async(Setup.verify, setup);
+
+    for (let i = 0; i < ballots.length; i++) {
+      await _async(Ballot.verify, state, ballots[i]);
     }
 
-    if (!state.encryptedTally) return state;
+    if (!encryptedTally) return state;
 
     await _async(
       EncryptedTally.verify,
-      state.setup.election,
-      state.encryptedTally.payload,
-      state.ballots,
-      state.setup.credentials,
+      setup.election,
+      encryptedTally,
+      ballots,
+      setup.credentials,
     );
 
-    let tally = state.encryptedTally.payload.encrypted_tally.map((xs) => {
+    let tally = state.encryptedTally.encrypted_tally.map((xs) => {
       return xs.map((x) => {
         if (x.length) {
           return x.map(Ciphertext.parse);
@@ -41,21 +50,21 @@ export default async function (fileEntries) {
       });
     });
 
-    for (let i = 0; i < state.shuffles.length; i++) {
-      await _async(Shuffle.verify, state, state.shuffles[i], tally);
-      tally = state.shuffles[i].payload.ciphertexts;
+    for (let i = 0; i < shuffles.length; i++) {
+      await _async(Shuffle.verify, state, shuffles[i], tally);
+      tally = shuffles[i].payload.ciphertexts;
     }
 
     for (let i = 0; i < state.partialDecryptions.length; i++) {
       await _async(
         PartialDecryption.verify,
         state,
-        state.partialDecryptions[i],
+        partialDecryptions[i],
       );
     }
 
     if (state.result) {
-      await _async(Result.verify, state);
+      await _async(Result.verify, result, setup, encryptedTally, partialDecryptions, shuffles);
     }
 
     log("top", true, "Verification done.");

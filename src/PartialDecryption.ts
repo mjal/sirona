@@ -14,12 +14,12 @@ export type t = {
   };
 };
 
-export function verify(state: any, partialDecryption: Event.t<t>) {
+export function verify(state: any, partialDecryption: t) {
   const election = state.setup.election;
-  const encrypted_tally = state.encryptedTally.payload.encrypted_tally;
+  const encrypted_tally = state.encryptedTally.encrypted_tally;
   const { decryption_factors, decryption_proofs } =
-    partialDecryption.payload.payload;
-  const pPublicKey = Trustee.getPublicKeyByOwnerIndex(state.setup.trustees, partialDecryption.payload.owner - 1);
+    partialDecryption.payload;
+  const pPublicKey = Trustee.getPublicKeyByOwnerIndex(state.setup.trustees, partialDecryption.owner - 1);
 
   for (let i = 0; i < election.questions.length; i++) {
     const question = election.questions[i];
