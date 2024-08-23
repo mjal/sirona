@@ -1,3 +1,4 @@
+import sjcl from "sjcl"
 import * as Trustee from "./Trustee";
 import * as Point from "./Point";
 import * as Question from "./Question";
@@ -12,9 +13,6 @@ export type t = {
   uuid: string;
   administrator?: string;
   credential_authority?: string;
-
-  // Only on runtime
-  fingerprint?: string;
 };
 
 export function verify(election: t, trustees: Array<Trustee.t>) {
@@ -46,4 +44,10 @@ export function verify(election: t, trustees: Array<Trustee.t>) {
   }
 
   return true;
+}
+
+export function fingerprint(election: t): string {
+  return sjcl.codec.base64
+    .fromBits(sjcl.hash.sha256.hash(JSON.stringify(election)))
+    .replace(/=+$/, "");
 }

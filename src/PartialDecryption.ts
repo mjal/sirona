@@ -1,4 +1,5 @@
 import * as Event from "./Event";
+import * as Election from "./Election";
 import * as Ciphertext from "./Ciphertext";
 import * as Proof from "./Proof";
 import * as Point from "./Point";
@@ -26,7 +27,7 @@ export function verify(state: any, partialDecryption: Event.t<t>) {
       for (let j = 0; j < encrypted_tally[i].length; j++) {
         if (
           !Proof.checkDecryptionProof(
-            `${election.fingerprint}|${Point.serialize(pPublicKey)}`,
+            `${Election.fingerprint(election)}|${Point.serialize(pPublicKey)}`,
             pPublicKey,
             Ciphertext.parse(encrypted_tally[i][j]),
             Point.parse(decryption_factors[i][j]),
@@ -44,7 +45,7 @@ export function verify(state: any, partialDecryption: Event.t<t>) {
         for (let k = 0; k < encrypted_tally[i][j].length; k++) {
           if (
             !Proof.checkDecryptionProof(
-              `${election.fingerprint}|${Point.serialize(pPublicKey)}`,
+              `${Election.fingerprint(election)}|${Point.serialize(pPublicKey)}`,
               pPublicKey,
               Ciphertext.parse(encrypted_tally[i][j][k]),
               Point.parse(decryption_factors[i][j][k]),

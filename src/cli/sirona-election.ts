@@ -4,6 +4,7 @@ import { execSync } from "child_process";
 import { Command } from "commander";
 import * as Archive from "../Archive";
 import * as Ballot from "../Ballot";
+import * as Election from "../Election";
 import generateBallot from "../generateBallot";
 import { getLogs, getBallotLogs } from "../logger";
 import check from "../check";
@@ -21,7 +22,7 @@ program
       const state = await check(files);
       const election = state.setup.election;
 
-      console.log("Election fingerprint: " + election.fingerprint);
+      console.log("Election fingerprint: " + Election.fingerprint(election));
       console.log(state.files.length + " files found.");
       for (let i = 0; i < state.setup.election.questions.length; i++) {
         let question = state.setup.election.questions[i];

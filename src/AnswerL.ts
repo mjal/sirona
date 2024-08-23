@@ -89,7 +89,7 @@ export function checkIndividualProofs(
 ): boolean {
   const pY = Point.parse(election.public_key);
 
-  const S = `${election.fingerprint}|${ballot.credential}`;
+  const S = `${Election.fingerprint(election)}|${ballot.credential}`;
   for (let j = 0; j < question.value.answers.length; j++) {
     for (let k = 0; k < question.value.answers[j].length; k++) {
       if (
@@ -125,7 +125,7 @@ function checkOverallProofLists(
     1,
   );
 
-  let S = `${election.fingerprint}|${ballot.credential}|`;
+  let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
   S += answer.choices
     .map((cs: any) => {
       return cs.map(Ciphertext.toString).join(",");
@@ -163,7 +163,7 @@ function checkNonZeroProof(
   const A1 = formula(ct.pAlpha, t1, Point.g, t2);
   const A2 = formula(ct.pBeta, t1, pY, t2).add(A0.multiply(c));
 
-  let S = `${election.fingerprint}|${ballot.credential}|`;
+  let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
   S += answer.choices
     .map((cs: any) => {
       return cs.map(Ciphertext.toString).join(",");
@@ -203,7 +203,7 @@ function checkListProofs(
     );
     const B1 = formula(pY, proofs[1].nResponse, ct.pBeta, proofs[1].nChallenge);
 
-    let S = `${election.fingerprint}|${ballot.credential}|`;
+    let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
     S += answer.choices
       .map((cs: any) => {
         return cs.map(Ciphertext.toString).join(",");

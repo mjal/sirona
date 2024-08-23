@@ -76,7 +76,7 @@ function checkMisc(ballot: t, ballotPayloadHash: string, election: Election.t) {
   if (
     !(
       election.uuid === ballot.election_uuid &&
-      election.fingerprint === ballot.election_hash
+      Election.fingerprint(election) === ballot.election_hash
     )
   ) {
     throw new Error("election_uuid or election_hash is incorrect");

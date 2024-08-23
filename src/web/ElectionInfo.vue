@@ -1,10 +1,15 @@
 <script setup>
 import { computed } from "vue";
 import Question from "./Question.vue";
+import * as Election from "../Election";
 
 const props = defineProps(["state", "logs", "ballotLogs"]);
 const election = props.state.setup?.election;
 const countBallots = props.state.ballots?.length;
+
+const electionFingerprint = computed(() => {
+  return Election.fingerprint(election);
+});
 
 const hasResult = props.state.result ? true : false;
 const hasError = computed(() => {
@@ -57,7 +62,7 @@ const hasError = computed(() => {
       </tr>
       <tr>
         <td>Fingerprint</td>
-        <td>{{ election.fingerprint }}</td>
+        <td>{{ electionFingerprint }}</td>
       </tr>
       <tr>
         <td>Number of ballots</td>

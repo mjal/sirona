@@ -86,7 +86,7 @@ export function checkIndividualProofs(
   answer: t,
 ): boolean {
   const pY = Point.parse(election.public_key);
-  const S = `${election.fingerprint}|${ballot.credential}`;
+  const S = `${Election.fingerprint(election)}|${ballot.credential}`;
   for (let j = 0; j < question.answers.length + (question.blank ? 1 : 0); j++) {
     if (
       !Proof.checkIndividualProof(
@@ -128,7 +128,7 @@ export function checkOverallProofWithoutBlank(
     commitments.push(pA, pB);
   }
 
-  let S = `${election.fingerprint}|${ballot.credential}|`;
+  let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
   S += answer.aeChoices.map(Ciphertext.toString).join(",");
 
   return Hiprove(S, sumc.pAlpha, sumc.pBeta, ...commitments) === nSumChallenges;
@@ -170,7 +170,7 @@ export function checkOverallProofWithBlank(
     0n,
   );
 
-  let S = `${election.fingerprint}|${ballot.credential}|`;
+  let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
   S += answer.aeChoices.map(Ciphertext.toString).join(",");
 
   return Hbproof1(S, ...commitments) === nSumChallenges;
@@ -206,7 +206,7 @@ export function checkBlankProof(
     0,
   );
 
-  let S = `${election.fingerprint}|${ballot.credential}|`;
+  let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
   S += answer.aeChoices.map(Ciphertext.toString).join(",");
   return Hbproof0(S, ...[pA0, pB0, pAS, pBS]) === nSumChallenges;
 }

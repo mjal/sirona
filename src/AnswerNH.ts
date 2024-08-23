@@ -60,7 +60,7 @@ function verifyProof(
   const y = Point.parse(election.public_key);
   const { choices, proof } = answer;
   const A = formula(Point.g, proof.nResponse, choices.pAlpha, proof.nChallenge);
-  const S = `${election.fingerprint}|${ballot.credential}`;
+  const S = `${Election.fingerprint(election)}|${ballot.credential}`;
 
   return Hraweg(S, y, choices.pAlpha, choices.pBeta, A) === proof.nChallenge;
 }

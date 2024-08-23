@@ -138,7 +138,7 @@ function CheckShuffleProof(
 
   const uu = GetNIZKPChallenges(
     input.length,
-    `shuffle-challenges|${election.fingerprint}|${str_c}`,
+    `shuffle-challenges|${Election.fingerprint(election)}|${str_c}`,
   );
 
   const str_t =
@@ -152,7 +152,7 @@ function CheckShuffleProof(
     Point.serialize(y);
 
   const c = GetNIZKPChallenge(
-    `shuffle-challenge|${election.fingerprint}|${str_t}${str_y}`,
+    `shuffle-challenge|${Election.fingerprint(election)}|${str_t}${str_y}`,
   );
 
   const c_bar = Point.combine(cc).add(Point.combine(hh).negate());

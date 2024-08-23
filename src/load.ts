@@ -6,13 +6,7 @@ export default function (fileEntries) {
   const state: any = {};
 
   state.files = fileEntries.map(readFile);
-
-  state.setup = findData(state.files,
-    findEvent(state.files, "Setup").payload);
-
-  const electionFingerprint = sjcl.codec.base64
-    .fromBits(sjcl.codec.hex.toBits(state.setup.election))
-    .replace(/=+$/, "");
+  state.setup = findData(state.files, findEvent(state.files, "Setup").payload);
 
   state.setup = {
     ...state.setup,
@@ -20,7 +14,6 @@ export default function (fileEntries) {
     election: findData(state.files, state.setup.election),
     trustees: findData(state.files, state.setup.trustees).map(Trustee.fromJSON),
   };
-  state.setup.election.fingerprint = electionFingerprint;
 
   state.ballots = findEvents(state.files, "Ballot").map((ballotEvent) => {
     const hash = ballotEvent.payload;

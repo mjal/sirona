@@ -5,6 +5,7 @@ import * as Proof from "./Proof";
 import * as Answer from "./Answer";
 import * as Ballot from "./Ballot";
 import * as Credential from "./Credential";
+import * as Election from "./Election";
 import {
   g,
   L,
@@ -64,7 +65,7 @@ export default function (
   const ballotWithoutSignature = {
     answers,
     credential: hPublicCredential,
-    election_hash: state.setup.election.fingerprint,
+    election_hash: Election.fingerprint(state.setup.election),
     election_uuid: state.setup.election.uuid,
     signature: {
       hash: null,
@@ -182,7 +183,7 @@ function generateEncryptions(
     const pAlpha = g.multiply(nR);
     const pBeta = pY.multiply(nR).add(gPowerM);
 
-    const S = `${state.setup.election.fingerprint}|${hPublicCredential}`;
+    const S = `${Election.fingerprint(state.setup.election)}|${hPublicCredential}`;
     const proof = iproof(S, pY, pAlpha, pBeta, nR, choices[i], [0, 1]);
 
     aeChoices.push({ pAlpha, pBeta });
@@ -219,7 +220,7 @@ function generateAnswerWithoutBlank(
   );
   const nR = anR.reduce((acc, r) => mod(acc + r, L), BigInt(0));
 
-  let S = `${state.setup.election.fingerprint}|${hPublicCredential}|`;
+  let S = `${Election.fingerprint(state.setup.election)}|${hPublicCredential}|`;
   S += aeChoices
     .map((c) => `${rev(c.pAlpha.toHex())},${rev(c.pBeta.toHex())}`)
     .join(",");
@@ -250,7 +251,7 @@ function blankProof(
   const pA0 = g.multiply(nW);
   const pB0 = pY.multiply(nW);
 
-  let S = `${state.setup.election.fingerprint}|${hPub}|`;
+  let S = `${Election.fingerprint(state.setup.election)}|${hPub}|`;
   S += choices
     .map(Ciphertext.serialize)
     .map((c) => `${c.alpha},${c.beta}`)
@@ -340,7 +341,7 @@ function overallProofBlank(
       }
     }
 
-    let S = `${state.setup.election.fingerprint}|${hPub}|`;
+    let S = `${Election.fingerprint(state.setup.election)}|${hPub}|`;
     S += aeCiphertexts
       .map(Ciphertext.serialize)
       .map((c) => `${c.alpha},${c.beta}`)
@@ -389,7 +390,7 @@ function overallProofBlank(
       commitments.push(pA, pB);
     }
 
-    let S = `${state.setup.election.fingerprint}|${hPub}|`;
+    let S = `${Election.fingerprint(state.setup.election)}|${hPub}|`;
     S += aeCiphertexts
       .map(Ciphertext.serialize)
       .map((c) => `${c.alpha},${c.beta}`)
