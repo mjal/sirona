@@ -6,7 +6,6 @@ import * as Archive from "../Archive";
 import * as Ballot from "../Ballot";
 import * as Election from "../Election";
 import generateBallot from "../generateBallot";
-import { getLogs, getBallotLogs } from "../logger";
 import check from "../check";
 
 const program = new Command();
@@ -29,35 +28,6 @@ program
         console.log(`Question ${i + 1} (${questionType})`);
       }
       console.log(state.ballots.length + " ballots found.");
-
-      const sectionLogs = getLogs();
-      const sections = Object.keys(sectionLogs);
-      for (let i = 0; i < sections.length; i++) {
-        const logs = sectionLogs[sections[i]];
-        if (!options.quiet) console.log("=== " + sections[i] + " ===");
-        for (let j = 0; j < logs.length; j++) {
-          if (!logs[j].pass) {
-            errors++;
-          }
-          const prefix = logs[j].pass ? "✅" : "❌";
-          if (!options.quiet) console.log(prefix + logs[j].message);
-        }
-      }
-
-      const ballotLogs = getBallotLogs();
-      const ballotKeys = Object.keys(ballotLogs);
-      if (!options.quiet) console.log("=== BALLOTS ===");
-      for (let i = 0; i < ballotKeys.length; i++) {
-        const logs = ballotLogs[ballotKeys[i]];
-        if (!options.quiet) console.log("=== " + ballotKeys[i] + " ===");
-        for (let j = 0; j < logs.length; j++) {
-          if (!logs[j].pass) {
-            errors++;
-          }
-          const prefix = logs[j].pass ? "✅" : "❌";
-          if (!options.quiet) console.log(prefix + logs[j].message);
-        }
-      }
     };
 
     let uuid = options.uuid;

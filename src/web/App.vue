@@ -7,13 +7,9 @@ import ElectionInfo from "./ElectionInfo.vue";
 import ElectionResult from "./ElectionResult.vue";
 import ElectionBallotList from "./ElectionBallotList.vue";
 import GenerateBallotModal from "./GenerateBallotModal.vue";
-import { getLogs, getBallotLogs } from "../logger";
-
 import * as Archive from "../Archive";
 
 const state = ref({});
-const logs = ref([]);
-const ballotLogs = ref({});
 const loading = ref(false);
 const loaded = ref(false);
 
@@ -21,15 +17,15 @@ const onUploadedFile = (event) => {
   const reader = new window.FileReader();
   reader.onload = async () => {
     loading.value = true;
-
     const files = await Archive.readArrayBuffer(reader.result);
-    state.value = await check(files);
-
-    loaded.value = true;
-    loading.value = false;
-    logs.value = getLogs();
-    ballotLogs.value = getBallotLogs();
-    return state;
+    check(files).then((value) => {
+      state.value = value;
+      loaded.value = true;
+      loading.value = false;
+      return state;
+    }).catch((e) => {
+      alert(e);
+    });
   };
   reader.readAsArrayBuffer(event.target.files[0]);
 };
@@ -37,7 +33,7 @@ const onUploadedFile = (event) => {
 
 <template>
   <div class="uk-container uk-container-xsmall uk-padding">
-    <h1 class="uk-h2 uk-text-center">Sirona (a tool for belenios elections)</h1>
+    <h1 class="uk-h2 uk-text-center">Verify a Belenios election</h1>
     <div
       id="import"
       class="uk-card uk-card-body uk-width-medium uk-margin uk-margin-auto"
@@ -95,45 +91,11 @@ const onUploadedFile = (event) => {
     <ul class="uk-switcher uk-margin">
       <li>
         <div v-if="!loaded">Not loaded yet.</div>
-        <ElectionInfo
-          :state="state"
-          :logs="logs"
-          :ballotLogs="ballotLogs"
-          v-if="loaded"
-        />
+        <ElectionInfo :state="state" v-if="loaded" />
         <ElectionResult :state="state" v-if="loaded && state.result" />
       </li>
       <li>
         <ElectionBallotList :state="state" v-if="loaded" />
-      </li>
-      <li>
-        <h3 id="top"></h3>
-        <div id="database"></div>
-        <div id="setup"></div>
-        <div id="ballots"></div>
-        <div id="encryptedTally"></div>
-        <div id="partialDecryptions"></div>
-        <div id="result"></div>
-        <div id="check2">
-          <ul uk-accordion>
-            <LogSection v-if="logs.top" title="General" :logs="logs.top" />
-            <LogSection
-              v-if="logs.database"
-              title="Database"
-              :logs="logs.database"
-            />
-            <LogSection v-if="logs.setup" title="Setup" :logs="logs.setup" />
-            <template v-for="(ballotLogEntry, key) in ballotLogs" :key="key">
-              <LogSection :title="'Ballot ' + key" :logs="ballotLogEntry" />
-            </template>
-            <LogSection
-              v-if="logs.encryptedTally"
-              title="Encrypted Tally"
-              :logs="logs.encryptedTally"
-            />
-            <LogSection v-if="logs.result" title="Result" :logs="logs.result" />
-          </ul>
-        </div>
       </li>
     </ul>
   </div>
