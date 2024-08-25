@@ -131,13 +131,13 @@ export namespace Message {
 
 export function verify(election: Election.t, trustee: t) {
   if (trustee[0] === "Single") {
-    if (!checkPublicKey(election, trustee[1])) {
+    if (!verifyPublicKey(election, trustee[1])) {
       return false;
     }
   } else {
     // "Pedersen"
     for (let j = 0; j < trustee[1].verification_keys.length; j++) {
-      if (checkPublicKey(election, trustee[1].verification_keys[j])) {
+      if (verifyPublicKey(election, trustee[1].verification_keys[j])) {
         return false;
       }
     }
@@ -145,7 +145,7 @@ export function verify(election: Election.t, trustee: t) {
   return true;
 }
 
-function checkPublicKey(election: Election.t, trustee: PublicKey.t) {
+function verifyPublicKey(election: Election.t, trustee: PublicKey.t) {
   if (!Point.isValid(trustee.public_key)) {
     throw new Error("Invalid curve point");
   }
