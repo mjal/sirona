@@ -26,7 +26,7 @@ export function verify(partialDecryption: t, setup: Setup.t, encryptedTally: Enc
     if (Question.IsQuestionH(question)) {
       for (let j = 0; j < encrypted_tally[i].length; j++) {
         if (
-          !Proof.checkDecryptionProof(
+          !Proof.verifyDecryptionProof(
             `${Election.fingerprint(election)}|${Point.serialize(pPublicKey)}`,
             pPublicKey,
             Ciphertext.parse(encrypted_tally[i][j]),
@@ -44,7 +44,7 @@ export function verify(partialDecryption: t, setup: Setup.t, encryptedTally: Enc
       for (let j = 0; j < encrypted_tally[i].length; j++) {
         for (let k = 0; k < encrypted_tally[i][j].length; k++) {
           if (
-            !Proof.checkDecryptionProof(
+            !Proof.verifyDecryptionProof(
               `${Election.fingerprint(election)}|${Point.serialize(pPublicKey)}`,
               pPublicKey,
               Ciphertext.parse(encrypted_tally[i][j][k]),

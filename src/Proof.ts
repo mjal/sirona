@@ -29,7 +29,7 @@ export function parse(proof: Serialized.t): t {
   };
 }
 
-export function checkIndividualProof(
+export function verifyIndividualProof(
   S: string,
   zIndividualProof: Array<Proof.t>,
   pY: Point.t,
@@ -67,7 +67,7 @@ export function checkIndividualProof(
   return nSumChallenges === nH;
 }
 
-export function checkDecryptionProof(
+export function verifyDecryptionProof(
   S: string,
   y: Point.t,
   e: Ciphertext.t,

@@ -89,7 +89,7 @@ export function verifyIndividualProofs(
   const S = `${Election.fingerprint(election)}|${ballot.credential}`;
   for (let j = 0; j < question.answers.length + (question.blank ? 1 : 0); j++) {
     if (
-      !Proof.checkIndividualProof(
+      !Proof.verifyIndividualProof(
         S,
         answer.aazIndividualProofs[j],
         pY,

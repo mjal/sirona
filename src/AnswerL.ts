@@ -93,7 +93,7 @@ export function verifyIndividualProofs(
   for (let j = 0; j < question.value.answers.length; j++) {
     for (let k = 0; k < question.value.answers[j].length; k++) {
       if (
-        !Proof.checkIndividualProof(
+        !Proof.verifyIndividualProof(
           S,
           answer.individual_proofs[j][k],
           pY,
