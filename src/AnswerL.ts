@@ -62,26 +62,26 @@ export function verify(
     }
   }
 
-  if (!checkIndividualProofs(election, ballot, question, answer)) {
+  if (!verifyIndividualProofs(election, ballot, question, answer)) {
     throw new Error("Invalid individual proofs");
   }
 
-  if (!checkOverallProofLists(election, ballot, question, answer)) {
+  if (!verifyOverallProofLists(election, ballot, question, answer)) {
     throw new Error("Invalid overall proof (lists)");
   }
 
-  if (!checkNonZeroProof(election, ballot, question, answer)) {
+  if (!verifyNonZeroProof(election, ballot, question, answer)) {
     throw new Error("Invalid non zero proof (lists)");
   }
 
-  if (!checkListProofs(election, ballot, question, answer)) {
+  if (!verifyListProofs(election, ballot, question, answer)) {
     throw new Error("Invalid list proof");
   }
 
   return true;
 }
 
-export function checkIndividualProofs(
+export function verifyIndividualProofs(
   election: Election.t,
   ballot: Ballot.t,
   question: Question.QuestionL.t,
@@ -107,7 +107,7 @@ export function checkIndividualProofs(
   return true;
 }
 
-function checkOverallProofLists(
+function verifyOverallProofLists(
   election: Election.t,
   ballot: Ballot.t,
   _question: Question.QuestionL.t,
@@ -138,7 +138,7 @@ function checkOverallProofLists(
   );
 }
 
-function checkNonZeroProof(
+function verifyNonZeroProof(
   election: Election.t,
   ballot: Ballot.t,
   _question: Question.QuestionL.t,
@@ -173,7 +173,7 @@ function checkNonZeroProof(
   return Hnonzero(S, A0, A1, A2) === c;
 }
 
-function checkListProofs(
+function verifyListProofs(
   election: Election.t,
   ballot: Ballot.t,
   question: Question.QuestionL.t,
