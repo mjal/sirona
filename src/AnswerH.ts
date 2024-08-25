@@ -61,25 +61,25 @@ export function verify(
     }
   }
 
-  if (!checkIndividualProofs(election, ballot, question, answer)) {
+  if (!verifyIndividualProofs(election, ballot, question, answer)) {
     throw new Error("Invalid individual proofs");
   }
   if (question.blank) {
-    if (!checkBlankProof(election, ballot, question, answer)) {
+    if (!verifyBlankProof(election, ballot, question, answer)) {
       throw new Error("Invalid blank proof");
     }
-    if (!checkOverallProofWithBlank(election, ballot, question, answer)) {
+    if (!verifyOverallProofWithBlank(election, ballot, question, answer)) {
       throw new Error("Invalid blank proof");
     }
   } else {
-    if (!checkOverallProofWithoutBlank(election, ballot, question, answer)) {
+    if (!verifyOverallProofWithoutBlank(election, ballot, question, answer)) {
       throw new Error("Invalid overall proof (without blank vote)");
     }
   }
   return true;
 }
 
-export function checkIndividualProofs(
+export function verifyIndividualProofs(
   election: Election.t,
   ballot: Ballot.t,
   question: Question.QuestionH.t,
@@ -102,7 +102,7 @@ export function checkIndividualProofs(
   return true;
 }
 
-export function checkOverallProofWithoutBlank(
+export function verifyOverallProofWithoutBlank(
   election: Election.t,
   ballot: Ballot.t,
   question: Question.QuestionH.t,
@@ -134,7 +134,7 @@ export function checkOverallProofWithoutBlank(
   return Hiprove(S, sumc.pAlpha, sumc.pBeta, ...commitments) === nSumChallenges;
 }
 
-export function checkOverallProofWithBlank(
+export function verifyOverallProofWithBlank(
   election: Election.t,
   ballot: Ballot.t,
   question: Question.QuestionH.t,
@@ -176,7 +176,7 @@ export function checkOverallProofWithBlank(
   return Hbproof1(S, ...commitments) === nSumChallenges;
 }
 
-export function checkBlankProof(
+export function verifyBlankProof(
   election: Election.t,
   ballot: Ballot.t,
   _question: Question.QuestionH.t,
