@@ -50,9 +50,9 @@ export function toJSON(ballot: t, election: Election.t) : t {
 }
 
 export function verify(setup: Setup.t, ballot: t) {
-  checkMisc(ballot, setup.election);
-  checkCredential(ballot, setup.credentials);
-  checkSignature(ballot, setup.election);
+  verifyMisc(ballot, setup.election);
+  verifyCredential(ballot, setup.credentials);
+  verifySignature(ballot, setup.election);
 
   for (let i = 0; i < setup.election.questions.length; i++) {
     Answer.verify(
@@ -64,7 +64,7 @@ export function verify(setup: Setup.t, ballot: t) {
   }
 }
 
-function checkMisc(ballot: t, election: Election.t) {
+function verifyMisc(ballot: t, election: Election.t) {
   if (
     !(
       election.uuid === ballot.election_uuid &&
@@ -75,13 +75,7 @@ function checkMisc(ballot: t, election: Election.t) {
   }
 }
 
-export function b64hashWithoutSignature(ballot: t, election: Election.t) {
-  const copy = Object.assign({}, toJSON(ballot, election));
-  delete copy.signature;
-  return b64hash(copy);
-}
-
-function checkCredential(ballot: t, credentials: string[]) {
+function verifyCredential(ballot: t, credentials: string[]) {
   if (
     credentials.map((line) => line.split(",")[0]).indexOf(ballot.credential) ===
     -1
@@ -90,7 +84,8 @@ function checkCredential(ballot: t, credentials: string[]) {
   }
 }
 
-export function checkSignature(ballot: t, election: Election.t) {
+
+export function verifySignature(ballot: t, election: Election.t) {
   if (ballot.signature.hash !== b64hashWithoutSignature(ballot, election)) {
     throw new Error("Hash without signature is incorrect");
   }
@@ -117,3 +112,10 @@ export function b64hash(ballot: t) {
     .fromBits(sjcl.hash.sha256.hash(JSON.stringify(ballot)))
     .replace(/=+$/, "");
 }
+
+export function b64hashWithoutSignature(ballot: t, election: Election.t) {
+  const copy = Object.assign({}, toJSON(ballot, election));
+  delete copy.signature;
+  return b64hash(copy);
+}
+
