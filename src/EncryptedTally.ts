@@ -14,11 +14,7 @@ export type t = {
   >;
 };
 
-export function verify(
-  setup: Setup.t,
-  encryptedTally: t,
-  ballots: Ballot.t[],
-) {
+export function verify(setup: Setup.t, encryptedTally: t, ballots: Ballot.t[]) {
   const { election, credentials } = setup;
   let talliedBallots = keepLastBallots(ballots);
   const recomputedEncryptedTally = compute(

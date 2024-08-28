@@ -1,4 +1,4 @@
-import sjcl from "sjcl"
+import sjcl from "sjcl";
 import * as Trustee from "./Trustee";
 import * as Point from "./Point";
 import * as Question from "./Question";

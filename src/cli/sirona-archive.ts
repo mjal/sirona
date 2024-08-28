@@ -8,64 +8,81 @@ import * as Archive from "../Archive";
 
 const program = new Command();
 
-program
-  .command("init")
-  .action(async (options) => {
-    let data = await fs.readFile("election.json");
-    let election = JSON.parse(data.toString());
+program.command("init").action(async (options) => {
+  let data = await fs.readFile("election.json");
+  let election = JSON.parse(data.toString());
 
-    data = await fs.readFile("public_creds.json");
-    let credentials = JSON.parse(data.toString());
-    credentials = credentials.map((line) => {
-      const [pubkey,weight] = line.split(",");
-      if (weight !== undefined) {
-        return pubkey + "," + weight;
-      } else {
-        return pubkey;
-      }
-    });
-
-    data = await fs.readFile("trustees.json");
-    let trustees = JSON.parse(data.toString());
-    trustees = trustees.map(Trustee.fromJSON);
-    trustees = trustees.map(Trustee.toJSON);
-
-    const archiveFilename = election.uuid + ".bel";
-
-    Archive.addFile(archiveFilename, "BELENIOS", JSON.stringify({
-      version: 1,
-      timestamp: Math.floor(Date.now() / 1000).toString(),
-    }, null, 0));
-
-    let setup = {
-      election: "",
-      trustees: "",
-      credentials: ""
+  data = await fs.readFile("public_creds.json");
+  let credentials = JSON.parse(data.toString());
+  credentials = credentials.map((line) => {
+    const [pubkey, weight] = line.split(",");
+    if (weight !== undefined) {
+      return pubkey + "," + weight;
+    } else {
+      return pubkey;
     }
+  });
 
-    setup.election = await Archive.addData(archiveFilename, JSON.stringify(election, null, 0));
-    setup.trustees = await Archive.addData(archiveFilename, JSON.stringify(trustees, null, 0));
-    setup.credentials = await Archive.addData(archiveFilename, JSON.stringify(credentials, null, 0));
+  data = await fs.readFile("trustees.json");
+  let trustees = JSON.parse(data.toString());
+  trustees = trustees.map(Trustee.fromJSON);
+  trustees = trustees.map(Trustee.toJSON);
 
-    const fileHash = await Archive.addData(archiveFilename, JSON.stringify(setup, null, 0));
+  const archiveFilename = election.uuid + ".bel";
 
-    await Archive.addEvent(archiveFilename, {
-      parent: undefined,
-      height: 0,
-      type: "Setup",
-      payload: fileHash,
-    });
-  })
+  Archive.addFile(
+    archiveFilename,
+    "BELENIOS",
+    JSON.stringify(
+      {
+        version: 1,
+        timestamp: Math.floor(Date.now() / 1000).toString(),
+      },
+      null,
+      0,
+    ),
+  );
 
+  let setup = {
+    election: "",
+    trustees: "",
+    credentials: "",
+  };
+
+  setup.election = await Archive.addData(
+    archiveFilename,
+    JSON.stringify(election, null, 0),
+  );
+  setup.trustees = await Archive.addData(
+    archiveFilename,
+    JSON.stringify(trustees, null, 0),
+  );
+  setup.credentials = await Archive.addData(
+    archiveFilename,
+    JSON.stringify(credentials, null, 0),
+  );
+
+  const fileHash = await Archive.addData(
+    archiveFilename,
+    JSON.stringify(setup, null, 0),
+  );
+
+  await Archive.addEvent(archiveFilename, {
+    parent: undefined,
+    height: 0,
+    type: "Setup",
+    payload: fileHash,
+  });
+});
 
 program
   .command("add-event")
   .requiredOption("--type <TYPE>", "Type of event.")
   .action(async (options) => {
     const dirFiles = await fs.readdir(".");
-    const belFile = dirFiles.find(file => file.endsWith('.bel'));
+    const belFile = dirFiles.find((file) => file.endsWith(".bel"));
     if (!belFile) {
-      throw new Error('No .bel files found');
+      throw new Error("No .bel files found");
     }
     const files = await Archive.readFile(belFile);
     const lastEvent = files

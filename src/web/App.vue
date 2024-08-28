@@ -18,14 +18,16 @@ const onUploadedFile = (event) => {
   reader.onload = async () => {
     loading.value = true;
     const files = await Archive.readArrayBuffer(reader.result);
-    check(files).then((value) => {
-      state.value = value;
-      loaded.value = true;
-      loading.value = false;
-      return state;
-    }).catch((e) => {
-      alert(e);
-    });
+    check(files)
+      .then((value) => {
+        state.value = value;
+        loaded.value = true;
+        loading.value = false;
+        return state;
+      })
+      .catch((e) => {
+        alert(e);
+      });
   };
   reader.readAsArrayBuffer(event.target.files[0]);
 };

@@ -27,10 +27,10 @@ namespace Single {
   export namespace Serialized {
     export type t = ["Single", PublicKey.Serialized.t];
   }
-  export function toJSON(trustee: Single.t) : Single.Serialized.t {
+  export function toJSON(trustee: Single.t): Single.Serialized.t {
     return ["Single", PublicKey.toJSON(trustee[1])];
   }
-  export function fromJSON(trustee: Single.Serialized.t) : Single.t {
+  export function fromJSON(trustee: Single.Serialized.t): Single.t {
     return ["Single", PublicKey.fromJSON(trustee[1])];
   }
 }
@@ -56,7 +56,7 @@ namespace Pedersen {
       },
     ];
   }
-  export function toJSON(trustee: Pedersen.t) : Pedersen.Serialized.t {
+  export function toJSON(trustee: Pedersen.t): Pedersen.Serialized.t {
     return [
       "Pedersen",
       {
@@ -67,7 +67,7 @@ namespace Pedersen {
       },
     ];
   }
-  export function fromJSON(trustee: Pedersen.Serialized.t) : Pedersen.t {
+  export function fromJSON(trustee: Pedersen.Serialized.t): Pedersen.t {
     return [
       "Pedersen",
       {
@@ -91,16 +91,16 @@ export namespace PublicKey {
       public_key: Point.Serialized.t;
     };
   }
-  export function toJSON(o: t) : Serialized.t {
+  export function toJSON(o: t): Serialized.t {
     return {
       pok: Proof.serialize(o.pok),
-      public_key: Point.serialize(o.public_key)
+      public_key: Point.serialize(o.public_key),
     };
   }
-  export function fromJSON(o: Serialized.t) : t{
+  export function fromJSON(o: Serialized.t): t {
     return {
       pok: Proof.parse(o.pok),
-      public_key: Point.parse(o.public_key)
+      public_key: Point.parse(o.public_key),
     };
   }
 }
@@ -114,18 +114,18 @@ export namespace Message {
     export type t = {
       message: string;
       signature: Proof.Serialized.t;
-    }
-  }
-  export function toJSON(o: t) : Serialized.t {
-    return {
-      message: o.message,
-      signature: Proof.serialize(o.signature)
     };
   }
-  export function fromJSON(o: Serialized.t) : t {
+  export function toJSON(o: t): Serialized.t {
     return {
       message: o.message,
-      signature: Proof.parse(o.signature)
+      signature: Proof.serialize(o.signature),
+    };
+  }
+  export function fromJSON(o: Serialized.t): t {
+    return {
+      message: o.message,
+      signature: Proof.parse(o.signature),
     };
   }
 }
@@ -151,7 +151,9 @@ function verifyPublicKey(election: Election.t, trustee: PublicKey.t) {
     throw new Error("Invalid curve point");
   }
 
-  const pA = Point.g.multiply(trustee.pok.nResponse).add(trustee.public_key.multiply(trustee.pok.nChallenge));
+  const pA = Point.g
+    .multiply(trustee.pok.nResponse)
+    .add(trustee.public_key.multiply(trustee.pok.nChallenge));
 
   const S = `${election.group}|${Point.serialize(trustee.public_key)}`;
 
@@ -201,7 +203,7 @@ export function ownerIndexToTrusteeIndex(trustees: t[]) {
   return ret;
 }
 
-export function generate() : [bigint, Single.Serialized.t] {
+export function generate(): [bigint, Single.Serialized.t] {
   const x = rand();
   const X = g.multiply(x);
 
@@ -213,18 +215,15 @@ export function generate() : [bigint, Single.Serialized.t] {
   const nChallenge = Hpok(S, A);
   const nResponse = mod(w - x * nChallenge, L);
 
-  const publicKey : PublicKey.t = {
+  const publicKey: PublicKey.t = {
     pok: {
       nChallenge,
-      nResponse
+      nResponse,
     },
-    public_key: X
+    public_key: X,
   };
 
-  return [
-    x,
-    Single.toJSON(["Single", publicKey])
-  ];
+  return [x, Single.toJSON(["Single", publicKey])];
 }
 
 export function combine_keys(trustees: t[]) {

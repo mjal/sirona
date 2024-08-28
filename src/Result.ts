@@ -10,10 +10,16 @@ import * as PartialDecryption from "./PartialDecryption";
 import * as Shuffle from "./Shuffle";
 
 export type t = {
-  result: Array<Array<number>>
+  result: Array<Array<number>>;
 };
 
-export function verify(result: t, setup: Setup.t, encryptedTally: EncryptedTally.t, partialDecryptions: PartialDecryption.t[], shuffles: Shuffle.t[]): boolean {
+export function verify(
+  result: t,
+  setup: Setup.t,
+  encryptedTally: EncryptedTally.t,
+  partialDecryptions: PartialDecryption.t[],
+  shuffles: Shuffle.t[],
+): boolean {
   const election = setup.election;
   const et = encryptedTally.encrypted_tally;
   const res = result.result;
@@ -39,8 +45,7 @@ export function verify(result: t, setup: Setup.t, encryptedTally: EncryptedTally
       if (shuffles.length === 0) {
         throw "No shuffles found !";
       } else {
-        const answers =
-          shuffles[shuffles.length - 1].payload.ciphertexts;
+        const answers = shuffles[shuffles.length - 1].payload.ciphertexts;
         for (let j = 0; j < res[i].length; j++) {
           // @ts-ignore
           const encodedRes = Point.of_ints(res[i][j]);
@@ -72,8 +77,12 @@ function verifyNH(et: Ciphertext.t, df: Point.t, encodedRes: any) {
   return Point.isEqual(pResult, encodedRes);
 }
 
-function getDecryptionFactors(setup: Setup.t, encryptedTally, partialDecryptions) {
-  const election : Election.t = setup.election;
+function getDecryptionFactors(
+  setup: Setup.t,
+  encryptedTally,
+  partialDecryptions,
+) {
+  const election: Election.t = setup.election;
   let df = [];
   for (let i = 0; i < election.questions.length; i++) {
     let question = election.questions[i];
@@ -99,7 +108,7 @@ function getDecryptionFactors(setup: Setup.t, encryptedTally, partialDecryptions
     df.push(row);
   }
 
-  const ownerToTrusteeIndex = Trustee.ownerIndexToTrusteeIndex(setup.trustees)
+  const ownerToTrusteeIndex = Trustee.ownerIndexToTrusteeIndex(setup.trustees);
   for (let i = 0; i < setup.trustees.length; i++) {
     const [type, content] = setup.trustees[i];
     if (type === "Single") {
@@ -120,9 +129,7 @@ function getDecryptionFactors(setup: Setup.t, encryptedTally, partialDecryptions
       let pds = partialDecryptions.filter((pd) => {
         return ownerToTrusteeIndex[pd.owner][1] === i;
       });
-      pds = [
-        ...new Map(pds.map((item) => [item.owner, item])).values(),
-      ]; // Unique by owner
+      pds = [...new Map(pds.map((item) => [item.owner, item])).values()]; // Unique by owner
       pds = pds.slice(0, content.threshold); // Remove useless shares
       if (pds.length !== content.threshold) {
         throw new Error(
@@ -155,11 +162,9 @@ function getDecryptionFactors(setup: Setup.t, encryptedTally, partialDecryptions
 
       // AGGREGATE PEDERSON DF
       for (let j = 0; j < pds.length; j++) {
-        const [_type, trusteeIdx, subIdx] =
-          ownerToTrusteeIndex[pds[j].owner];
+        const [_type, trusteeIdx, subIdx] = ownerToTrusteeIndex[pds[j].owner];
         let indexes = pds.map((pd) => {
-          const [_type, _trusteeIdx, subIdx] =
-            ownerToTrusteeIndex[pd.owner];
+          const [_type, _trusteeIdx, subIdx] = ownerToTrusteeIndex[pd.owner];
           // @ts-ignore
           return subIdx + 1;
         });

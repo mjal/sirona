@@ -17,7 +17,7 @@ export default async function (fileEntries) {
     encryptedTally,
     shuffles,
     partialDecryptions,
-    result
+    result,
   } = state;
 
   await _async(Setup.verify, setup);
@@ -31,12 +31,7 @@ export default async function (fileEntries) {
     return state;
   }
 
-  await _async(
-    EncryptedTally.verify,
-    setup,
-    encryptedTally,
-    ballots,
-  );
+  await _async(EncryptedTally.verify, setup, encryptedTally, ballots);
 
   // TODO: Move to a function ?
   let tally = encryptedTally.encrypted_tally.map((xs) => {
@@ -59,7 +54,7 @@ export default async function (fileEntries) {
       PartialDecryption.verify,
       partialDecryptions[i],
       setup,
-      encryptedTally
+      encryptedTally,
     );
   }
 
@@ -68,7 +63,14 @@ export default async function (fileEntries) {
     return state;
   }
 
-  await _async(Result.verify, result, setup, encryptedTally, partialDecryptions, shuffles);
+  await _async(
+    Result.verify,
+    result,
+    setup,
+    encryptedTally,
+    partialDecryptions,
+    shuffles,
+  );
 
   return state;
 }

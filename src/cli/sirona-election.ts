@@ -51,9 +51,9 @@ program
     }
 
     const dirFiles = await fs.readdir(".");
-    const belFile = dirFiles.find(file => file.endsWith('.bel'));
+    const belFile = dirFiles.find((file) => file.endsWith(".bel"));
     if (!belFile) {
-      throw new Error('No .bel files found');
+      throw new Error("No .bel files found");
     }
 
     console.log(`Checking ${belFile}...`);
@@ -66,9 +66,9 @@ program
   .requiredOption("--choice <choice>", "choice")
   .action(async function (options) {
     const dirFiles = await fs.readdir(".");
-    const belFile = dirFiles.find(file => file.endsWith('.bel'));
+    const belFile = dirFiles.find((file) => file.endsWith(".bel"));
     if (!belFile) {
-      throw new Error('No .bel files found');
+      throw new Error("No .bel files found");
     }
     const files = await Archive.readFile(belFile);
     const state = await check(files);
@@ -82,7 +82,7 @@ program
     const sBallot = JSON.stringify(
       Ballot.toJSON(ballot, state.setup.election),
       null,
-      0
+      0,
     );
     console.log(sBallot);
   });

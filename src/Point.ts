@@ -46,7 +46,12 @@ export function check(p: t): boolean {
   // limitations of the library. We will use the following workaround:
   // (p ** ( L - 1 )) * p
   // However in practice we also have to rule out the point serialized as all zeros
-  if (isEqual(p, parse("0000000000000000000000000000000000000000000000000000000000000000"))) {
+  if (
+    isEqual(
+      p,
+      parse("0000000000000000000000000000000000000000000000000000000000000000"),
+    )
+  ) {
     return false;
   }
 

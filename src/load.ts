@@ -20,7 +20,7 @@ namespace File {
   export type t = [string, string, any];
 }
 
-export default function (rawFiles : Array<any>) {
+export default function (rawFiles: Array<any>) {
   const files = rawFiles.map(readFile);
 
   let height = 0;
@@ -29,17 +29,12 @@ export default function (rawFiles : Array<any>) {
     const [contentHash, type, content] = files[i];
 
     if (type === "event") {
-
       if (content.parent !== parent) {
-        throw new Error(
-          "Invalid event parent hash",
-        );
+        throw new Error("Invalid event parent hash");
       }
 
       if (content.height !== height) {
-        throw new Error(
-          "Invalid event height",
-        );
+        throw new Error("Invalid event height");
       }
 
       parent = contentHash;
@@ -48,7 +43,7 @@ export default function (rawFiles : Array<any>) {
   }
 
   /* @ts-ignore */
-  const state : t = {};
+  const state: t = {};
 
   const setup = findData(files, findEvent(files, "Setup").payload);
   state.setup = {
@@ -63,7 +58,9 @@ export default function (rawFiles : Array<any>) {
     const hash = ballotEvent.payload;
     const ballot = findData(files, hash);
 
-    const canonicalBallot = JSON.stringify(Ballot.toJSON(ballot, state.setup.election));
+    const canonicalBallot = JSON.stringify(
+      Ballot.toJSON(ballot, state.setup.election),
+    );
     const recomputedHash = sjcl.codec.hex.fromBits(
       sjcl.hash.sha256.hash(canonicalBallot),
     );
@@ -88,26 +85,17 @@ export default function (rawFiles : Array<any>) {
 
   const encryptedTallyEvent = findEvent(files, "EncryptedTally");
   if (encryptedTallyEvent) {
-    state.encryptedTally = findData(
-      files,
-      encryptedTallyEvent.payload,
-    );
+    state.encryptedTally = findData(files, encryptedTallyEvent.payload);
     state.encryptedTally.encrypted_tally = findData(
-      files, /* @ts-ignore */
+      files /* @ts-ignore */,
       state.encryptedTally.encrypted_tally,
     );
   }
 
   state.partialDecryptions = findEvents(files, "PartialDecryption").map(
     (event) => {
-      event.payload = findData(
-        files,
-        event.payload,
-      );
-      event.payload.payload = findData(
-        files,
-        event.payload.payload,
-      );
+      event.payload = findData(files, event.payload);
+      event.payload.payload = findData(files, event.payload.payload);
       return event.payload;
     },
   );
@@ -120,7 +108,7 @@ export default function (rawFiles : Array<any>) {
   return state;
 }
 
-function readFile(file: any) : File.t {
+function readFile(file: any): File.t {
   if (file.name === "BELENIOS") {
     return [null, "BELENIOS", JSON.parse(file.content)];
   }
@@ -158,15 +146,17 @@ function findEvent(files: File.t[], eventType: string) {
 }
 
 function findEvents(files: File.t[], eventType: string) {
-  return files.filter((file: File.t) => {
-    const [_contentHash, type, content] = file;
+  return files
+    .filter((file: File.t) => {
+      const [_contentHash, type, content] = file;
 
-    return type === "event" && content.type === eventType;
-  }).map((file: File.t) => {
-    const [_contentHash, _type, content] = file;
+      return type === "event" && content.type === eventType;
+    })
+    .map((file: File.t) => {
+      const [_contentHash, _type, content] = file;
 
-    return content;
-  });
+      return content;
+    });
 }
 
 function findData(files: File.t[], hash: string) {

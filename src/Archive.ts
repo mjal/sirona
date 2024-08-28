@@ -95,7 +95,10 @@ export async function addFile(filePath, name, content) {
   await fs.promises.appendFile(filePath, tarBlock);
 }
 
-export async function addEvent(archiveFilename: string, event: Event.t<string>) {
+export async function addEvent(
+  archiveFilename: string,
+  event: Event.t<string>,
+) {
   // WARN: stringify(..., null, 0) ?
   const content = JSON.stringify(Event.toJSON(event));
   const fileHash = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(content));

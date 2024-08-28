@@ -7,11 +7,11 @@ const props = defineProps(["state", "ballot"]);
 
 const isTallied = !!props.state.encryptedTally;
 
-const hash = computed(() =>  {
+const hash = computed(() => {
   return Ballot.hash(props.ballot);
 });
 
-const tracker = computed(() =>  {
+const tracker = computed(() => {
   return Ballot.b64hash(props.ballot);
 });
 
@@ -23,7 +23,6 @@ const isAccepted = computed(() => {
     return Ballot.hash(e) === hash.value;
   });
 });
-
 </script>
 
 <template>

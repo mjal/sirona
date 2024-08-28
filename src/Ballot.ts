@@ -17,7 +17,7 @@ export type t = {
   };
 };
 
-export function toJSON(ballot: t, election: Election.t) : t {
+export function toJSON(ballot: t, election: Election.t): t {
   // The order of the JSON.stringify serialization
   // correspond to the order of insertion.
   let obj = {
@@ -84,7 +84,6 @@ function verifyCredential(ballot: t, credentials: string[]) {
   }
 }
 
-
 export function verifySignature(ballot: t, election: Election.t) {
   if (ballot.signature.hash !== b64hashWithoutSignature(ballot, election)) {
     throw new Error("Hash without signature is incorrect");
@@ -103,8 +102,7 @@ export function verifySignature(ballot: t, election: Election.t) {
 }
 
 export function hash(ballot: t) {
-  return sjcl.codec.hex
-    .fromBits(sjcl.hash.sha256.hash(JSON.stringify(ballot)));
+  return sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(JSON.stringify(ballot)));
 }
 
 export function b64hash(ballot: t) {
@@ -118,4 +116,3 @@ export function b64hashWithoutSignature(ballot: t, election: Election.t) {
   delete copy.signature;
   return b64hash(copy);
 }
-

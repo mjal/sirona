@@ -36,7 +36,7 @@ export function parse(answer: Serialized.t): t {
   };
 }
 
-export function serialize(answer: t) : Serialized.t {
+export function serialize(answer: t): Serialized.t {
   return {
     choices: map2(answer.choices, Ciphertext.serialize),
     individual_proofs: map3(answer.individual_proofs, Proof.serialize),

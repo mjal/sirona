@@ -15,12 +15,18 @@ export type t = {
   };
 };
 
-export function verify(partialDecryption: t, setup: Setup.t, encryptedTally: EncryptedTally.t) {
+export function verify(
+  partialDecryption: t,
+  setup: Setup.t,
+  encryptedTally: EncryptedTally.t,
+) {
   const election = setup.election;
   const encrypted_tally = encryptedTally.encrypted_tally;
-  const { decryption_factors, decryption_proofs } =
-    partialDecryption.payload;
-  const pPublicKey = Trustee.getPublicKeyByOwnerIndex(setup.trustees, partialDecryption.owner - 1);
+  const { decryption_factors, decryption_proofs } = partialDecryption.payload;
+  const pPublicKey = Trustee.getPublicKeyByOwnerIndex(
+    setup.trustees,
+    partialDecryption.owner - 1,
+  );
 
   for (let i = 0; i < election.questions.length; i++) {
     const question = election.questions[i];
