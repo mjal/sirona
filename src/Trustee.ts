@@ -226,3 +226,26 @@ export function generate() : [bigint, Single.Serialized.t] {
     Single.toJSON(["Single", publicKey])
   ];
 }
+
+export function combine_keys(trustees: t[]) {
+  let pJointPublicKey = Point.zero;
+
+  for (let i = 0; i < trustees.length; i++) {
+    const trustee = trustees[i];
+    if (trustee[0] === "Single") {
+      pJointPublicKey = pJointPublicKey.add(trustee[1].public_key);
+    } else {
+      // "Pedersen"
+      const coefexps = trustee[1].coefexps.map((o) => {
+        return JSON.parse(o.message).coefexps[0];
+      });
+      let sum = Point.zero;
+      for (let j = 0; j < coefexps.length; j++) {
+        sum = sum.add(Point.parse(coefexps[j]));
+      }
+      pJointPublicKey = pJointPublicKey.add(sum);
+    }
+  }
+
+  return pJointPublicKey;
+}
