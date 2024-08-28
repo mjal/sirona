@@ -28,6 +28,7 @@ export function verify(result: t, setup: Setup.t, encryptedTally: EncryptedTally
       }
     } else if (Question.IsQuestionL(question)) {
       for (let j = 0; j < res[i].length; j++) {
+        // @ts-ignore
         for (let k = 0; k < res[i][j].length; k++) {
           if (!verifyOne(et[i][j][k], df[i][j][k], res[i][j][k])) {
             throw new Error("Invalid result");
@@ -41,6 +42,7 @@ export function verify(result: t, setup: Setup.t, encryptedTally: EncryptedTally
         const answers =
           shuffles[shuffles.length - 1].payload.ciphertexts;
         for (let j = 0; j < res[i].length; j++) {
+          // @ts-ignore
           const encodedRes = Point.of_ints(res[i][j]);
           if (!verifyNH(answers[i][j], df[i][j], encodedRes)) {
             throw new Error("Invalid result");
@@ -133,11 +135,11 @@ function getDecryptionFactors(setup: Setup.t, encryptedTally, partialDecryptions
       for (let i = 0; i < election.questions.length; i++) {
         let question = election.questions[i];
         let row = [];
-        if (Question.IsQuestionH(election.questions[i])) {
+        if (Question.IsQuestionH(question)) {
           row = [...Array(question.answers.length).keys()].map(
             () => Point.zero,
           );
-        } else if (Question.IsQuestionL(election.questions[i])) {
+        } else if (Question.IsQuestionL(question)) {
           row = [...Array(question.value.answers.length).keys()].map((_, i) => {
             return [...Array(question.value.answers[i].length).keys()].map(
               () => Point.zero,
@@ -158,11 +160,13 @@ function getDecryptionFactors(setup: Setup.t, encryptedTally, partialDecryptions
         let indexes = pds.map((pd) => {
           const [_type, _trusteeIdx, subIdx] =
             ownerToTrusteeIndex[pd.owner];
+          // @ts-ignore
           return subIdx + 1;
         });
         res = multiplyDfPow(
           res,
           parseDf(pds[j]),
+          // @ts-ignore
           lagrange(subIdx + 1, indexes),
         );
       }

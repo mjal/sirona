@@ -1,6 +1,7 @@
 import * as Setup from "./Setup";
 import * as Election from "./Election";
 import * as Ciphertext from "./Ciphertext";
+import * as EncryptedTally from "./EncryptedTally";
 import * as Proof from "./Proof";
 import * as Point from "./Point";
 import * as Trustee from "./Trustee";
@@ -28,7 +29,7 @@ export function verify(partialDecryption: t, setup: Setup.t, encryptedTally: Enc
         if (
           !Proof.verifyDecryptionProof(
             `${Election.fingerprint(election)}|${Point.serialize(pPublicKey)}`,
-            pPublicKey,
+            pPublicKey, // @ts-ignore
             Ciphertext.parse(encrypted_tally[i][j]),
             Point.parse(decryption_factors[i][j]),
             Proof.parse(decryption_proofs[i][j]),
@@ -42,6 +43,7 @@ export function verify(partialDecryption: t, setup: Setup.t, encryptedTally: Enc
       Question.IsQuestionNH(question)
     ) {
       for (let j = 0; j < encrypted_tally[i].length; j++) {
+        // @ts-ignore
         for (let k = 0; k < encrypted_tally[i][j].length; k++) {
           if (
             !Proof.verifyDecryptionProof(
