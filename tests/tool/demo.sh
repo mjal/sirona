@@ -19,7 +19,7 @@ header "Setup election"
 UUID=`sirona setup generate-token`
 echo "UUID of the election is $UUID"
 
-DIR=tests/data/$UUID
+DIR=tests/tool/data/$UUID
 mkdir -p $DIR
 cd $DIR
 
