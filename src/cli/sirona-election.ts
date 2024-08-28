@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { promises as fs } from "fs";
 import { execSync } from "child_process";
 import { Command } from "commander";
 import * as Archive from "../Archive";
@@ -12,7 +13,6 @@ const program = new Command();
 
 program
   .command("verify")
-  .option("--uuid <UUID>", "database file (.bel)")
   .option("--url <URL>", "Download election files from URL")
   .option("-q, --quiet", "only show the final result")
   .action(async function (options) {
@@ -50,35 +50,41 @@ program
       execSync(`wget -r -np -nH -nd -P . ${baseUrl}/${uuid}.bel`);
     }
 
-    console.log(`Checking ${uuid}.bel...`);
-    await checkFile(uuid + ".bel");
-    console.log(`${errors} errors found.`);
+    const dirFiles = await fs.readdir(".");
+    const belFile = dirFiles.find(file => file.endsWith('.bel'));
+    if (!belFile) {
+      throw new Error('No .bel files found');
+    }
 
-    process.exit(errors > 0 ? 1 : 0);
+    console.log(`Checking ${belFile}...`);
+    await checkFile(belFile);
   });
-
-let errors = 0;
 
 program
   .command("generate-ballot")
-  .argument("<filename>", "database file (.bel)")
   .requiredOption("--privcred <privcred>", "private credentiel")
   .requiredOption("--choice <choice>", "choice")
-  .action(async function (filename, options) {
-    try {
-      const files = await Archive.readFile(filename);
-      const state = await check(files);
-      const choice = JSON.parse(options.choice);
-      const ballot = generateBallot(state, options.privcred, choice);
-      const sBallot = JSON.stringify(
-        Ballot.toJSON(ballot, state.setup.election),
-      );
-      console.log(sBallot);
-    } catch (e) {
-      console.error(e);
+  .action(async function (options) {
+    const dirFiles = await fs.readdir(".");
+    const belFile = dirFiles.find(file => file.endsWith('.bel'));
+    if (!belFile) {
+      throw new Error('No .bel files found');
     }
+    const files = await Archive.readFile(belFile);
+    const state = await check(files);
+    const choiceFile = await fs.readFile(options.choice);
+    const choice = JSON.parse(choiceFile.toString());
 
-    process.exit(errors > 0 ? 1 : 0);
+    const privcredFile = await fs.readFile(options.privcred);
+    const privcred = privcredFile.toString().trim();
+
+    const ballot = generateBallot(state, privcred, choice);
+    const sBallot = JSON.stringify(
+      Ballot.toJSON(ballot, state.setup.election),
+      null,
+      0
+    );
+    console.log(sBallot);
   });
 
 program.parseAsync(process.argv);

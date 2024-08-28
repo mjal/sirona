@@ -86,7 +86,7 @@ export default function (
     signature: signature(nPrivateCredential, hH),
   };
 
-  Ballot.verify(state, ballot);
+  Ballot.verify(state.setup, ballot);
 
   return ballot;
 }
@@ -95,8 +95,7 @@ function checkVotingCode(state: any, sPriv: string) {
   if (
     !/[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}/.test(sPriv)
   ) {
-    alert("Invalid credential format. Should be XXXXX-XXXXXX-XXXXX-XXXXXX.");
-    return false;
+    throw new Error("Invalid credential format. Should be XXXXX-XXXXXX-XXXXX-XXXXXX.");
   }
 
   const { hPublicCredential } = Credential.derive(

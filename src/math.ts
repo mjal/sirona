@@ -47,7 +47,7 @@ export function modInverse(a: bigint, m: bigint): bigint {
 export function rand(): bigint {
   const bitArray = sjcl.random.randomWords(8);
   const hNumber = sjcl.codec.hex.fromBits(bitArray);
-  return mod(BigInt("0x" + hNumber), L); // WARN: mod q ?
+  return mod(BigInt("0x" + hNumber), L);
 }
 
 // p1**e1 + p2**e2

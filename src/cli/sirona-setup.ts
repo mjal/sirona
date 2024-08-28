@@ -34,7 +34,7 @@ program
       lines.map((line) => {
         const [email, id, weight] = line.split(",");
 
-        let privcred = Array.from({ length: 24 }, (_, i) => {
+        let privcred = Array.from({ length: 25 }, (_, i) => {
           if (i === 5 || i === 12 || i === 18) {
             return "-";
           }
@@ -51,7 +51,6 @@ program
       const privcred = privcreds[id];
 
       const { hPublicCredential } = Credential.derive(options.uuid, privcred);
-
       return `${hPublicCredential},${weight},${id}`;
     });
 

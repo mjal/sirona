@@ -100,14 +100,14 @@ export async function addEvent(archiveFilename: string, event: Event.t<string>) 
   const content = JSON.stringify(Event.toJSON(event));
   const fileHash = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(content));
   const fileName = fileHash + ".event.json";
-  addFile(archiveFilename, fileName, content);
+  await addFile(archiveFilename, fileName, content);
   return fileHash;
 }
 
 export async function addData(archiveFilename: string, content: string) {
   const fileHash = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(content));
   const fileName = fileHash + ".data.json";
-  addFile(archiveFilename, fileName, content);
+  await addFile(archiveFilename, fileName, content);
   return fileHash;
 }
 

@@ -59,3 +59,26 @@ sirona setup make-election --uuid $UUID --template $ROOT_DIR/tests/tool/template
 
 # Initialize events
 sirona archive init
+
+header "Simulate votes"
+
+cat > votes.txt <<EOF
+[[1,0],[1,0,0]]
+[[1,0],[0,1,0]]
+[[0,1],[0,0,1]]
+[[1,0],[1,0,0]]
+[[0,0],[0,1,0]]
+EOF
+
+paste private_creds.txt votes.txt | while read id cred vote; do
+    BALLOT="$(sirona election generate-ballot $UUID.bel --privcred <(echo "$cred") --choice <(echo "$vote"))"
+    #belenios-tool election verify-ballot --ballot <(echo "$BALLOT")
+    HASH="$(printf "%s" "$BALLOT" | sirona sha256-b64)"
+    echo "$BALLOT" | sirona archive add-event --type=Ballot
+    echo "Voter $id voted with $HASH" >&2
+    echo >&2
+done
+
+header "Perform verification"
+
+sirona election verify

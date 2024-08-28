@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import fs from "fs";
+import { promises as fs } from "fs";
 import { Command } from "commander";
 import { readStdin } from "../utils";
 import * as Trustee from "../Trustee";
@@ -11,10 +11,10 @@ const program = new Command();
 program
   .command("init")
   .action(async (options) => {
-    let data = await fs.promises.readFile("election.json");
+    let data = await fs.readFile("election.json");
     let election = JSON.parse(data.toString());
 
-    data = await fs.promises.readFile("public_creds.json");
+    data = await fs.readFile("public_creds.json");
     let credentials = JSON.parse(data.toString());
     credentials = credentials.map((line) => {
       const [pubkey,weight] = line.split(",");
@@ -25,7 +25,7 @@ program
       }
     });
 
-    data = await fs.promises.readFile("trustees.json");
+    data = await fs.readFile("trustees.json");
     let trustees = JSON.parse(data.toString());
     trustees = trustees.map(Trustee.fromJSON);
     trustees = trustees.map(Trustee.toJSON);
@@ -61,10 +61,13 @@ program
 program
   .command("add-event")
   .requiredOption("--type <TYPE>", "Type of event.")
-  .requiredOption("--uuid <UUID>")
   .action(async (options) => {
-    const archiveFilename = options.uuid + ".bel";
-    const files = await Archive.readFile(archiveFilename);
+    const dirFiles = await fs.readdir(".");
+    const belFile = dirFiles.find(file => file.endsWith('.bel'));
+    if (!belFile) {
+      throw new Error('No .bel files found');
+    }
+    const files = await Archive.readFile(belFile);
     const lastEvent = files
       .reverse()
       .find((file: any) => file.name.split(".")[1] === "event");
@@ -79,10 +82,10 @@ program
     let fileHash = "";
     for (let i = 0; i < lines.length; i++) {
       const payload = lines[i];
-      fileHash = await Archive.addData(archiveFilename, payload);
+      fileHash = await Archive.addData(belFile, payload);
     }
 
-    Archive.addEvent(archiveFilename, {
+    await Archive.addEvent(belFile, {
       parent: lastEventHash,
       height: JSON.parse(lastEvent.content).height + 1,
       type: options.type,
