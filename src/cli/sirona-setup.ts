@@ -4,6 +4,8 @@ import fs from "fs";
 import { Command } from "commander";
 import * as Credential from "../Credential";
 import * as Trustee from "../Trustee";
+import * as Point from "../Point";
+import * as Election from "../Election";
 
 const b58chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 const program = new Command();
@@ -94,6 +96,46 @@ program
     await fs.promises.writeFile(
       `trustees.json`,
       JSON.stringify(trustees, null, 0),
+    );
+  })
+
+program
+  .command("make-election")
+  .summary("create election.json")
+  .argument("<uuid>", "UUID")
+  .requiredOption(
+    "--template <TEMPLATE>",
+    "Read election template from file TEMPLATE.",
+  )
+  .action(async function (uuid, options) {
+    let data = await fs.promises.readFile(options.template);
+    const template = JSON.parse(data.toString());
+
+    data = await fs.promises.readFile("trustees.json");
+    let trustees = JSON.parse(data.toString());
+    trustees = trustees.map(Trustee.fromJSON);
+
+    const public_key = Trustee.combine_keys(trustees);
+
+    const {
+      description,
+      name,
+      questions
+    } = template;
+
+    const election : Election.t = {
+      version: 1,
+      description,
+      name,
+      group: "Ed25519",
+      public_key: Point.serialize(public_key),
+      questions,
+      uuid
+    }
+
+    await fs.promises.writeFile(
+      `election.json`,
+      JSON.stringify(election, null, 0),
     );
   })
 

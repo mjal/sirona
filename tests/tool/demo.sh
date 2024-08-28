@@ -38,4 +38,5 @@ cat pubkey >> public_keys.jsons
 echo "" >> public_keys.jsons
 
 sirona setup make-trustees
-rm public_keys.jsons
+
+sirona setup make-election $UUID --template $ROOT_DIR/tests/tool/templates/questions.json
