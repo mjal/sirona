@@ -21,11 +21,8 @@ program.command("generate-token").action(() => {
 
 program
   .command("generate-credentials")
-  .requiredOption(
-    "--file <FILE>",
-    "Read  identities  from  FILE.  One credential will be generated for each line of FILE.",
-  )
-  .option("--uuid <UUID>", "UUID of the election.")
+  .requiredOption("--file <FILE>", "FILE")
+  .requiredOption("--uuid <UUID>", "UUID of the election.")
   .action(async function (options) {
     const data = await fs.promises.readFile(options.file);
     const lines = data
