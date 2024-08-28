@@ -2,5 +2,5 @@ node_modules/
 public/*.bel
 public/tmp/
 tests/*.bel
-tests/data/*
+tests/tool/data/*
 dist/
