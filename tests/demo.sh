@@ -26,15 +26,16 @@ cd $DIR
 echo -n "" > public_keys.json
 
 sirona setup generate-trustee-key
-cat pubkey >> public_keys.json
-echo "" >> public_keys.json
+cat pubkey >> public_keys.jsons
+echo "" >> public_keys.jsons
 
 sirona setup generate-trustee-key
-cat pubkey >> public_keys.json
-echo "" >> public_keys.json
+cat pubkey >> public_keys.jsons
+echo "" >> public_keys.jsons
 
 sirona setup generate-trustee-key
-cat pubkey >> public_keys.json
-echo "" >> public_keys.json
+cat pubkey >> public_keys.jsons
+echo "" >> public_keys.jsons
 
-cat public_keys.json
+sirona setup make-trustees
+rm public_keys.jsons

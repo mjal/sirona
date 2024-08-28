@@ -81,4 +81,20 @@ program
     );
   });
 
+program
+  .command("make-trustees")
+  .action(async function () {
+    const data = await fs.promises.readFile("public_keys.jsons");
+    const trustees = data
+      .toString()
+      .split("\n")
+      .filter((line) => line.length > 0)
+      .map((line) => JSON.parse(line));
+
+    await fs.promises.writeFile(
+      `trustees.json`,
+      JSON.stringify(trustees, null, 0),
+    );
+  })
+
 program.parseAsync(process.argv);
