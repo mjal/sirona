@@ -51,6 +51,11 @@ sirona setup generate-trustee-key
 cat pubkey >> public_keys.jsons
 echo "" >> public_keys.jsons
 
+# Generate trustee parameters
 sirona setup make-trustees
 
-sirona setup make-election $UUID --template $ROOT_DIR/tests/tool/templates/questions.json
+# Generate election parameters
+sirona setup make-election --uuid $UUID --template $ROOT_DIR/tests/tool/templates/questions.json
+
+# Initialize events
+sirona archive init

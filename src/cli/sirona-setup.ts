@@ -99,12 +99,9 @@ program
 program
   .command("make-election")
   .summary("create election.json")
-  .argument("<uuid>", "UUID")
-  .requiredOption(
-    "--template <TEMPLATE>",
-    "Read election template from file TEMPLATE.",
-  )
-  .action(async function (uuid, options) {
+  .requiredOption("--uuid <UUID>")
+  .requiredOption("--template <TEMPLATE>")
+  .action(async function (options) {
     let data = await fs.promises.readFile(options.template);
     const template = JSON.parse(data.toString());
 
@@ -127,7 +124,7 @@ program
       group: "Ed25519",
       public_key: Point.serialize(public_key),
       questions,
-      uuid
+      uuid: options.uuid
     }
 
     await fs.promises.writeFile(
