@@ -1,4 +1,6 @@
 import fs from "fs";
+import sjcl from "sjcl";
+import * as Event from "./Event";
 
 export async function readFile(filePath) {
   const data = await fs.promises.readFile(filePath);
@@ -91,6 +93,22 @@ export async function addFile(filePath, name, content) {
   }
 
   await fs.promises.appendFile(filePath, tarBlock);
+}
+
+export async function addEvent(archiveFilename: string, event: Event.t<string>) {
+  // WARN: stringify(..., null, 0) ?
+  const content = JSON.stringify(Event.toJSON(event));
+  const fileHash = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(content));
+  const fileName = fileHash + ".event.json";
+  addFile(archiveFilename, fileName, content);
+  return fileHash;
+}
+
+export async function addData(archiveFilename: string, content: string) {
+  const fileHash = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(content));
+  const fileName = fileHash + ".data.json";
+  addFile(archiveFilename, fileName, content);
+  return fileHash;
 }
 
 function readString(buffer, start, length) {
