@@ -3,6 +3,7 @@
 import fs from "fs";
 import { Command } from "commander";
 import * as Credential from "../Credential";
+import * as Trustee from "../Trustee";
 
 const b58chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 const program = new Command();
@@ -63,6 +64,20 @@ program
     await fs.promises.writeFile(
       `${timestamp}.pubcreds`,
       JSON.stringify(pubcreds, null, 0),
+    );
+  });
+
+program
+  .command("generate-trustee-key")
+  .action(async function () {
+    const [privkey, pubkey] = Trustee.generate()
+    await fs.promises.writeFile(
+      `privkey`,
+      JSON.stringify(privkey.toString(10), null, 0),
+    );
+    await fs.promises.writeFile(
+      `pubkey`,
+      JSON.stringify(pubkey, null, 0),
     );
   });
 
