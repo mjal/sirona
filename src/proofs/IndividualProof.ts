@@ -2,7 +2,7 @@ import * as Election from "../Election";
 import * as Proof from "../Proof";
 import * as Point from "../Point";
 import * as Ciphertext from "../Ciphertext";
-import { L, mod, g, formula2, rand, formula, Hiprove, Hdecrypt } from "../math";
+import { L, mod, g, rand, Hiprove } from "../math";
 
 export function verify(
   election: Election.t,
@@ -21,15 +21,13 @@ export function verify(
 
   let commitments = [];
   for (let j = 0; j <= max - min; j++) {
-    const [pA, pB] = formula2(
+    const [A, B] = Point.compute_commitment_pair(
       pY,
-      eCiphertext.pAlpha,
-      eCiphertext.pBeta,
-      proof[j].nChallenge,
-      proof[j].nResponse,
+      eCiphertext,
+      proof[j],
       min + j,
     );
-    commitments.push(pA, pB);
+    commitments.push(A, B);
   }
 
   return Hiprove(S, eCiphertext.pAlpha, eCiphertext.pBeta, ...commitments) === nSumChallenges;
@@ -54,8 +52,8 @@ export function generate(
       const nChallenge = rand();
       const nResponse = rand();
       proofs.push({ nChallenge, nResponse });
-      const [pA, pB] = formula2(pY, pAlpha, pBeta, nChallenge, nResponse, M[i]);
-      commitments.push(pA, pB);
+      const [A, B] = Point.compute_commitment_pair(pY, { pAlpha, pBeta }, { nChallenge, nResponse }, M[i]);
+      commitments.push(A, B);
     } else {
       // m === M[i]
       proofs.push({ nChallenge: BigInt(0), nResponse: BigInt(0) });

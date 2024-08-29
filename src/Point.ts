@@ -1,4 +1,6 @@
-import { mod, modInverse, L, q, rev } from "./math";
+import * as Ciphertext from "./Ciphertext";
+import * as Proof from "./Proof";
+import { mod, modInverse, L, q } from "./math";
 import { ed25519 } from "@noble/curves/ed25519";
 import type { ExtPointType as CurvePoint } from "@noble/curves/abstract/edwards.js";
 
@@ -98,6 +100,24 @@ export function of_ints(xs: number[]) {
   }
 }
 
+export function compute_commitment(p1: t, p2: t, proof: Proof.t) {
+  return p1.multiply(proof.nResponse).add(p2.multiply(proof.nChallenge));
+}
+
+export function compute_commitment_pair(
+  pY: t,
+  eg: Ciphertext.t,
+  proof: Proof.t,
+  m: number,
+) {
+  const gPowerM = m === 0 ? zero : g.multiply(BigInt(m));
+  const pBDivGPowerM = eg.pBeta.add(gPowerM.negate());
+
+  const A = compute_commitment(g,  eg.pAlpha, proof);
+  const B = compute_commitment(pY, pBDivGPowerM, proof);
+
+  return [A, B];
+}
 
 function reverseByteOrder(hexStr: string) {
   if (hexStr.length !== 64) {
