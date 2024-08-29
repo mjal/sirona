@@ -223,7 +223,7 @@ function generateAnswer(
     }
 
     let overall_proof = overallProofBlank(
-      state,
+      state.setup.election,
       question,
       plaintexts,
       choices,
@@ -303,7 +303,7 @@ function blankProof(
 }
 
 function overallProofBlank(
-  state: any,
+  election: Election.t,
   question: any,
   anChoices: Array<number>,
   aeCiphertexts: Array<Ciphertext.t>,
@@ -316,7 +316,7 @@ function overallProofBlank(
   const pBetaS = aeCiphertexts
     .slice(1)
     .reduce((acc, c) => acc.add(c.pBeta), zero);
-  const pY = Point.parse(state.setup.election.public_key);
+  const pY = Point.parse(election.public_key);
   const mS = anChoices.slice(1).reduce((acc, c) => c + acc, 0);
   const M = Array.from({ length: question.max - question.min + 1 }).map(
     (_, i) => i + question.min,
@@ -368,7 +368,7 @@ function overallProofBlank(
       }
     }
 
-    let S = `${Election.fingerprint(state.setup.election)}|${hPub}|`;
+    let S = `${Election.fingerprint(election)}|${hPub}|`;
     S += aeCiphertexts
       .map(Ciphertext.serialize)
       .map((c) => `${c.alpha},${c.beta}`)
@@ -417,7 +417,7 @@ function overallProofBlank(
       commitments.push(pA, pB);
     }
 
-    let S = `${Election.fingerprint(state.setup.election)}|${hPub}|`;
+    let S = `${Election.fingerprint(election)}|${hPub}|`;
     S += aeCiphertexts
       .map(Ciphertext.serialize)
       .map((c) => `${c.alpha},${c.beta}`)
