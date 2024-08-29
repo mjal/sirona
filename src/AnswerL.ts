@@ -1,5 +1,6 @@
 import { map2, map3 } from "./utils";
 import * as Proof from "./Proof";
+import * as IndividualProof from "./proofs/IndividualProof";
 import * as NonZeroProof from "./ProofNonZero";
 import * as Ciphertext from "./Ciphertext";
 import * as Election from "./Election";
@@ -62,8 +63,19 @@ export function verify(
     }
   }
 
-  if (!verifyIndividualProofs(election, ballot, question, answer)) {
-    throw new Error("Invalid individual proofs");
+  for (let j = 0; j < question.value.answers.length; j++) {
+    for (let k = 0; k < question.value.answers[j].length; k++) {
+      if (
+        !IndividualProof.verify(
+          election,
+          ballot.credential,
+          answer.individual_proofs[j][k],
+          answer.choices[j][k],
+        )
+      ) {
+        throw new Error("Invalid individual proofs");
+      }
+    }
   }
 
   if (!verifyOverallProofLists(election, ballot, question, answer)) {
@@ -78,32 +90,6 @@ export function verify(
     throw new Error("Invalid list proof");
   }
 
-  return true;
-}
-
-export function verifyIndividualProofs(
-  election: Election.t,
-  ballot: Ballot.t,
-  question: Question.QuestionL.t,
-  answer: t,
-): boolean {
-  const pY = Point.parse(election.public_key);
-
-  const S = `${Election.fingerprint(election)}|${ballot.credential}`;
-  for (let j = 0; j < question.value.answers.length; j++) {
-    for (let k = 0; k < question.value.answers[j].length; k++) {
-      if (
-        !Proof.verifyIndividualProof(
-          S,
-          answer.individual_proofs[j][k],
-          pY,
-          answer.choices[j][k],
-        )
-      ) {
-        return false;
-      }
-    }
-  }
   return true;
 }
 

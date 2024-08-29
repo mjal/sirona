@@ -1,5 +1,6 @@
 import { map2 } from "./utils";
 import * as Proof from "./Proof";
+import * as IndividualProof from "./proofs/IndividualProof";
 import * as Ciphertext from "./Ciphertext";
 import * as Election from "./Election";
 import * as Question from "./Question";
@@ -61,9 +62,19 @@ export function verify(
     }
   }
 
-  if (!verifyIndividualProofs(election, ballot, question, answer)) {
-    throw new Error("Invalid individual proofs");
+  for (let j = 0; j < question.answers.length + (question.blank ? 1 : 0); j++) {
+    if (
+      !IndividualProof.verify(
+        election,
+        ballot.credential,
+        answer.individual_proofs[j],
+        answer.choices[j],
+      )
+    ) {
+      throw new Error("Invalid individual proofs");
+    }
   }
+
   if (question.blank) {
     if (!verifyBlankProof(election, ballot, question, answer)) {
       throw new Error("Invalid blank proof");
@@ -74,29 +85,6 @@ export function verify(
   } else {
     if (!verifyOverallProofWithoutBlank(election, ballot, question, answer)) {
       throw new Error("Invalid overall proof (without blank vote)");
-    }
-  }
-  return true;
-}
-
-export function verifyIndividualProofs(
-  election: Election.t,
-  ballot: Ballot.t,
-  question: Question.QuestionH.t,
-  answer: t,
-): boolean {
-  const pY = Point.parse(election.public_key);
-  const S = `${Election.fingerprint(election)}|${ballot.credential}`;
-  for (let j = 0; j < question.answers.length + (question.blank ? 1 : 0); j++) {
-    if (
-      !Proof.verifyIndividualProof(
-        S,
-        answer.individual_proofs[j],
-        pY,
-        answer.choices[j],
-      )
-    ) {
-      return false;
     }
   }
   return true;
