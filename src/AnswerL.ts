@@ -191,9 +191,7 @@ function verifyListProofs(
 
     let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
     S += answer.choices
-      .map((cs: any) => {
-        return cs.map(Ciphertext.toString).join(",");
-      })
+      .map((cs: any) => cs.map(Ciphertext.toString).join(","))
       .join(",");
 
     const nSumChallenges = mod(proofs[0].nChallenge + proofs[1].nChallenge, L);
