@@ -227,7 +227,7 @@ function generateAnswer(
     let blank_proof: Array<Proof.t> = [];
     if (plaintexts[0] === 0) {
       blank_proof = blankProof(
-        state,
+        state.setup.election,
         hPublicCredential,
         pY,
         choices,
@@ -238,7 +238,7 @@ function generateAnswer(
       );
     } else {
       blank_proof = blankProof(
-        state,
+        state.setup.election,
         hPublicCredential,
         pY,
         choices,
@@ -288,7 +288,7 @@ function generateAnswer(
 }
 
 function blankProof(
-  state: any,
+  election: Election.t,
   hPub: string,
   pY: Point.t,
   choices: Array<Ciphertext.t>,
@@ -305,7 +305,7 @@ function blankProof(
   const pA0 = g.multiply(nW);
   const pB0 = pY.multiply(nW);
 
-  let S = `${Election.fingerprint(state.setup.election)}|${hPub}|`;
+  let S = `${Election.fingerprint(election)}|${hPub}|`;
   S += choices
     .map(Ciphertext.serialize)
     .map((c) => `${c.alpha},${c.beta}`)
