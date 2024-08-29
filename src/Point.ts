@@ -1,18 +1,14 @@
 import { mod, modInverse, L, q, rev } from "./math";
 import { ed25519 } from "@noble/curves/ed25519";
-import type { ExtPointType } from "@noble/curves/abstract/edwards.js";
+import type { ExtPointType as CurvePoint } from "@noble/curves/abstract/edwards.js";
 
-export type t = ExtPointType;
+export const g = ed25519.ExtendedPoint.BASE;
+export const zero = ed25519.ExtendedPoint.ZERO;
+
+export type t = CurvePoint;
 
 export namespace Serialized {
   export type t = string;
-}
-
-function reverseByteOrder(hexStr: string) {
-  if (hexStr.length % 2 !== 0) {
-    throw new Error("hex string should have an even number of characters");
-  }
-  return hexStr.match(/../g).reverse().join("");
 }
 
 export function serialize(p: t): Serialized.t {
@@ -102,5 +98,11 @@ export function of_ints(xs: number[]) {
   }
 }
 
-export const g = ed25519.ExtendedPoint.BASE;
-export const zero = ed25519.ExtendedPoint.ZERO;
+
+function reverseByteOrder(hexStr: string) {
+  if (hexStr.length !== 64) {
+    throw new Error("Serialized Point should be size 64");
+  }
+  return hexStr.match(/../g).reverse().join("");
+}
+
