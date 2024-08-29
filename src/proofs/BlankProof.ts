@@ -1,6 +1,5 @@
 import * as Question from "../Question";
 import * as AnswerH from "../AnswerH";
-import * as Ballot from "../Ballot";
 import * as Election from "../Election";
 import * as Point from "../Point";
 import * as Ciphertext from "../Ciphertext";
