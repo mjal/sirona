@@ -190,38 +190,21 @@ function generateAnswer(
   }
 
   if (question.blank) {
-    const pAlphaS = choices
-      .slice(1)
-      .reduce((acc, c) => acc.add(c.pAlpha), zero);
-    const pBetaS = choices.slice(1).reduce((acc, c) => acc.add(c.pBeta), zero);
-    const pAlpha0 = choices[0].pAlpha;
-    const pBeta0 = choices[0].pBeta;
+    const egS = Ciphertext.combine(choices.slice(1))
+    const eg0 = choices[0];
     const nRS = nonces.slice(1).reduce((acc, r) => mod(acc + r, L), BigInt(0));
     const nR0 = nonces[0];
 
-    let blank_proof: Array<Proof.t> = [];
-    if (plaintexts[0] === 0) {
-      blank_proof = blankProof(
-        election,
-        hPublicCredential,
-        choices,
-        pAlphaS,
-        pBetaS,
-        nR0,
-        true,
-      );
-    } else {
-      blank_proof = blankProof(
-        election,
-        hPublicCredential,
-        choices,
-        pAlpha0,
-        pBeta0,
-        nRS,
-        false,
-      );
-    }
+    const isBlank = (plaintexts[0] === 1);
 
+    const blank_proof = blankProof(
+      election,
+      hPublicCredential,
+      choices,
+      isBlank ? eg0 : egS,
+      isBlank ? nRS : nR0,
+      isBlank,
+    );
     let overall_proof = overallProofBlank(
       election,
       question,
@@ -264,41 +247,34 @@ function blankProof(
   election: Election.t,
   hPub: string,
   choices: Array<Ciphertext.t>,
-  pAlphaS: Point.t,
-  pBetaS: Point.t,
-  nR0: bigint,
-  bNonBlank: boolean,
+  eg: Ciphertext.t,
+  nR: bigint,
+  isBlank: boolean,
 ): Array<Proof.t> {
   const pY = Point.parse(election.public_key);
-  const nChallengeS = rand();
-  const nResponseS = rand();
-  const pAS = formula(g, nResponseS, pAlphaS, nChallengeS);
-  const pBS = formula(pY, nResponseS, pBetaS, nChallengeS);
+  const proofA = { nChallenge: rand(), nResponse: rand() };
+  const AS = formula(g, proofA.nResponse, eg.pAlpha, proofA.nChallenge);
+  const BS = formula(pY, proofA.nResponse, eg.pBeta, proofA.nChallenge);
   const nW = rand();
-  const pA0 = g.multiply(nW);
-  const pB0 = pY.multiply(nW);
+  const A0 = g.multiply(nW);
+  const B0 = pY.multiply(nW);
 
   let S = `${Election.fingerprint(election)}|${hPub}|`;
   S += choices
     .map(Ciphertext.serialize)
     .map((c) => `${c.alpha},${c.beta}`)
     .join(",");
-  const nH = bNonBlank
-    ? Hbproof0(S, pA0, pB0, pAS, pBS)
-    : Hbproof0(S, pAS, pBS, pA0, pB0);
-  const nChallenge0 = mod(nH - nChallengeS, L);
-  const nResponse0 = mod(nW - nChallenge0 * nR0, L);
+  const nH = isBlank
+    ? Hbproof0(S, AS, BS, A0, B0)
+    : Hbproof0(S, A0, B0, AS, BS);
+  const nChallenge = mod(nH - proofA.nChallenge, L);
+  const nResponse = mod(nW - nChallenge * nR, L);
+  const proofB = { nChallenge, nResponse };
 
-  if (bNonBlank) {
-    return [
-      { nChallenge: nChallenge0, nResponse: nResponse0 },
-      { nChallenge: nChallengeS, nResponse: nResponseS },
-    ];
+  if (isBlank) {
+    return [ proofA, proofB, ];
   } else {
-    return [
-      { nChallenge: nChallengeS, nResponse: nResponseS },
-      { nChallenge: nChallenge0, nResponse: nResponse0 },
-    ];
+    return [ proofB, proofA, ];
   }
 }
 
