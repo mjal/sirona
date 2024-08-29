@@ -260,10 +260,7 @@ function blankProof(
   const B0 = pY.multiply(nW);
 
   let S = `${Election.fingerprint(election)}|${hPub}|`;
-  S += choices
-    .map(Ciphertext.serialize)
-    .map((c) => `${c.alpha},${c.beta}`)
-    .join(",");
+  S += choices.map(Ciphertext.toString).join(",");
   const nH = isBlank
     ? Hbproof0(S, AS, BS, A0, B0)
     : Hbproof0(S, A0, B0, AS, BS);
@@ -345,10 +342,7 @@ function overallProofBlank(
     }
 
     let S = `${Election.fingerprint(election)}|${hPub}|`;
-    S += aeCiphertexts
-      .map(Ciphertext.serialize)
-      .map((c) => `${c.alpha},${c.beta}`)
-      .join(",");
+    S += aeCiphertexts.map(Ciphertext.toString).join(",");
     const nH = Hbproof1(S, ...commitments);
 
     for (let j = 0; j < M.length; j++) {
@@ -394,10 +388,7 @@ function overallProofBlank(
     }
 
     let S = `${Election.fingerprint(election)}|${hPub}|`;
-    S += aeCiphertexts
-      .map(Ciphertext.serialize)
-      .map((c) => `${c.alpha},${c.beta}`)
-      .join(",");
+    S += aeCiphertexts.map(Ciphertext.toString).join(",");
     const nH = Hbproof1(S, ...commitments);
 
     azProofs[0].nChallenge = mod(nH - nChallengeS, L);
