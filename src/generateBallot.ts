@@ -204,7 +204,6 @@ function generateAnswer(
       blank_proof = blankProof(
         election,
         hPublicCredential,
-        pY,
         choices,
         pAlphaS,
         pBetaS,
@@ -215,7 +214,6 @@ function generateAnswer(
       blank_proof = blankProof(
         election,
         hPublicCredential,
-        pY,
         choices,
         pAlpha0,
         pBeta0,
@@ -265,13 +263,13 @@ function generateAnswer(
 function blankProof(
   election: Election.t,
   hPub: string,
-  pY: Point.t,
   choices: Array<Ciphertext.t>,
   pAlphaS: Point.t,
   pBetaS: Point.t,
   nR0: bigint,
   bNonBlank: boolean,
 ): Array<Proof.t> {
+  const pY = Point.parse(election.public_key);
   const nChallengeS = rand();
   const nResponseS = rand();
   const pAS = formula(g, nResponseS, pAlphaS, nChallengeS);
