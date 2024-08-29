@@ -2,6 +2,7 @@ import sjcl from "sjcl";
 import * as Point from "./Point";
 import * as Ciphertext from "./Ciphertext";
 import * as Proof from "./Proof";
+import * as IndividualProof from "./proofs/IndividualProof";
 import * as Answer from "./Answer";
 import * as Ballot from "./Ballot";
 import * as Credential from "./Credential";
@@ -115,51 +116,6 @@ function checkVotingCode(setup: Setup.t, sPriv: string) {
   return true;
 }
 
-function iproof(
-  prefix: string,
-  pY: Point.t,
-  pAlpha: Point.t,
-  pBeta: Point.t,
-  r: bigint,
-  m: number,
-  M: Array<number>,
-): Array<Proof.t> {
-  const w = rand();
-  let commitments: Array<Point.t> = [];
-  let proofs: Array<Proof.t> = [];
-
-  for (let i = 0; i < M.length; i++) {
-    if (m !== M[i]) {
-      const nChallenge = rand();
-      const nResponse = rand();
-      proofs.push({ nChallenge, nResponse });
-      const [pA, pB] = formula2(pY, pAlpha, pBeta, nChallenge, nResponse, M[i]);
-      commitments.push(pA, pB);
-    } else {
-      // m === M[i]
-      proofs.push({ nChallenge: BigInt(0), nResponse: BigInt(0) });
-      const pA = g.multiply(w);
-      const pB = pY.multiply(w);
-      commitments.push(pA, pB);
-    }
-  }
-
-  const nH = Hiprove(prefix, pAlpha, pBeta, ...commitments);
-
-  const nSumChallenge = proofs.reduce((acc, proof) => {
-    return mod(acc + proof.nChallenge, L);
-  }, BigInt(0));
-
-  for (let i = 0; i < M.length; i++) {
-    if (m === M[i]) {
-      proofs[i].nChallenge = mod(nH - nSumChallenge, L);
-      proofs[i].nResponse = mod(w - r * proofs[i].nChallenge, L);
-    }
-  }
-
-  return proofs;
-}
-
 function generateAnswer(
   election: Election.t,
   question: any,
@@ -181,8 +137,7 @@ function generateAnswer(
     const alpha = g.multiply(r);
     const beta = pY.multiply(r).add(gPowerM);
 
-    const S = `${Election.fingerprint(election)}|${hPublicCredential}`;
-    const proof = iproof(S, pY, alpha, beta, r, plaintexts[i], [0, 1]);
+    const proof = IndividualProof.generate(election, hPublicCredential, alpha, beta, r, plaintexts[i], [0, 1]);
 
     choices.push({ pAlpha: alpha, pBeta: beta });
     individual_proofs.push(proof);
@@ -229,11 +184,8 @@ function generateAnswer(
     );
     const nR = nonces.reduce((acc, r) => mod(acc + r, L), BigInt(0));
 
-    let S = `${Election.fingerprint(election)}|${hPublicCredential}|`;
-    S += choices
-      .map((c) => `${rev(c.pAlpha.toHex())},${rev(c.pBeta.toHex())}`)
-      .join(",");
-    const overall_proof = iproof(S, pY, pSumAlpha, pSumBeta, nR, m, M);
+    let prefix = hPublicCredential + "|" + choices.map(Ciphertext.toString).join(",")
+    const overall_proof = IndividualProof.generate(election, prefix, pSumAlpha, pSumBeta, nR, m, M);
 
     return Answer.AnswerH.serialize({
       choices,
