@@ -69,6 +69,7 @@ export function verify(
         ballot.credential,
         answer.individual_proofs[j],
         answer.choices[j],
+        0, 1
       )
     ) {
       throw new Error("Invalid individual proofs");
@@ -80,46 +81,25 @@ export function verify(
       throw new Error("Invalid blank proof");
     }
     if (!verifyOverallProofWithBlank(election, ballot, question, answer)) {
-      throw new Error("Invalid blank proof");
+      throw new Error("Invalid overall proof");
     }
   } else {
-    if (!verifyOverallProofWithoutBlank(election, ballot, question, answer)) {
+    const eg = Ciphertext.combine(answer.choices);
+    let suffix = answer.choices.map(Ciphertext.toString).join(",");
+    if (
+      !IndividualProof.verify(
+        election,
+        ballot.credential + "|" + suffix,
+        answer.overall_proof,
+        eg,
+        question.min, question.max
+      )
+    ) {
       throw new Error("Invalid overall proof (without blank vote)");
     }
   }
+
   return true;
-}
-
-export function verifyOverallProofWithoutBlank(
-  election: Election.t,
-  ballot: Ballot.t,
-  question: Question.QuestionH.t,
-  answer: t,
-): boolean {
-  const pY = Point.parse(election.public_key);
-  const sumc = Ciphertext.combine(answer.choices);
-  const nSumChallenges = answer.overall_proof.reduce(
-    (acc: bigint, proof: Proof.t) => mod(acc + proof.nChallenge, L),
-    0n,
-  );
-
-  let commitments = [];
-  for (let j = 0; j <= question.max - question.min; j++) {
-    const [pA, pB] = formula2(
-      pY,
-      sumc.pAlpha,
-      sumc.pBeta,
-      answer.overall_proof[j].nChallenge,
-      answer.overall_proof[j].nResponse,
-      question.min + j,
-    );
-    commitments.push(pA, pB);
-  }
-
-  let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
-  S += answer.choices.map(Ciphertext.toString).join(",");
-
-  return Hiprove(S, sumc.pAlpha, sumc.pBeta, ...commitments) === nSumChallenges;
 }
 
 export function verifyOverallProofWithBlank(

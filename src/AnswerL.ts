@@ -71,6 +71,7 @@ export function verify(
           ballot.credential,
           answer.individual_proofs[j][k],
           answer.choices[j][k],
+          0, 1
         )
       ) {
         throw new Error("Invalid individual proofs");
