@@ -105,7 +105,7 @@ export function compute_commitment(p1: t, p2: t, proof: Proof.t) {
 }
 
 export function compute_commitment_pair(
-  pY: t,
+  y: t,
   eg: Ciphertext.t,
   proof: Proof.t,
   m: number,
@@ -114,7 +114,7 @@ export function compute_commitment_pair(
   const pBDivGPowerM = eg.pBeta.add(gPowerM.negate());
 
   const A = compute_commitment(g,  eg.pAlpha, proof);
-  const B = compute_commitment(pY, pBDivGPowerM, proof);
+  const B = compute_commitment(y, pBDivGPowerM, proof);
 
   return [A, B];
 }
