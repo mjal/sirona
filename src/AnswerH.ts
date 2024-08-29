@@ -8,10 +8,10 @@ import * as Point from "./Point";
 import { L, mod, formula2, Hiprove, Hbproof0, Hbproof1 } from "./math";
 
 export type t = {
-  aeChoices: Array<Ciphertext.t>;
-  aazIndividualProofs: Array<Array<Proof.t>>;
-  azOverallProof: Array<Proof.t>;
-  azBlankProof?: Array<Proof.t>;
+  choices: Array<Ciphertext.t>;
+  individual_proofs: Array<Array<Proof.t>>;
+  overall_proof: Array<Proof.t>;
+  blank_proof?: Array<Proof.t>;
 };
 
 export namespace Serialized {
@@ -25,24 +25,24 @@ export namespace Serialized {
 
 export function parse(answer: Serialized.t): t {
   let obj: t = {
-    aeChoices: answer.choices.map(Ciphertext.parse),
-    aazIndividualProofs: map2(answer.individual_proofs, Proof.parse),
-    azOverallProof: answer.overall_proof.map(Proof.parse),
+    choices: answer.choices.map(Ciphertext.parse),
+    individual_proofs: map2(answer.individual_proofs, Proof.parse),
+    overall_proof: answer.overall_proof.map(Proof.parse),
   };
   if (answer.blank_proof) {
-    obj.azBlankProof = answer.blank_proof.map(Proof.parse);
+    obj.blank_proof = answer.blank_proof.map(Proof.parse);
   }
   return obj;
 }
 
 export function serialize(answer: t): Serialized.t {
   let obj: Serialized.t = {
-    choices: answer.aeChoices.map(Ciphertext.serialize),
-    individual_proofs: map2(answer.aazIndividualProofs, Proof.serialize),
-    overall_proof: answer.azOverallProof.map(Proof.serialize),
+    choices: answer.choices.map(Ciphertext.serialize),
+    individual_proofs: map2(answer.individual_proofs, Proof.serialize),
+    overall_proof: answer.overall_proof.map(Proof.serialize),
   };
-  if (answer.azBlankProof) {
-    obj.blank_proof = answer.azBlankProof.map(Proof.serialize);
+  if (answer.blank_proof) {
+    obj.blank_proof = answer.blank_proof.map(Proof.serialize);
   }
   return obj;
 }
@@ -56,7 +56,7 @@ export function verify(
   const answer = parse(serializedAnswer);
 
   for (let j = 0; j < question.answers.length; j++) {
-    if (Ciphertext.isValid(answer.aeChoices[j]) === false) {
+    if (Ciphertext.isValid(answer.choices[j]) === false) {
       return false;
     }
   }
@@ -91,9 +91,9 @@ export function verifyIndividualProofs(
     if (
       !Proof.verifyIndividualProof(
         S,
-        answer.aazIndividualProofs[j],
+        answer.individual_proofs[j],
         pY,
-        answer.aeChoices[j],
+        answer.choices[j],
       )
     ) {
       return false;
@@ -109,8 +109,8 @@ export function verifyOverallProofWithoutBlank(
   answer: t,
 ): boolean {
   const pY = Point.parse(election.public_key);
-  const sumc = Ciphertext.combine(answer.aeChoices);
-  const nSumChallenges = answer.azOverallProof.reduce(
+  const sumc = Ciphertext.combine(answer.choices);
+  const nSumChallenges = answer.overall_proof.reduce(
     (acc: bigint, proof: Proof.t) => mod(acc + proof.nChallenge, L),
     0n,
   );
@@ -121,15 +121,15 @@ export function verifyOverallProofWithoutBlank(
       pY,
       sumc.pAlpha,
       sumc.pBeta,
-      answer.azOverallProof[j].nChallenge,
-      answer.azOverallProof[j].nResponse,
+      answer.overall_proof[j].nChallenge,
+      answer.overall_proof[j].nResponse,
       question.min + j,
     );
     commitments.push(pA, pB);
   }
 
   let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
-  S += answer.aeChoices.map(Ciphertext.toString).join(",");
+  S += answer.choices.map(Ciphertext.toString).join(",");
 
   return Hiprove(S, sumc.pAlpha, sumc.pBeta, ...commitments) === nSumChallenges;
 }
@@ -141,15 +141,15 @@ export function verifyOverallProofWithBlank(
   answer: t,
 ): boolean {
   const pY = Point.parse(election.public_key);
-  const sumc = Ciphertext.combine(answer.aeChoices.slice(1));
+  const sumc = Ciphertext.combine(answer.choices.slice(1));
 
   let commitments = [];
   const [pA, pB] = formula2(
     pY,
-    answer.aeChoices[0].pAlpha,
-    answer.aeChoices[0].pBeta,
-    answer.azOverallProof[0].nChallenge,
-    answer.azOverallProof[0].nResponse,
+    answer.choices[0].pAlpha,
+    answer.choices[0].pBeta,
+    answer.overall_proof[0].nChallenge,
+    answer.overall_proof[0].nResponse,
     1,
   );
   commitments.push(pA, pB);
@@ -158,20 +158,20 @@ export function verifyOverallProofWithBlank(
       pY,
       sumc.pAlpha,
       sumc.pBeta,
-      answer.azOverallProof[j].nChallenge,
-      answer.azOverallProof[j].nResponse,
+      answer.overall_proof[j].nChallenge,
+      answer.overall_proof[j].nResponse,
       question.min + j - 1,
     );
     commitments.push(pA, pB);
   }
 
-  const nSumChallenges = answer.azOverallProof.reduce(
+  const nSumChallenges = answer.overall_proof.reduce(
     (acc, proof) => mod(acc + BigInt(proof.nChallenge), L),
     0n,
   );
 
   let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
-  S += answer.aeChoices.map(Ciphertext.toString).join(",");
+  S += answer.choices.map(Ciphertext.toString).join(",");
 
   return Hbproof1(S, ...commitments) === nSumChallenges;
 }
@@ -183,30 +183,30 @@ export function verifyBlankProof(
   answer: t,
 ): boolean {
   const pY = Point.parse(election.public_key);
-  const sumc = Ciphertext.combine(answer.aeChoices.slice(1));
-  const nSumChallenges = answer.azBlankProof.reduce(
+  const sumc = Ciphertext.combine(answer.choices.slice(1));
+  const nSumChallenges = answer.blank_proof.reduce(
     (acc, proof) => mod(acc + BigInt(proof.nChallenge), L),
     0n,
   );
 
   const [pA0, pB0] = formula2(
     pY,
-    answer.aeChoices[0].pAlpha,
-    answer.aeChoices[0].pBeta,
-    answer.azBlankProof[0].nChallenge,
-    answer.azBlankProof[0].nResponse,
+    answer.choices[0].pAlpha,
+    answer.choices[0].pBeta,
+    answer.blank_proof[0].nChallenge,
+    answer.blank_proof[0].nResponse,
     0,
   );
   const [pAS, pBS] = formula2(
     pY,
     sumc.pAlpha,
     sumc.pBeta,
-    answer.azBlankProof[1].nChallenge,
-    answer.azBlankProof[1].nResponse,
+    answer.blank_proof[1].nChallenge,
+    answer.blank_proof[1].nResponse,
     0,
   );
 
   let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
-  S += answer.aeChoices.map(Ciphertext.toString).join(",");
+  S += answer.choices.map(Ciphertext.toString).join(",");
   return Hbproof0(S, ...[pA0, pB0, pAS, pBS]) === nSumChallenges;
 }

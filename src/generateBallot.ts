@@ -165,65 +165,66 @@ function generateEncryptions(
   state: any,
   pY: Point.t,
   hPublicCredential: string,
-  choices: Array<number>,
+  plaintexts: Array<number>,
 ) {
-  let anR: Array<bigint> = [];
-  let aeChoices: Array<Ciphertext.t> = [];
-  let aazIndividualProofs: Array<Array<Proof.t>> = [];
+  let nonces: Array<bigint> = [];
+  let choices: Array<Ciphertext.t> = [];
+  let individual_proofs: Array<Array<Proof.t>> = [];
 
-  for (let i = 0; i < choices.length; i++) {
-    const nR = rand();
-    const gPowerM = choices[i] === 0 ? zero : g.multiply(BigInt(choices[i]));
-    const pAlpha = g.multiply(nR);
-    const pBeta = pY.multiply(nR).add(gPowerM);
+  for (let i = 0; i < plaintexts.length; i++) {
+    const r = rand();
+    const gPowerM = plaintexts[i] === 0 ? zero : g.multiply(BigInt(plaintexts[i]));
+    const alpha = g.multiply(r);
+    const beta = pY.multiply(r).add(gPowerM);
 
     const S = `${Election.fingerprint(state.setup.election)}|${hPublicCredential}`;
-    const proof = iproof(S, pY, pAlpha, pBeta, nR, choices[i], [0, 1]);
+    const proof = iproof(S, pY, alpha, beta, r, plaintexts[i], [0, 1]);
 
-    aeChoices.push({ pAlpha, pBeta });
-    aazIndividualProofs.push(proof);
-    anR.push(nR);
+    choices.push({ pAlpha: alpha, pBeta: beta });
+    individual_proofs.push(proof);
+    nonces.push(r);
   }
 
-  return { anR, aeChoices, aazIndividualProofs };
+  return { nonces, choices, individual_proofs };
 }
 
 function generateAnswerWithoutBlank(
   state: any,
   question: any,
   sPriv: string,
-  choices: Array<number>,
+  plaintexts: Array<number>,
 ): Answer.AnswerH.Serialized.t {
   const pY = Point.parse(state.setup.election.public_key);
   const { hPublicCredential } = Credential.derive(
     state.setup.election.uuid,
     sPriv,
   );
-  const { anR, aeChoices, aazIndividualProofs } = generateEncryptions(
+  const { nonces, choices, individual_proofs } = generateEncryptions(
     state,
     pY,
     hPublicCredential,
-    choices,
+    plaintexts,
   );
 
-  const pSumAlpha = aeChoices.reduce((acc, c) => acc.add(c.pAlpha), zero);
-  const pSumBeta = aeChoices.reduce((acc, c) => acc.add(c.pBeta), zero);
-  const m = choices.reduce((acc, c) => c + acc, 0);
+  // TODO: Use Ciphertext.combine
+  const pSumAlpha = choices.reduce((acc, c) => acc.add(c.pAlpha), zero);
+  const pSumBeta = choices.reduce((acc, c) => acc.add(c.pBeta), zero);
+  const m = plaintexts.reduce((acc, c) => c + acc, 0);
   const M = Array.from({ length: question.max - question.min + 1 }).map(
     (_, i) => i + question.min,
   );
-  const nR = anR.reduce((acc, r) => mod(acc + r, L), BigInt(0));
+  const nR = nonces.reduce((acc, r) => mod(acc + r, L), BigInt(0));
 
   let S = `${Election.fingerprint(state.setup.election)}|${hPublicCredential}|`;
-  S += aeChoices
+  S += choices
     .map((c) => `${rev(c.pAlpha.toHex())},${rev(c.pBeta.toHex())}`)
     .join(",");
-  const azOverallProof = iproof(S, pY, pSumAlpha, pSumBeta, nR, m, M);
+  const overall_proof = iproof(S, pY, pSumAlpha, pSumBeta, nR, m, M);
 
   return Answer.AnswerH.serialize({
-    aeChoices,
-    aazIndividualProofs,
-    azOverallProof,
+    choices,
+    individual_proofs,
+    overall_proof,
   });
 }
 
@@ -402,47 +403,47 @@ function generateAnswerWithBlank(
   state: any,
   question: any,
   sPriv: string,
-  choices: Array<number>,
+  plaintexts: Array<number>,
 ): Answer.AnswerH.Serialized.t {
   const pY = Point.parse(state.setup.election.public_key);
   const { hPublicCredential } = Credential.derive(
     state.setup.election.uuid,
     sPriv,
   );
-  const { anR, aeChoices, aazIndividualProofs } = generateEncryptions(
+  const { nonces, choices, individual_proofs } = generateEncryptions(
     state,
     pY,
     hPublicCredential,
-    choices,
+    plaintexts,
   );
 
-  const pAlphaS = aeChoices
+  const pAlphaS = choices
     .slice(1)
     .reduce((acc, c) => acc.add(c.pAlpha), zero);
-  const pBetaS = aeChoices.slice(1).reduce((acc, c) => acc.add(c.pBeta), zero);
-  const pAlpha0 = aeChoices[0].pAlpha;
-  const pBeta0 = aeChoices[0].pBeta;
-  const nRS = anR.slice(1).reduce((acc, r) => mod(acc + r, L), BigInt(0));
-  const nR0 = anR[0];
+  const pBetaS = choices.slice(1).reduce((acc, c) => acc.add(c.pBeta), zero);
+  const pAlpha0 = choices[0].pAlpha;
+  const pBeta0 = choices[0].pBeta;
+  const nRS = nonces.slice(1).reduce((acc, r) => mod(acc + r, L), BigInt(0));
+  const nR0 = nonces[0];
 
-  let azBlankProof: Array<Proof.t> = [];
-  if (choices[0] === 0) {
-    azBlankProof = blankProof(
+  let blank_proof: Array<Proof.t> = [];
+  if (plaintexts[0] === 0) {
+    blank_proof = blankProof(
       state,
       hPublicCredential,
       pY,
-      aeChoices,
+      choices,
       pAlphaS,
       pBetaS,
       nR0,
       true,
     );
   } else {
-    azBlankProof = blankProof(
+    blank_proof = blankProof(
       state,
       hPublicCredential,
       pY,
-      aeChoices,
+      choices,
       pAlpha0,
       pBeta0,
       nRS,
@@ -450,18 +451,18 @@ function generateAnswerWithBlank(
     );
   }
 
-  let azOverallProof = overallProofBlank(
+  let overall_proof = overallProofBlank(
     state,
     question,
+    plaintexts,
     choices,
-    aeChoices,
     hPublicCredential,
-    anR,
+    nonces,
   );
   return Answer.AnswerH.serialize({
-    aeChoices,
-    aazIndividualProofs,
-    azOverallProof,
-    azBlankProof,
+    choices,
+    individual_proofs,
+    overall_proof,
+    blank_proof,
   });
 }

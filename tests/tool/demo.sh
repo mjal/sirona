@@ -71,7 +71,7 @@ cat > votes.txt <<EOF
 EOF
 
 paste private_creds.txt votes.txt | while read id cred vote; do
-    BALLOT="$(sirona election generate-ballot $UUID.bel --privcred <(echo "$cred") --choice <(echo "$vote"))"
+    BALLOT="$(sirona election generate-ballot --privcred <(echo "$cred") --choice <(echo "$vote"))"
     #belenios-tool election verify-ballot --ballot <(echo "$BALLOT")
     HASH="$(printf "%s" "$BALLOT" | sirona sha256-b64)"
     echo "$BALLOT" | sirona archive add-event --type=Ballot
