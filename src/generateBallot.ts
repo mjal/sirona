@@ -158,33 +158,6 @@ function iproof(
   return proofs;
 }
 
-function generateEncryptions(
-  state: any,
-  pY: Point.t,
-  hPublicCredential: string,
-  plaintexts: Array<number>,
-) {
-  let nonces: Array<bigint> = [];
-  let choices: Array<Ciphertext.t> = [];
-  let individual_proofs: Array<Array<Proof.t>> = [];
-
-  for (let i = 0; i < plaintexts.length; i++) {
-    const r = rand();
-    const gPowerM = plaintexts[i] === 0 ? zero : g.multiply(BigInt(plaintexts[i]));
-    const alpha = g.multiply(r);
-    const beta = pY.multiply(r).add(gPowerM);
-
-    const S = `${Election.fingerprint(state.setup.election)}|${hPublicCredential}`;
-    const proof = iproof(S, pY, alpha, beta, r, plaintexts[i], [0, 1]);
-
-    choices.push({ pAlpha: alpha, pBeta: beta });
-    individual_proofs.push(proof);
-    nonces.push(r);
-  }
-
-  return { nonces, choices, individual_proofs };
-}
-
 function generateAnswer(
   state: any,
   question: any,
