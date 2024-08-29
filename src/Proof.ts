@@ -29,44 +29,7 @@ export function parse(proof: Serialized.t): t {
   };
 }
 
-export function verifyIndividualProof(
-  S: string,
-  zIndividualProof: Array<Proof.t>,
-  pY: Point.t,
-  eCiphertext: Ciphertext.t,
-) {
-  const nSumChallenges = mod(
-    zIndividualProof[0].nChallenge + zIndividualProof[1].nChallenge,
-    L,
-  );
-  const [pA0, pB0] = formula2(
-    pY,
-    eCiphertext.pAlpha,
-    eCiphertext.pBeta,
-    zIndividualProof[0].nChallenge,
-    zIndividualProof[0].nResponse,
-    0,
-  );
-  const [pA1, pB1] = formula2(
-    pY,
-    eCiphertext.pAlpha,
-    eCiphertext.pBeta,
-    zIndividualProof[1].nChallenge,
-    zIndividualProof[1].nResponse,
-    1,
-  );
-  const nH = Hiprove(
-    S,
-    eCiphertext.pAlpha,
-    eCiphertext.pBeta,
-    pA0,
-    pB0,
-    pA1,
-    pB1,
-  );
-  return nSumChallenges === nH;
-}
-
+// TODO: Move to proofs/DecryptionProof.ts
 export function verifyDecryptionProof(
   S: string,
   y: Point.t,
