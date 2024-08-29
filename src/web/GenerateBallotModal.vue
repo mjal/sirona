@@ -56,7 +56,7 @@ const submitForm = (event) => {
 
   try {
     const oBallot = generateBallot(
-      props.state,
+      props.state.setup,
       credential.value.trim(),
       answers,
     );

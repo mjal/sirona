@@ -6,6 +6,7 @@ import * as Answer from "./Answer";
 import * as Ballot from "./Ballot";
 import * as Credential from "./Credential";
 import * as Election from "./Election";
+import * as Setup from "./Setup";
 import {
   g,
   L,
@@ -39,31 +40,32 @@ function signature(nPriv: bigint, sHash: string) {
 }
 
 export default function (
-  state: any,
+  setup: Setup.t,
   sPriv: string,
   choices: Array<Array<number>>,
 ) {
-  if (!checkVotingCode(state, sPriv)) {
+  const { election } = setup
+  if (!checkVotingCode(setup, sPriv)) {
     return null;
   }
 
   const { hPublicCredential, nPrivateCredential } = Credential.derive(
-    state.setup.election.uuid,
+    election.uuid,
     sPriv,
   );
 
   let answers: Array<Answer.AnswerH.Serialized.t> = [];
   for (let i = 0; i < choices.length; i++) {
-    const question = state.setup.election.questions[i];
-    const answer = generateAnswer(state, question, sPriv, choices[i]);
+    const question = election.questions[i];
+    const answer = generateAnswer(election, question, sPriv, choices[i]);
     answers.push(answer);
   }
 
   const ballotWithoutSignature = {
     answers,
     credential: hPublicCredential,
-    election_hash: Election.fingerprint(state.setup.election),
-    election_uuid: state.setup.election.uuid,
+    election_hash: Election.fingerprint(election),
+    election_uuid: setup.election.uuid,
     signature: {
       hash: null,
       proof: {
@@ -75,7 +77,7 @@ export default function (
 
   const hH = Ballot.b64hashWithoutSignature(
     ballotWithoutSignature,
-    state.setup.election,
+    election,
   );
 
   const ballot: Ballot.t = {
@@ -83,12 +85,12 @@ export default function (
     signature: signature(nPrivateCredential, hH),
   };
 
-  Ballot.verify(state.setup, ballot);
+  Ballot.verify(setup, ballot);
 
   return ballot;
 }
 
-function checkVotingCode(state: any, sPriv: string) {
+function checkVotingCode(setup: Setup.t, sPriv: string) {
   if (
     !/[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}/.test(sPriv)
   ) {
@@ -98,11 +100,11 @@ function checkVotingCode(state: any, sPriv: string) {
   }
 
   const { hPublicCredential } = Credential.derive(
-    state.setup.election.uuid,
+    setup.election.uuid,
     sPriv,
   );
 
-  const electionPublicCredentials = state.setup.credentials.map(
+  const electionPublicCredentials = setup.credentials.map(
     (line: string) => line.split(",")[0],
   );
 
@@ -159,7 +161,7 @@ function iproof(
 }
 
 function generateAnswer(
-  state: any,
+  election: Election.t,
   question: any,
   sPriv: string,
   plaintexts: Array<number>
@@ -167,9 +169,9 @@ function generateAnswer(
   let nonces: Array<bigint> = [];
   let choices: Array<Ciphertext.t> = [];
   let individual_proofs: Array<Array<Proof.t>> = [];
-  const pY = Point.parse(state.setup.election.public_key);
+  const pY = Point.parse(election.public_key);
   const { hPublicCredential } = Credential.derive(
-    state.setup.election.uuid,
+    election.uuid,
     sPriv,
   );
 
@@ -179,7 +181,7 @@ function generateAnswer(
     const alpha = g.multiply(r);
     const beta = pY.multiply(r).add(gPowerM);
 
-    const S = `${Election.fingerprint(state.setup.election)}|${hPublicCredential}`;
+    const S = `${Election.fingerprint(election)}|${hPublicCredential}`;
     const proof = iproof(S, pY, alpha, beta, r, plaintexts[i], [0, 1]);
 
     choices.push({ pAlpha: alpha, pBeta: beta });
@@ -200,7 +202,7 @@ function generateAnswer(
     let blank_proof: Array<Proof.t> = [];
     if (plaintexts[0] === 0) {
       blank_proof = blankProof(
-        state.setup.election,
+        election,
         hPublicCredential,
         pY,
         choices,
@@ -211,7 +213,7 @@ function generateAnswer(
       );
     } else {
       blank_proof = blankProof(
-        state.setup.election,
+        election,
         hPublicCredential,
         pY,
         choices,
@@ -223,7 +225,7 @@ function generateAnswer(
     }
 
     let overall_proof = overallProofBlank(
-      state.setup.election,
+      election,
       question,
       plaintexts,
       choices,
@@ -246,7 +248,7 @@ function generateAnswer(
     );
     const nR = nonces.reduce((acc, r) => mod(acc + r, L), BigInt(0));
 
-    let S = `${Election.fingerprint(state.setup.election)}|${hPublicCredential}|`;
+    let S = `${Election.fingerprint(election)}|${hPublicCredential}|`;
     S += choices
       .map((c) => `${rev(c.pAlpha.toHex())},${rev(c.pBeta.toHex())}`)
       .join(",");
