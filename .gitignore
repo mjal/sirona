@@ -1,6 +1,5 @@
 node_modules/
-public/*.bel
-public/tmp/
-tests/*.bel
+tests/imported/*
+!tests/imported/test-all.sh
 tests/tool/data/*
 dist/
