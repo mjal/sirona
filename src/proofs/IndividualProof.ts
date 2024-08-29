@@ -36,35 +36,33 @@ export function verify(
 export function generate(
   election: Election.t,
   prefix: string,
-  pAlpha: Point.t,
-  pBeta: Point.t,
+  eg: Ciphertext.t,
   r: bigint,
   m: number,
   M: Array<number>,
 ) {
-  const pY = Point.parse(election.public_key);
+  const y = Point.parse(election.public_key);
   const w = rand();
   let commitments: Array<Point.t> = [];
   let proofs: Array<Proof.t> = [];
 
   for (let i = 0; i < M.length; i++) {
     if (m !== M[i]) {
-      const nChallenge = rand();
-      const nResponse = rand();
-      proofs.push({ nChallenge, nResponse });
-      const [A, B] = Point.compute_commitment_pair(pY, { pAlpha, pBeta }, { nChallenge, nResponse }, M[i]);
+      const proof = { nChallenge: rand(), nResponse: rand() };
+      const [A, B] = Point.compute_commitment_pair(y, eg, proof, M[i]);
+      proofs.push(proof);
       commitments.push(A, B);
     } else {
       // m === M[i]
       proofs.push({ nChallenge: BigInt(0), nResponse: BigInt(0) });
       const pA = g.multiply(w);
-      const pB = pY.multiply(w);
+      const pB = y.multiply(w);
       commitments.push(pA, pB);
     }
   }
 
   const S = `${Election.fingerprint(election)}|${prefix}`;
-  const nH = Hiprove(S, pAlpha, pBeta, ...commitments);
+  const nH = Hiprove(S, eg.pAlpha, eg.pBeta, ...commitments);
 
   const nSumChallenge = proofs.reduce((acc, proof) => {
     return mod(acc + proof.nChallenge, L);

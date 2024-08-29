@@ -134,12 +134,12 @@ function generateAnswer(
   for (let i = 0; i < plaintexts.length; i++) {
     const r = rand();
     const gPowerM = plaintexts[i] === 0 ? zero : g.multiply(BigInt(plaintexts[i]));
-    const alpha = g.multiply(r);
-    const beta = pY.multiply(r).add(gPowerM);
+    const pAlpha = g.multiply(r);
+    const pBeta = pY.multiply(r).add(gPowerM);
 
-    const proof = IndividualProof.generate(election, hPublicCredential, alpha, beta, r, plaintexts[i], [0, 1]);
+    const proof = IndividualProof.generate(election, hPublicCredential, { pAlpha, pBeta }, r, plaintexts[i], [0, 1]);
 
-    choices.push({ pAlpha: alpha, pBeta: beta });
+    choices.push({ pAlpha, pBeta });
     individual_proofs.push(proof);
     nonces.push(r);
   }
@@ -176,8 +176,7 @@ function generateAnswer(
     });
   } else {
     // TODO: Use Ciphertext.combine
-    const pSumAlpha = choices.reduce((acc, c) => acc.add(c.pAlpha), zero);
-    const pSumBeta = choices.reduce((acc, c) => acc.add(c.pBeta), zero);
+    const egS = Ciphertext.combine(choices);
     const m = plaintexts.reduce((acc, c) => c + acc, 0);
     const M = Array.from({ length: question.max - question.min + 1 }).map(
       (_, i) => i + question.min,
@@ -185,7 +184,7 @@ function generateAnswer(
     const nR = nonces.reduce((acc, r) => mod(acc + r, L), BigInt(0));
 
     let prefix = hPublicCredential + "|" + choices.map(Ciphertext.toString).join(",")
-    const overall_proof = IndividualProof.generate(election, prefix, pSumAlpha, pSumBeta, nR, m, M);
+    const overall_proof = IndividualProof.generate(election, prefix, egS, nR, m, M);
 
     return Answer.AnswerH.serialize({
       choices,
