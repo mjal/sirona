@@ -55,10 +55,7 @@ export default function (
   let answers: Array<Answer.AnswerH.Serialized.t> = [];
   for (let i = 0; i < choices.length; i++) {
     const question = state.setup.election.questions[i];
-    const f = question.blank
-      ? generateAnswerWithBlank
-      : generateAnswerWithoutBlank;
-    const answer = f(state, question, sPriv, choices[i]);
+    const answer = generateAnswer(state, question, sPriv, choices[i]);
     answers.push(answer);
   }
 
@@ -188,44 +185,106 @@ function generateEncryptions(
   return { nonces, choices, individual_proofs };
 }
 
-function generateAnswerWithoutBlank(
+function generateAnswer(
   state: any,
   question: any,
   sPriv: string,
-  plaintexts: Array<number>,
+  plaintexts: Array<number>
 ): Answer.AnswerH.Serialized.t {
+  let nonces: Array<bigint> = [];
+  let choices: Array<Ciphertext.t> = [];
+  let individual_proofs: Array<Array<Proof.t>> = [];
   const pY = Point.parse(state.setup.election.public_key);
   const { hPublicCredential } = Credential.derive(
     state.setup.election.uuid,
     sPriv,
   );
-  const { nonces, choices, individual_proofs } = generateEncryptions(
-    state,
-    pY,
-    hPublicCredential,
-    plaintexts,
-  );
 
-  // TODO: Use Ciphertext.combine
-  const pSumAlpha = choices.reduce((acc, c) => acc.add(c.pAlpha), zero);
-  const pSumBeta = choices.reduce((acc, c) => acc.add(c.pBeta), zero);
-  const m = plaintexts.reduce((acc, c) => c + acc, 0);
-  const M = Array.from({ length: question.max - question.min + 1 }).map(
-    (_, i) => i + question.min,
-  );
-  const nR = nonces.reduce((acc, r) => mod(acc + r, L), BigInt(0));
+  for (let i = 0; i < plaintexts.length; i++) {
+    const r = rand();
+    const gPowerM = plaintexts[i] === 0 ? zero : g.multiply(BigInt(plaintexts[i]));
+    const alpha = g.multiply(r);
+    const beta = pY.multiply(r).add(gPowerM);
 
-  let S = `${Election.fingerprint(state.setup.election)}|${hPublicCredential}|`;
-  S += choices
-    .map((c) => `${rev(c.pAlpha.toHex())},${rev(c.pBeta.toHex())}`)
-    .join(",");
-  const overall_proof = iproof(S, pY, pSumAlpha, pSumBeta, nR, m, M);
+    const S = `${Election.fingerprint(state.setup.election)}|${hPublicCredential}`;
+    const proof = iproof(S, pY, alpha, beta, r, plaintexts[i], [0, 1]);
 
-  return Answer.AnswerH.serialize({
-    choices,
-    individual_proofs,
-    overall_proof,
-  });
+    choices.push({ pAlpha: alpha, pBeta: beta });
+    individual_proofs.push(proof);
+    nonces.push(r);
+  }
+
+  if (question.blank) {
+    const pAlphaS = choices
+      .slice(1)
+      .reduce((acc, c) => acc.add(c.pAlpha), zero);
+    const pBetaS = choices.slice(1).reduce((acc, c) => acc.add(c.pBeta), zero);
+    const pAlpha0 = choices[0].pAlpha;
+    const pBeta0 = choices[0].pBeta;
+    const nRS = nonces.slice(1).reduce((acc, r) => mod(acc + r, L), BigInt(0));
+    const nR0 = nonces[0];
+
+    let blank_proof: Array<Proof.t> = [];
+    if (plaintexts[0] === 0) {
+      blank_proof = blankProof(
+        state,
+        hPublicCredential,
+        pY,
+        choices,
+        pAlphaS,
+        pBetaS,
+        nR0,
+        true,
+      );
+    } else {
+      blank_proof = blankProof(
+        state,
+        hPublicCredential,
+        pY,
+        choices,
+        pAlpha0,
+        pBeta0,
+        nRS,
+        false,
+      );
+    }
+
+    let overall_proof = overallProofBlank(
+      state,
+      question,
+      plaintexts,
+      choices,
+      hPublicCredential,
+      nonces,
+    );
+    return Answer.AnswerH.serialize({
+      choices,
+      individual_proofs,
+      overall_proof,
+      blank_proof,
+    });
+  } else {
+    // TODO: Use Ciphertext.combine
+    const pSumAlpha = choices.reduce((acc, c) => acc.add(c.pAlpha), zero);
+    const pSumBeta = choices.reduce((acc, c) => acc.add(c.pBeta), zero);
+    const m = plaintexts.reduce((acc, c) => c + acc, 0);
+    const M = Array.from({ length: question.max - question.min + 1 }).map(
+      (_, i) => i + question.min,
+    );
+    const nR = nonces.reduce((acc, r) => mod(acc + r, L), BigInt(0));
+
+    let S = `${Election.fingerprint(state.setup.election)}|${hPublicCredential}|`;
+    S += choices
+      .map((c) => `${rev(c.pAlpha.toHex())},${rev(c.pBeta.toHex())}`)
+      .join(",");
+    const overall_proof = iproof(S, pY, pSumAlpha, pSumBeta, nR, m, M);
+
+    return Answer.AnswerH.serialize({
+      choices,
+      individual_proofs,
+      overall_proof,
+    });
+  }
 }
 
 function blankProof(
@@ -397,72 +456,4 @@ function overallProofBlank(
 
     return azProofs;
   }
-}
-
-function generateAnswerWithBlank(
-  state: any,
-  question: any,
-  sPriv: string,
-  plaintexts: Array<number>,
-): Answer.AnswerH.Serialized.t {
-  const pY = Point.parse(state.setup.election.public_key);
-  const { hPublicCredential } = Credential.derive(
-    state.setup.election.uuid,
-    sPriv,
-  );
-  const { nonces, choices, individual_proofs } = generateEncryptions(
-    state,
-    pY,
-    hPublicCredential,
-    plaintexts,
-  );
-
-  const pAlphaS = choices
-    .slice(1)
-    .reduce((acc, c) => acc.add(c.pAlpha), zero);
-  const pBetaS = choices.slice(1).reduce((acc, c) => acc.add(c.pBeta), zero);
-  const pAlpha0 = choices[0].pAlpha;
-  const pBeta0 = choices[0].pBeta;
-  const nRS = nonces.slice(1).reduce((acc, r) => mod(acc + r, L), BigInt(0));
-  const nR0 = nonces[0];
-
-  let blank_proof: Array<Proof.t> = [];
-  if (plaintexts[0] === 0) {
-    blank_proof = blankProof(
-      state,
-      hPublicCredential,
-      pY,
-      choices,
-      pAlphaS,
-      pBetaS,
-      nR0,
-      true,
-    );
-  } else {
-    blank_proof = blankProof(
-      state,
-      hPublicCredential,
-      pY,
-      choices,
-      pAlpha0,
-      pBeta0,
-      nRS,
-      false,
-    );
-  }
-
-  let overall_proof = overallProofBlank(
-    state,
-    question,
-    plaintexts,
-    choices,
-    hPublicCredential,
-    nonces,
-  );
-  return Answer.AnswerH.serialize({
-    choices,
-    individual_proofs,
-    overall_proof,
-    blank_proof,
-  });
 }
