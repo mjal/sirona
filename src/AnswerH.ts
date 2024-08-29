@@ -1,12 +1,11 @@
 import { map2 } from "./utils";
 import * as Proof from "./Proof";
 import * as IndividualProof from "./proofs/IndividualProof";
+import * as BlankProof from "./proofs/BlankProof";
 import * as Ciphertext from "./Ciphertext";
 import * as Election from "./Election";
 import * as Question from "./Question";
 import * as Ballot from "./Ballot";
-import * as Point from "./Point";
-import { L, mod, formula2, Hiprove, Hbproof0, Hbproof1 } from "./math";
 
 export type t = {
   choices: Array<Ciphertext.t>;
@@ -77,10 +76,21 @@ export function verify(
   }
 
   if (question.blank) {
-    if (!verifyBlankProof(election, ballot, question, answer)) {
+    if (
+      !BlankProof.BlankProof.verify(
+        election,
+        ballot.credential,
+        answer)
+      ) {
       throw new Error("Invalid blank proof");
     }
-    if (!verifyOverallProofWithBlank(election, ballot, question, answer)) {
+    if (
+      !BlankProof.OverallProof.verify(
+        election,
+        ballot.credential,
+        question,
+        answer)
+      ) {
       throw new Error("Invalid overall proof");
     }
   } else {
@@ -100,81 +110,4 @@ export function verify(
   }
 
   return true;
-}
-
-export function verifyOverallProofWithBlank(
-  election: Election.t,
-  ballot: Ballot.t,
-  question: Question.QuestionH.t,
-  answer: t,
-): boolean {
-  const pY = Point.parse(election.public_key);
-  const sumc = Ciphertext.combine(answer.choices.slice(1));
-
-  let commitments = [];
-  const [pA, pB] = formula2(
-    pY,
-    answer.choices[0].pAlpha,
-    answer.choices[0].pBeta,
-    answer.overall_proof[0].nChallenge,
-    answer.overall_proof[0].nResponse,
-    1,
-  );
-  commitments.push(pA, pB);
-  for (let j = 1; j < question.max - question.min + 2; j++) {
-    const [pA, pB] = formula2(
-      pY,
-      sumc.pAlpha,
-      sumc.pBeta,
-      answer.overall_proof[j].nChallenge,
-      answer.overall_proof[j].nResponse,
-      question.min + j - 1,
-    );
-    commitments.push(pA, pB);
-  }
-
-  const nSumChallenges = answer.overall_proof.reduce(
-    (acc, proof) => mod(acc + BigInt(proof.nChallenge), L),
-    0n,
-  );
-
-  let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
-  S += answer.choices.map(Ciphertext.toString).join(",");
-
-  return Hbproof1(S, ...commitments) === nSumChallenges;
-}
-
-export function verifyBlankProof(
-  election: Election.t,
-  ballot: Ballot.t,
-  _question: Question.QuestionH.t,
-  answer: t,
-): boolean {
-  const pY = Point.parse(election.public_key);
-  const sumc = Ciphertext.combine(answer.choices.slice(1));
-  const nSumChallenges = answer.blank_proof.reduce(
-    (acc, proof) => mod(acc + BigInt(proof.nChallenge), L),
-    0n,
-  );
-
-  const [pA0, pB0] = formula2(
-    pY,
-    answer.choices[0].pAlpha,
-    answer.choices[0].pBeta,
-    answer.blank_proof[0].nChallenge,
-    answer.blank_proof[0].nResponse,
-    0,
-  );
-  const [pAS, pBS] = formula2(
-    pY,
-    sumc.pAlpha,
-    sumc.pBeta,
-    answer.blank_proof[1].nChallenge,
-    answer.blank_proof[1].nResponse,
-    0,
-  );
-
-  let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
-  S += answer.choices.map(Ciphertext.toString).join(",");
-  return Hbproof0(S, ...[pA0, pB0, pAS, pBS]) === nSumChallenges;
 }
