@@ -14,7 +14,6 @@ import {
   rev,
   mod,
   rand,
-  formula2,
   formula,
   Hiprove,
   Hbproof0,
@@ -234,12 +233,7 @@ function overallProofBlank(
   hPub: string,
   anR: Array<bigint>,
 ): Array<Proof.t> {
-  const pAlphaS = aeCiphertexts
-    .slice(1)
-    .reduce((acc, c) => acc.add(c.pAlpha), zero);
-  const pBetaS = aeCiphertexts
-    .slice(1)
-    .reduce((acc, c) => acc.add(c.pBeta), zero);
+  const egS = Ciphertext.combine(aeCiphertexts.slice(1));
   const pY = Point.parse(election.public_key);
   const mS = anChoices.slice(1).reduce((acc, c) => c + acc, 0);
   const M = Array.from({ length: question.max - question.min + 1 }).map(
@@ -249,46 +243,41 @@ function overallProofBlank(
   const nW = rand();
 
   if (anChoices[0] === 0) {
-    const nChallenge0 = rand();
-    const nResponse0 = rand();
-    const [pA0, pB0] = formula2(
+    const proof0 = {
+      nChallenge: rand(),
+      nResponse: rand()
+    };
+    const [pA0, pB0] = Point.compute_commitment_pair(
       pY,
-      aeCiphertexts[0].pAlpha,
-      aeCiphertexts[0].pBeta,
-      nChallenge0,
-      nResponse0,
+      aeCiphertexts[0],
+      proof0,
       1,
     );
 
-    let azProofs: Array<Proof.t> = [
-      {
-        nChallenge: nChallenge0,
-        nResponse: nResponse0,
-      },
-    ];
+    let azProofs: Array<Proof.t> = [ proof0 ];
     let commitments = [pA0, pB0];
-    let nChallengeS = nChallenge0;
+    let nChallengeS = proof0.nChallenge;
 
     for (let j = 0; j < M.length; j++) {
-      const nChallenge = rand();
-      const nResponse = rand();
-      azProofs.push({ nChallenge, nResponse });
+      const proof = {
+        nChallenge: rand(),
+        nResponse: rand()
+      };
+      azProofs.push(proof);
       if (M[j] === mS) {
         //5. Compute Ai = g^w and Bi = y^w.
-        const pA = g.multiply(nW);
-        const pB = pY.multiply(nW);
-        commitments.push(pA, pB);
+        const A = g.multiply(nW);
+        const B = pY.multiply(nW);
+        commitments.push(A, B);
       } else {
-        const [pA, pB] = formula2(
+        const [A, B] = Point.compute_commitment_pair(
           pY,
-          pAlphaS,
-          pBetaS,
-          nChallenge,
-          nResponse,
-          M[j],
+          egS,
+          proof,
+          M[j]
         );
-        nChallengeS = mod(nChallengeS + nChallenge, L);
-        commitments.push(pA, pB);
+        nChallengeS = mod(nChallengeS + proof.nChallenge, L);
+        commitments.push(A, B);
       }
     }
 
@@ -326,12 +315,10 @@ function overallProofBlank(
       const nChallenge = rand();
       const nResponse = rand();
       azProofs.push({ nChallenge, nResponse });
-      const [pA, pB] = formula2(
+      const [pA, pB] = Point.compute_commitment_pair(
         pY,
-        pAlphaS,
-        pBetaS,
-        nChallenge,
-        nResponse,
+        egS,
+        { nChallenge, nResponse },
         M[j],
       );
       nChallengeS = mod(nChallengeS + nChallenge, L);

@@ -1,7 +1,7 @@
 import * as Proof from "./Proof";
 import * as Ciphertext from "./Ciphertext";
 import * as Point from "./Point";
-import { L, mod, formula2, formula, Hiprove, Hdecrypt } from "./math";
+import { formula, Hdecrypt } from "./math";
 
 export type t = {
   nChallenge: bigint;

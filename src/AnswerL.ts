@@ -103,12 +103,10 @@ function verifyOverallProofLists(
   const pY = Point.parse(election.public_key);
   const sumc = Ciphertext.combine(answer.choices.map((c) => c[0]));
 
-  const [pA, pB] = formula2(
+  const [pA, pB] = Point.compute_commitment_pair(
     pY,
-    sumc.pAlpha,
-    sumc.pBeta,
-    answer.overall_proof.nChallenge,
-    answer.overall_proof.nResponse,
+    sumc,
+    answer.overall_proof,
     1,
   );
 
@@ -173,12 +171,10 @@ function verifyListProofs(
     const ct0 = answer.choices[i][0];
     const ct = Ciphertext.combine(answer.choices[i].slice(1));
 
-    const [A0, B0] = formula2(
+    const [A0, B0] = Point.compute_commitment_pair(
       pY,
-      ct0.pAlpha,
-      ct0.pBeta,
-      proofs[0].nChallenge,
-      proofs[0].nResponse,
+      ct0,
+      proofs[0],
       1,
     );
 
