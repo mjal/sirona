@@ -8,29 +8,27 @@ import * as Ballot from "./Ballot";
 import * as Credential from "./Credential";
 import * as Election from "./Election";
 import * as Setup from "./Setup";
+import * as Z from "./Z";
+import { range } from "./utils";
 import {
   g,
-  L,
-  rev,
-  mod,
-  rand,
-  Hiprove,
+  zero,
   Hbproof0,
   Hbproof1,
-  zero,
 } from "./math";
 
+// TODO: Move to SignatureProof ?
 function signature(nPriv: bigint, sHash: string) {
-  const w = rand();
-  const pA = g.multiply(w);
+  const w = Z.randL();
+  const A = g.multiply(w);
 
-  // TODO: Refactor using Hsignature
+  // TODO: Refactor using Hsignature ?
   // TODO: nChallenge = Hsignature(hash, pA);
   const hashSignature = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(`sig|${sHash}|${rev(pA.toHex())}`),
+    sjcl.hash.sha256.hash(`sig|${sHash}|${Point.serialize(A)}`),
   );
-  const nChallenge = mod(BigInt("0x" + hashSignature), L);
-  const nResponse = mod(w - nPriv * nChallenge, L);
+  const nChallenge = Z.modL(BigInt("0x" + hashSignature));
+  const nResponse = Z.mod(w - nPriv * nChallenge, Z.L);
 
   return {
     hash: sHash,
@@ -130,7 +128,7 @@ function generateAnswer(
   );
 
   for (let i = 0; i < plaintexts.length; i++) {
-    const r = rand();
+    const r = Z.randL();
     const gPowerM = plaintexts[i] === 0 ? zero : g.multiply(BigInt(plaintexts[i]));
     const pAlpha = g.multiply(r);
     const pBeta = y.multiply(r).add(gPowerM);
@@ -145,7 +143,7 @@ function generateAnswer(
   if (question.blank) {
     const egS = Ciphertext.combine(choices.slice(1))
     const eg0 = choices[0];
-    const nRS = nonces.slice(1).reduce((acc, r) => mod(acc + r, L), BigInt(0));
+    const nRS = Z.sumL(nonces.slice(1));
     const nR0 = nonces[0];
 
     const isBlank = (plaintexts[0] === 1);
@@ -173,13 +171,10 @@ function generateAnswer(
       blank_proof,
     });
   } else {
-    // TODO: Use Ciphertext.combine
     const egS = Ciphertext.combine(choices);
     const m = plaintexts.reduce((acc, c) => c + acc, 0);
-    const M = Array.from({ length: question.max - question.min + 1 }).map(
-      (_, i) => i + question.min,
-    );
-    const nR = nonces.reduce((acc, r) => mod(acc + r, L), BigInt(0));
+    const M = range(question.min, question.max);
+    const nR = Z.sumL(nonces);
 
     let prefix = hPublicCredential + "|" + choices.map(Ciphertext.toString).join(",")
     const overall_proof = IndividualProof.generate(election, prefix, egS, nR, m, M);
@@ -201,8 +196,8 @@ function blankProof(
   isBlank: boolean,
 ): Array<Proof.t> {
   const y = Point.parse(election.public_key);
-  const nW = rand();
-  const proofA = { nChallenge: rand(), nResponse: rand() };
+  const nW = Z.randL();
+  const proofA = { nChallenge: Z.randL(), nResponse: Z.randL() };
   const A0 = g.multiply(nW);
   const B0 = y.multiply(nW);
   const AS = Point.compute_commitment(g, eg.pAlpha, proofA);
@@ -213,8 +208,8 @@ function blankProof(
   const nH = isBlank
     ? Hbproof0(S, AS, BS, A0, B0)
     : Hbproof0(S, A0, B0, AS, BS);
-  const nChallenge = mod(nH - proofA.nChallenge, L);
-  const nResponse = mod(nW - nChallenge * nR, L);
+  const nChallenge = Z.modL(nH - proofA.nChallenge);
+  const nResponse = Z.modL(nW - nChallenge * nR);
   const proofB = { nChallenge, nResponse };
 
   if (isBlank) {
@@ -238,13 +233,13 @@ function overallProofBlank(
   const M = Array.from({ length: question.max - question.min + 1 }).map(
     (_, i) => i + question.min,
   );
-  const nRS = anR.slice(1).reduce((acc, r) => mod(acc + r, L), BigInt(0));
-  const nW = rand();
+  const nRS = Z.sumL(anR.slice(1));
+  const nW = Z.randL();
 
   if (anChoices[0] === 0) {
     const proof0 = {
-      nChallenge: rand(),
-      nResponse: rand()
+      nChallenge: Z.randL(),
+      nResponse: Z.randL()
     };
     const [pA0, pB0] = Point.compute_commitment_pair(
       y,
@@ -258,9 +253,10 @@ function overallProofBlank(
     let nChallengeS = proof0.nChallenge;
 
     for (let j = 0; j < M.length; j++) {
+      // TODO push { 0, 0 } when M[j] === mS so nChallengeS can be computed as a sum of all challenges after the loop (proof0.nChallenge + Z.sum(proofs.map({nChallenge} => nChallenge)))?
       const proof = {
-        nChallenge: rand(),
-        nResponse: rand()
+        nChallenge: Z.randL(),
+        nResponse: Z.randL()
       };
       azProofs.push(proof);
       if (M[j] === mS) {
@@ -275,7 +271,7 @@ function overallProofBlank(
           proof,
           M[j]
         );
-        nChallengeS = mod(nChallengeS + proof.nChallenge, L);
+        nChallengeS = Z.modL(nChallengeS + proof.nChallenge);
         commitments.push(A, B);
       }
     }
@@ -286,10 +282,9 @@ function overallProofBlank(
 
     for (let j = 0; j < M.length; j++) {
       if (M[j] === mS) {
-        azProofs[j + 1].nChallenge = mod(nH - nChallengeS, L);
-        azProofs[j + 1].nResponse = mod(
-          nW - nRS * azProofs[j + 1].nChallenge,
-          L,
+        azProofs[j + 1].nChallenge = Z.modL(nH - nChallengeS);
+        azProofs[j + 1].nResponse = Z.modL(
+          nW - nRS * azProofs[j + 1].nChallenge
         );
       }
     }
@@ -311,8 +306,8 @@ function overallProofBlank(
 
     let nChallengeS = BigInt(0);
     for (let j = 0; j < M.length; j++) {
-      const nChallenge = rand();
-      const nResponse = rand();
+      const nChallenge = Z.randL();
+      const nResponse = Z.randL();
       azProofs.push({ nChallenge, nResponse });
       const [pA, pB] = Point.compute_commitment_pair(
         y,
@@ -320,7 +315,7 @@ function overallProofBlank(
         { nChallenge, nResponse },
         M[j],
       );
-      nChallengeS = mod(nChallengeS + nChallenge, L);
+      nChallengeS = Z.modL(nChallengeS + nChallenge);
       commitments.push(pA, pB);
     }
 
@@ -328,8 +323,8 @@ function overallProofBlank(
     S += aeCiphertexts.map(Ciphertext.toString).join(",");
     const nH = Hbproof1(S, ...commitments);
 
-    azProofs[0].nChallenge = mod(nH - nChallengeS, L);
-    azProofs[0].nResponse = mod(nW - anR[0] * azProofs[0].nChallenge, L);
+    azProofs[0].nChallenge = Z.modL(nH - nChallengeS);
+    azProofs[0].nResponse = Z.modL(nW - anR[0] * azProofs[0].nChallenge);
 
     return azProofs;
   }

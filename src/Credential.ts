@@ -1,6 +1,7 @@
 import sjcl from "sjcl";
+import * as Z from "./Z";
 import * as Point from "./Point";
-import { g, L, mod } from "./math";
+import { g } from "./math";
 
 export function derive(uuid: string, privcred: string) {
   const prefix = `derive_credential|${uuid}`;
@@ -13,7 +14,7 @@ export function derive(uuid: string, privcred: string) {
     sjcl.hash.sha256.hash(`${prefix}|1|${privcred}`),
   );
 
-  const nPrivateCredential = mod(BigInt("0x" + x0 + x1), L);
+  const nPrivateCredential = Z.modL(BigInt("0x" + x0 + x1));
   const pPublicCredential = g.multiply(nPrivateCredential);
   const hPublicCredential = Point.serialize(pPublicCredential);
 
