@@ -1,9 +1,10 @@
+import * as Z from "./Z";
 import * as Point from "./Point";
 import * as Question from "./Question";
 import * as Election from "./Election";
 import * as Ciphertext from "./Ciphertext";
 import sjcl from "sjcl";
-import { g, mod, L } from "./math";
+import { g } from "./math";
 
 export type shuffle_commitment_rand = [
   Point.t,
@@ -154,7 +155,7 @@ function CheckShuffleProof(
   );
 
   const c_bar = Point.combine(cc).add(Point.combine(hh).negate());
-  const u = uu.reduce((acc, ui) => mod(acc * ui, L), 1n);
+  const u = uu.reduce((acc, ui) => Z.modL(acc * ui), 1n);
   const c_hat = cc_hat[cc_hat.length - 1].add(h.multiply(u).negate());
   const c_tilde = Point.combine(cc.map((ci, i) => ci.multiply(uu[i])));
 
@@ -240,7 +241,7 @@ function GetGenerators(N: number): Array<Point.t> {
 
 function GetNIZKPChallenge(S: string) {
   const r = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(S));
-  return mod(BigInt("0x" + r), L);
+  return Z.modL(BigInt("0x" + r));
 }
 
 function GetNIZKPChallenges(N: number, S: string) {
@@ -248,6 +249,6 @@ function GetNIZKPChallenges(N: number, S: string) {
   return [...Array(N).keys()].map((i) => {
     const Hi = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(`${i}`));
     const r = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(H + Hi));
-    return mod(BigInt("0x" + r), L);
+    return Z.modL(BigInt("0x" + r));
   });
 }

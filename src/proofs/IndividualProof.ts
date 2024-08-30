@@ -2,35 +2,33 @@ import * as Election from "../Election";
 import * as Proof from "../Proof";
 import * as Point from "../Point";
 import * as Ciphertext from "../Ciphertext";
-import { L, mod, g, rand, Hiprove } from "../math";
+import * as Z from "../Z";
+import { Hiprove } from "../math";
 
 export function verify(
   election: Election.t,
   prefix: string,
   proof: Array<Proof.t>,
-  eCiphertext: Ciphertext.t,
+  eg: Ciphertext.t,
   min: number,
   max: number,
 ) {
   const pY = Point.parse(election.public_key);
   const S = `${Election.fingerprint(election)}|${prefix}`;
-  const nSumChallenges = proof.reduce(
-    (acc: bigint, proof: Proof.t) => mod(acc + proof.nChallenge, L),
-    0n,
-  );
+  const challengeS = Z.sumL(proof.map(({ nChallenge }) => nChallenge));
 
   let commitments = [];
   for (let j = 0; j <= max - min; j++) {
     const [A, B] = Point.compute_commitment_pair(
       pY,
-      eCiphertext,
+      eg,
       proof[j],
       min + j,
     );
     commitments.push(A, B);
   }
 
-  return Hiprove(S, eCiphertext.pAlpha, eCiphertext.pBeta, ...commitments) === nSumChallenges;
+  return Hiprove(S, eg.pAlpha, eg.pBeta, ...commitments) === challengeS;
 }
 
 export function generate(
@@ -42,38 +40,34 @@ export function generate(
   M: Array<number>,
 ) {
   const y = Point.parse(election.public_key);
-  const w = rand();
+  const w = Z.randL();
   let commitments: Array<Point.t> = [];
-  let proofs: Array<Proof.t> = [];
+  let proof: Array<Proof.t> = [];
 
   for (let i = 0; i < M.length; i++) {
     if (m !== M[i]) {
-      const proof = { nChallenge: rand(), nResponse: rand() };
-      const [A, B] = Point.compute_commitment_pair(y, eg, proof, M[i]);
-      proofs.push(proof);
+      const z = { nChallenge: Z.randL(), nResponse: Z.randL() };
+      const [A, B] = Point.compute_commitment_pair(y, eg, z, M[i]);
+      proof.push(z);
       commitments.push(A, B);
     } else {
-      // m === M[i]
-      proofs.push({ nChallenge: BigInt(0), nResponse: BigInt(0) });
-      const pA = g.multiply(w);
-      const pB = y.multiply(w);
-      commitments.push(pA, pB);
+      const z = { nChallenge: 0n, nResponse: 0n };
+      const [A, B] = [ Point.g.multiply(w), y.multiply(w) ];
+      proof.push(z);
+      commitments.push(A, B);
     }
   }
 
   const S = `${Election.fingerprint(election)}|${prefix}`;
   const nH = Hiprove(S, eg.pAlpha, eg.pBeta, ...commitments);
-
-  const nSumChallenge = proofs.reduce((acc, proof) => {
-    return mod(acc + proof.nChallenge, L);
-  }, BigInt(0));
+  const challengeS = Z.sumL(proof.map(({ nChallenge }) => nChallenge));
 
   for (let i = 0; i < M.length; i++) {
     if (m === M[i]) {
-      proofs[i].nChallenge = mod(nH - nSumChallenge, L);
-      proofs[i].nResponse = mod(w - r * proofs[i].nChallenge, L);
+      proof[i].nChallenge = Z.modL(nH - challengeS);
+      proof[i].nResponse = Z.modL(w - r * proof[i].nChallenge);
     }
   }
 
-  return proofs;
+  return proof;
 }

@@ -1,6 +1,6 @@
 import * as Ciphertext from "./Ciphertext";
 import * as Proof from "./Proof";
-import { mod, modInverse, L, q } from "./math";
+import * as Z from "./Z";
 import { ed25519 } from "@noble/curves/ed25519";
 import type { ExtPointType as CurvePoint } from "@noble/curves/abstract/edwards.js";
 
@@ -30,14 +30,14 @@ export function isEqual(a: t, b: t): boolean {
 }
 
 export function check(p: t): boolean {
-  let a = mod(-1n, q);
-  let d = mod(-(121665n * modInverse(121666n, q)), q);
+  let a = Z.modQ(-1n);
+  let d = Z.modQ(-(121665n * Z.modInverse(121666n, Z.q)));
   let curve = (p: t): bigint => {
     let x2 = p.ex * p.ex;
     let y2 = p.ey * p.ey;
     let z2 = p.ez * p.ez;
     let t2 = p.et * p.et;
-    return mod(a * x2 + y2 - z2 - d * t2, q);
+    return Z.modQ(a * x2 + y2 - z2 - d * t2);
   };
 
   // WARN: In practice to have the same result as Belenios' we also
@@ -53,12 +53,12 @@ export function check(p: t): boolean {
 
   return (
     p.ez > 0n &&
-    mod(p.ex * p.ey, q) === mod(p.ez * p.et, q) &&
+    Z.modQ(p.ex * p.ey) === Z.modQ(p.ez * p.et) &&
     curve(p) === 0n &&
     // WARN: Compared to Belenios, we cannot compute p ** L due to
     // limitations of the library. We will use the following workaround:
     // (p ** ( L - 1 )) * p
-    isEqual(p.multiply(L - 1n).add(p), zero)
+    isEqual(p.multiply(Z.L - 1n).add(p), zero)
   );
 }
 

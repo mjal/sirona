@@ -1,4 +1,5 @@
-import { g, L, zero, mod, modInverse } from "./math";
+import * as Z from "./Z";
+import { g, zero, } from "./math";
 import * as Trustee from "./Trustee";
 import * as Point from "./Point";
 import * as Question from "./Question";
@@ -185,11 +186,11 @@ function getDecryptionFactors(
 }
 
 function lagrange(n, indexes) {
-  let result = BigInt(1);
+  let result = 1n;
   for (let i = 0; i < indexes.length; i++) {
     if (n !== indexes[i]) {
-      let denominator = mod(BigInt(indexes[i] - n), L);
-      result = mod(result * BigInt(indexes[i]) * modInverse(denominator, L), L);
+      let denominator = Z.modL(BigInt(indexes[i] - n));
+      result = Z.modL(result * BigInt(indexes[i]) * Z.modInverse(denominator, Z.L));
     }
   }
   return result;

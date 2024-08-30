@@ -1,4 +1,5 @@
 import { map2, map3 } from "./utils";
+import * as Z from "./Z";
 import * as Proof from "./Proof";
 import * as IndividualProof from "./proofs/IndividualProof";
 import * as NonZeroProof from "./ProofNonZero";
@@ -7,7 +8,7 @@ import * as Election from "./Election";
 import * as Question from "./Question";
 import * as Ballot from "./Ballot";
 import * as Point from "./Point";
-import { L, mod, Hiprove, Hlproof, Hnonzero } from "./math";
+import { Hiprove, Hlproof, Hnonzero } from "./math";
 
 export type t = {
   choices: Array<Array<Ciphertext.t>>;
@@ -183,11 +184,11 @@ function verifyListProofs(
       .map((cs: any) => cs.map(Ciphertext.toString).join(","))
       .join(",");
 
-    const nSumChallenges = mod(proofs[0].nChallenge + proofs[1].nChallenge, L);
+    const challengeS = Z.modL(proofs[0].nChallenge + proofs[1].nChallenge);
 
     return (
       answer.choices[i].length === question.value.answers[i].length &&
-      Hlproof(S, A0, B0, A1, B1) === nSumChallenges
+      Hlproof(S, A0, B0, A1, B1) === challengeS
     );
   }
 }

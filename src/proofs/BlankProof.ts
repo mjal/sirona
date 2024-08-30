@@ -3,19 +3,19 @@ import * as AnswerH from "../AnswerH";
 import * as Election from "../Election";
 import * as Point from "../Point";
 import * as Ciphertext from "../Ciphertext";
-import { L, mod, Hbproof0, Hbproof1 } from "../math";
+import * as Z from "../Z";
+import { Hbproof0, Hbproof1 } from "../math";
 
 export namespace OverallProof {
   export function verify(
     election: Election.t,
     credential: string,
-    question: Question.QuestionH.t,
+    question: Question.QuestionH.t, // NOTE: Could be replace by max and min
     answer: AnswerH.t,
   ): boolean {
+    let commitments = [];
     const y = Point.parse(election.public_key);
     const sumc = Ciphertext.combine(answer.choices.slice(1));
-  
-    let commitments = [];
     const [A, B] = Point.compute_commitment_pair(
       y,
       answer.choices[0],
@@ -32,16 +32,11 @@ export namespace OverallProof {
       );
       commitments.push(A, B);
     }
-  
-    const nSumChallenges = answer.overall_proof.reduce(
-      (acc, proof) => mod(acc + BigInt(proof.nChallenge), L),
-      0n,
-    );
-  
+    const challengeS = Z.sumL(answer.overall_proof.map(({ nChallenge }) => nChallenge));
     let S = `${Election.fingerprint(election)}|${credential}|`;
     S += answer.choices.map(Ciphertext.toString).join(",");
   
-    return Hbproof1(S, ...commitments) === nSumChallenges;
+    return Hbproof1(S, ...commitments) === challengeS;
   }
 }
 
@@ -53,11 +48,7 @@ export namespace BlankProof {
   ): boolean {
     const y = Point.parse(election.public_key);
     const sumc = Ciphertext.combine(answer.choices.slice(1));
-    const nSumChallenges = answer.blank_proof.reduce(
-      (acc, proof) => mod(acc + BigInt(proof.nChallenge), L),
-      0n,
-    );
-  
+    const challengeS = Z.sumL(answer.blank_proof.map(({ nChallenge }) => nChallenge));
     const [pA0, pB0] = Point.compute_commitment_pair(
       y,
       answer.choices[0],
@@ -73,6 +64,6 @@ export namespace BlankProof {
   
     let S = `${Election.fingerprint(election)}|${credential}|`;
     S += answer.choices.map(Ciphertext.toString).join(",");
-    return Hbproof0(S, ...[pA0, pB0, pAS, pBS]) === nSumChallenges;
+    return Hbproof0(S, ...[pA0, pB0, pAS, pBS]) === challengeS;
   }
 }
