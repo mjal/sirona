@@ -14,7 +14,6 @@ import {
   rev,
   mod,
   rand,
-  formula,
   Hiprove,
   Hbproof0,
   Hbproof1,
@@ -124,7 +123,7 @@ function generateAnswer(
   let nonces: Array<bigint> = [];
   let choices: Array<Ciphertext.t> = [];
   let individual_proofs: Array<Array<Proof.t>> = [];
-  const pY = Point.parse(election.public_key);
+  const y = Point.parse(election.public_key);
   const { hPublicCredential } = Credential.derive(
     election.uuid,
     sPriv,
@@ -134,7 +133,7 @@ function generateAnswer(
     const r = rand();
     const gPowerM = plaintexts[i] === 0 ? zero : g.multiply(BigInt(plaintexts[i]));
     const pAlpha = g.multiply(r);
-    const pBeta = pY.multiply(r).add(gPowerM);
+    const pBeta = y.multiply(r).add(gPowerM);
 
     const proof = IndividualProof.generate(election, hPublicCredential, { pAlpha, pBeta }, r, plaintexts[i], [0, 1]);
 
@@ -201,13 +200,13 @@ function blankProof(
   nR: bigint,
   isBlank: boolean,
 ): Array<Proof.t> {
-  const pY = Point.parse(election.public_key);
-  const proofA = { nChallenge: rand(), nResponse: rand() };
-  const AS = formula(g, proofA.nResponse, eg.pAlpha, proofA.nChallenge);
-  const BS = formula(pY, proofA.nResponse, eg.pBeta, proofA.nChallenge);
+  const y = Point.parse(election.public_key);
   const nW = rand();
+  const proofA = { nChallenge: rand(), nResponse: rand() };
   const A0 = g.multiply(nW);
-  const B0 = pY.multiply(nW);
+  const B0 = y.multiply(nW);
+  const AS = Point.compute_commitment(g, eg.pAlpha, proofA);
+  const BS = Point.compute_commitment(y, eg.pBeta, proofA);
 
   let S = `${Election.fingerprint(election)}|${hPub}|`;
   S += choices.map(Ciphertext.toString).join(",");
@@ -234,7 +233,7 @@ function overallProofBlank(
   anR: Array<bigint>,
 ): Array<Proof.t> {
   const egS = Ciphertext.combine(aeCiphertexts.slice(1));
-  const pY = Point.parse(election.public_key);
+  const y = Point.parse(election.public_key);
   const mS = anChoices.slice(1).reduce((acc, c) => c + acc, 0);
   const M = Array.from({ length: question.max - question.min + 1 }).map(
     (_, i) => i + question.min,
@@ -248,7 +247,7 @@ function overallProofBlank(
       nResponse: rand()
     };
     const [pA0, pB0] = Point.compute_commitment_pair(
-      pY,
+      y,
       aeCiphertexts[0],
       proof0,
       1,
@@ -267,11 +266,11 @@ function overallProofBlank(
       if (M[j] === mS) {
         //5. Compute Ai = g^w and Bi = y^w.
         const A = g.multiply(nW);
-        const B = pY.multiply(nW);
+        const B = y.multiply(nW);
         commitments.push(A, B);
       } else {
         const [A, B] = Point.compute_commitment_pair(
-          pY,
+          y,
           egS,
           proof,
           M[j]
@@ -300,7 +299,7 @@ function overallProofBlank(
     // anChoices[0] === 1 (Blank vote)
     console.assert(mS === 0);
     const pA0 = g.multiply(nW);
-    const pB0 = pY.multiply(nW);
+    const pB0 = y.multiply(nW);
     let commitments = [pA0, pB0];
 
     let azProofs: Array<Proof.t> = [
@@ -316,7 +315,7 @@ function overallProofBlank(
       const nResponse = rand();
       azProofs.push({ nChallenge, nResponse });
       const [pA, pB] = Point.compute_commitment_pair(
-        pY,
+        y,
         egS,
         { nChallenge, nResponse },
         M[j],

@@ -7,7 +7,7 @@ import * as Election from "./Election";
 import * as Question from "./Question";
 import * as Ballot from "./Ballot";
 import * as Point from "./Point";
-import { L, mod, formula, formula2, Hiprove, Hlproof, Hnonzero } from "./math";
+import { L, mod, Hiprove, Hlproof, Hnonzero } from "./math";
 
 export type t = {
   choices: Array<Array<Ciphertext.t>>;
@@ -145,15 +145,12 @@ function verifyNonZeroProof(
     return false;
   }
 
-  const A1 = formula(ct.pAlpha, t1, Point.g, t2);
-  const A2 = formula(ct.pBeta, t1, pY, t2).add(A0.multiply(c));
+  const A1 = ct.pAlpha.multiply(t1).add(Point.g.multiply(t2));
+  const A2 = ct.pBeta.multiply(t1).add(pY.multiply(t2)).add(A0.multiply(c));
 
   let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
   S += answer.choices
-    .map((cs: any) => {
-      return cs.map(Ciphertext.toString).join(",");
-    })
-    .join(",");
+    .map((cs: any) => cs.map(Ciphertext.toString).join(",")).join(",");
 
   return Hnonzero(S, A0, A1, A2) === c;
 }
@@ -178,13 +175,8 @@ function verifyListProofs(
       1,
     );
 
-    const A1 = formula(
-      Point.g,
-      proofs[1].nResponse,
-      ct.pAlpha,
-      proofs[1].nChallenge,
-    );
-    const B1 = formula(pY, proofs[1].nResponse, ct.pBeta, proofs[1].nChallenge);
+    const A1 = Point.compute_commitment(Point.g, ct.pAlpha, proofs[1]);
+    const B1 = Point.compute_commitment(pY, ct.pBeta, proofs[1]);
 
     let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
     S += answer.choices

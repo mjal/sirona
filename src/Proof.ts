@@ -1,7 +1,7 @@
 import * as Proof from "./Proof";
 import * as Ciphertext from "./Ciphertext";
 import * as Point from "./Point";
-import { formula, Hdecrypt } from "./math";
+import { Hdecrypt } from "./math";
 
 export type t = {
   nChallenge: bigint;
@@ -37,7 +37,7 @@ export function verifyDecryptionProof(
   factor: Point.t,
   proof: Proof.t,
 ) {
-  const pA = formula(Point.g, proof.nResponse, y, proof.nChallenge);
-  const pB = formula(e.pAlpha, proof.nResponse, factor, proof.nChallenge);
-  return Hdecrypt(S, pA, pB) === proof.nChallenge;
+  const A = Point.compute_commitment(Point.g, y, proof);
+  const B = Point.compute_commitment(e.pAlpha, factor, proof);
+  return Hdecrypt(S, A, B) === proof.nChallenge;
 }

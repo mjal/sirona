@@ -101,10 +101,13 @@ export function of_ints(xs: number[]) {
   }
 }
 
+// p1**e1 + p2**e2
 export function compute_commitment(p1: t, p2: t, proof: Proof.t) {
   return p1.multiply(proof.nResponse).add(p2.multiply(proof.nChallenge));
 }
 
+//A = g**response * alpha**challenge
+//B = y**response * (beta / (g**m))**challenge
 export function compute_commitment_pair(
   y: t,
   eg: Ciphertext.t,

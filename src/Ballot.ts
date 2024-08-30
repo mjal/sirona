@@ -4,7 +4,7 @@ import * as Point from "./Point";
 import * as Answer from "./Answer";
 import * as Election from "./Election";
 import * as Setup from "./Setup";
-import { g, formula, Hsignature } from "./math";
+import { g, Hsignature } from "./math";
 
 export type t = {
   election_uuid: string;
@@ -85,18 +85,16 @@ function verifyCredential(ballot: t, credentials: string[]) {
 }
 
 export function verifySignature(ballot: t, election: Election.t) {
-  if (ballot.signature.hash !== b64hashWithoutSignature(ballot, election)) {
-    throw new Error("Hash without signature is incorrect");
+  const recomputedHash = b64hashWithoutSignature(ballot, election);
+  if (ballot.signature.hash !== recomputedHash) {
+    throw new Error("Ballot recomputed hash is incorrect");
   }
 
-  const signature = ballot.signature;
-  const nChallenge = BigInt(signature.proof.challenge);
-  const nResponse = BigInt(signature.proof.response);
+  const proof = Proof.parse(ballot.signature.proof);
+  const public_key = Point.parse(ballot.credential);
+  const A = Point.compute_commitment(g, public_key, proof);
 
-  const pA = formula(g, nResponse, Point.parse(ballot.credential), nChallenge);
-  const nH = Hsignature(signature.hash, pA);
-
-  if (nH !== nChallenge) {
+  if (Hsignature(ballot.signature.hash, A) !== proof.nChallenge) {
     throw new Error("Invalid signature");
   }
 }

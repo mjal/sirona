@@ -50,30 +50,6 @@ export function rand(): bigint {
   return mod(BigInt("0x" + hNumber), L);
 }
 
-// p1**e1 + p2**e2
-export function formula(p1: Point.t, e1: bigint, p2: Point.t, e2: bigint) {
-  return p1.multiply(e1).add(p2.multiply(e2));
-}
-
-//A = g**response * alpha**challenge
-//B = y**response * (beta / (g**m))**challenge
-export function formula2(
-  pY: Point.t,
-  pAlpha: Point.t,
-  pBeta: Point.t,
-  nChallenge: bigint,
-  nResponse: bigint,
-  m: number,
-) {
-  const gPowerM = m === 0 ? zero : g.multiply(BigInt(m));
-  const pBDivGPowerM = pBeta.add(gPowerM.negate());
-
-  const pA = formula(g, nResponse, pAlpha, nChallenge);
-  const pB = formula(pY, nResponse, pBDivGPowerM, nChallenge);
-
-  return [pA, pB];
-}
-
 function H(prefix: string, ...commitments: Array<Point.t>) {
   const str = `${prefix}|${commitments.map((p) => rev(p.toHex())).join(",")}`;
   const h = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(str));

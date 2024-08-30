@@ -4,7 +4,7 @@ import * as Ciphertext from "./Ciphertext";
 import * as Election from "./Election";
 import * as Question from "./Question";
 import * as Ballot from "./Ballot";
-import { formula, Hraweg } from "./math";
+import { Hraweg } from "./math";
 
 export type t = {
   choices: Ciphertext.t;
@@ -59,7 +59,7 @@ function verifyProof(
 ) {
   const y = Point.parse(election.public_key);
   const { choices, proof } = answer;
-  const A = formula(Point.g, proof.nResponse, choices.pAlpha, proof.nChallenge);
+  const A = Point.compute_commitment(Point.g, choices.pAlpha, proof);
   const S = `${Election.fingerprint(election)}|${ballot.credential}`;
 
   return Hraweg(S, y, choices.pAlpha, choices.pBeta, A) === proof.nChallenge;
