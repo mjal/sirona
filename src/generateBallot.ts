@@ -230,9 +230,7 @@ function overallProofBlank(
   const egS = Ciphertext.combine(aeCiphertexts.slice(1));
   const y = Point.parse(election.public_key);
   const mS = anChoices.slice(1).reduce((acc, c) => c + acc, 0);
-  const M = Array.from({ length: question.max - question.min + 1 }).map(
-    (_, i) => i + question.min,
-  );
+  const M = range(question.min, question.max);
   const nRS = Z.sumL(anR.slice(1));
   const nW = Z.randL();
 

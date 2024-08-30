@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import { Command } from "commander";
+import { range } from "../utils"
 import * as Credential from "../Credential";
 import * as Trustee from "../Trustee";
 import * as Point from "../Point";
@@ -11,7 +12,7 @@ const b58chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 const program = new Command();
 
 program.command("generate-token").action(() => {
-  let uuid = Array.from({ length: 14 }, (_, i) => {
+  let uuid = range(14).map(() => {
     const randomIndex = Math.floor(Math.random() * b58chars.length);
     return b58chars[randomIndex];
   }).join("");
@@ -30,11 +31,12 @@ program
       .split("\n")
       .filter((line) => line.length > 0);
 
+    // TODO: Move some logic to Credential.ts ?
     const privcreds = Object.fromEntries(
       lines.map((line) => {
         const [email, id, weight] = line.split(",");
 
-        let privcred = Array.from({ length: 25 }, (_, i) => {
+        let privcred = range(25).map((i) => {
           if (i === 5 || i === 12 || i === 18) {
             return "-";
           }

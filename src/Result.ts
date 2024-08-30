@@ -1,4 +1,5 @@
 import * as Z from "./Z";
+import { range } from "./utils";
 import { g, zero, } from "./math";
 import * as Trustee from "./Trustee";
 import * as Point from "./Point";
@@ -89,20 +90,15 @@ function getDecryptionFactors(
     let question = election.questions[i];
     let row = [];
     if (Question.IsQuestionH(question)) {
-      row = Array.from({ length: question.answers.length }, () => Point.zero);
+      row = range(question.answers.length).map(() => Point.zero);
     } else if (Question.IsQuestionL(question)) {
-      row = [...Array(question.value.answers.length).keys()].map((_, i) => {
-        return Array.from(
-          { length: question.value.answers[i].length },
-          () => Point.zero,
-        );
+      row = range(question.value.answers.length).map((i) => {
+        return range(question.value.answers[i].length).map(() => {
+          return Point.zero
+        });
       });
     } else if (Question.IsQuestionNH(question)) {
-      row = Array.from(
-        { length: encryptedTally.num_tallied },
-        () => Point.zero,
-      );
-      //throw new Error("Not Implemented");
+      row = range(encryptedTally.num_tallied).map(() => Point.zero);
     } else {
       throw new Error("Unknown question type");
     }
