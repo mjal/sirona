@@ -113,10 +113,7 @@ function verifyOverallProofLists(
 
   let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
   S += answer.choices
-    .map((cs: any) => {
-      return cs.map(Ciphertext.toString).join(",");
-    })
-    .join(",");
+    .map((cs: any) => cs.map(Ciphertext.toString).join(",")).join(",");
 
   return (
     Hiprove(S, sumc.pAlpha, sumc.pBeta, pA, pB) ===
