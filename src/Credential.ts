@@ -18,6 +18,7 @@ export function derive(uuid: string, privcred: string) {
   const pPublicCredential = g.multiply(nPrivateCredential);
   const hPublicCredential = Point.serialize(pPublicCredential);
 
+  // TODO: Better names
   return {
     nPrivateCredential,
     hPublicCredential,
