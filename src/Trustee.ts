@@ -2,7 +2,8 @@ import * as Point from "./Point";
 import * as Proof from "./Proof";
 import * as Election from "./Election";
 import { Hpok } from "./math";
-import { g, mod, rand, L } from "./math";
+import * as Z from "./Z";
+import { g } from "./math";
 
 export type t = Single.t | Pedersen.t;
 
@@ -204,16 +205,15 @@ export function ownerIndexToTrusteeIndex(trustees: t[]) {
 }
 
 export function generate(): [bigint, Single.Serialized.t] {
-  const x = rand();
+  const x = Z.randL();
+  const w = Z.randL();
   const X = g.multiply(x);
-
-  const w = rand();
   const A = g.multiply(w);
 
   const S = `Ed25519|${Point.serialize(X)}`;
 
   const nChallenge = Hpok(S, A);
-  const nResponse = mod(w - x * nChallenge, L);
+  const nResponse = Z.modL(w - x * nChallenge);
 
   const publicKey: PublicKey.t = {
     pok: {
