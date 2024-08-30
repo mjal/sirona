@@ -46,3 +46,5 @@ export function readStdin(): Promise<string> {
     });
   });
 }
+
+export const b58chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";

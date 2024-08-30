@@ -2,13 +2,12 @@
 
 import fs from "fs";
 import { Command } from "commander";
-import { range } from "../utils"
+import { range, b58chars } from "../utils"
 import * as Credential from "../Credential";
 import * as Trustee from "../Trustee";
 import * as Point from "../Point";
 import * as Election from "../Election";
 
-const b58chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 const program = new Command();
 
 program.command("generate-token").action(() => {
@@ -31,18 +30,10 @@ program
       .split("\n")
       .filter((line) => line.length > 0);
 
-    // TODO: Move some logic to Credential.ts ?
     const privcreds = Object.fromEntries(
       lines.map((line) => {
-        const [email, id, weight] = line.split(",");
-
-        let privcred = range(25).map((i) => {
-          if (i === 5 || i === 12 || i === 18) {
-            return "-";
-          }
-          const randomIndex = Math.floor(Math.random() * b58chars.length);
-          return b58chars[randomIndex];
-        }).join("");
+        const [_email, id, _weight] = line.split(",");
+        const privcred = Credential.generatePriv();
 
         return [id, privcred];
       }),
