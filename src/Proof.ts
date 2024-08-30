@@ -1,6 +1,7 @@
 import * as Proof from "./Proof";
 import * as Ciphertext from "./Ciphertext";
 import * as Point from "./Point";
+import * as Z from "./Z";
 import { Hdecrypt } from "./math";
 
 export type t = {
@@ -26,6 +27,18 @@ export function parse(proof: Serialized.t): t {
   return {
     nChallenge: BigInt(proof.challenge),
     nResponse: BigInt(proof.response),
+  };
+}
+
+export const zero = {
+  nChallenge: 0n,
+  nResponse: 0n,
+};
+
+ export function rand() : Proof.t {
+  return {
+    nChallenge: Z.randL(),
+    nResponse: Z.randL()
   };
 }
 

@@ -46,7 +46,7 @@ export function generate(
 
   for (let i = 0; i < M.length; i++) {
     if (m !== M[i]) {
-      const z = { nChallenge: Z.randL(), nResponse: Z.randL() };
+      const z = Proof.rand();
       const [A, B] = Point.compute_commitment_pair(y, eg, z, M[i]);
       proof.push(z);
       commitments.push(A, B);

@@ -246,31 +246,28 @@ function overallProofBlank(
 
     let azProofs: Array<Proof.t> = [ proof0 ];
     let commitments = [pA0, pB0];
-    let nChallengeS = proof0.nChallenge;
 
     for (let j = 0; j < M.length; j++) {
-      // TODO push { 0, 0 } when M[j] === mS so nChallengeS can be computed as a sum of all challenges after the loop (proof0.nChallenge + Z.sum(proofs.map({nChallenge} => nChallenge)))?
-      const proof = {
-        nChallenge: Z.randL(),
-        nResponse: Z.randL()
-      };
-      azProofs.push(proof);
       if (M[j] === mS) {
-        //5. Compute Ai = g^w and Bi = y^w.
+        const proof = Proof.zero;
         const A = Point.g.multiply(nW);
         const B = y.multiply(nW);
         commitments.push(A, B);
+        azProofs.push(proof);
       } else {
+        const proof = Proof.rand();
         const [A, B] = Point.compute_commitment_pair(
           y,
           egS,
           proof,
           M[j]
         );
-        nChallengeS = Z.modL(nChallengeS + proof.nChallenge);
         commitments.push(A, B);
+        azProofs.push(proof);
       }
     }
+
+    const nChallengeS = Z.sumL(azProofs.map(({ nChallenge }) => nChallenge));
 
     let S = `${Election.fingerprint(election)}|${hPub}|`;
     S += aeCiphertexts.map(Ciphertext.toString).join(",");
@@ -278,10 +275,9 @@ function overallProofBlank(
 
     for (let j = 0; j < M.length; j++) {
       if (M[j] === mS) {
-        azProofs[j + 1].nChallenge = Z.modL(nH - nChallengeS);
-        azProofs[j + 1].nResponse = Z.modL(
-          nW - nRS * azProofs[j + 1].nChallenge
-        );
+        const nChallenge = Z.modL(nH - nChallengeS);
+        const nResponse = Z.modL(nW - nRS * nChallenge);
+        azProofs[j + 1] = { nChallenge, nResponse };
       }
     }
 
@@ -293,12 +289,7 @@ function overallProofBlank(
     const pB0 = y.multiply(nW);
     let commitments = [pA0, pB0];
 
-    let azProofs: Array<Proof.t> = [
-      {
-        nChallenge: BigInt(0),
-        nResponse: BigInt(0),
-      },
-    ];
+    let azProofs: Array<Proof.t> = [ Proof.zero ];
 
     let nChallengeS = BigInt(0);
     for (let j = 0; j < M.length; j++) {
@@ -319,8 +310,9 @@ function overallProofBlank(
     S += aeCiphertexts.map(Ciphertext.toString).join(",");
     const nH = Hbproof1(S, ...commitments);
 
-    azProofs[0].nChallenge = Z.modL(nH - nChallengeS);
-    azProofs[0].nResponse = Z.modL(nW - anR[0] * azProofs[0].nChallenge);
+    const nChallenge = Z.modL(nH - nChallengeS);
+    const nResponse = Z.modL(nW - anR[0] * nChallenge);
+    azProofs[0] = { nChallenge, nResponse };
 
     return azProofs;
   }
