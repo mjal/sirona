@@ -4,7 +4,7 @@ import * as Point from "./Point";
 import * as Answer from "./Answer";
 import * as Election from "./Election";
 import * as Setup from "./Setup";
-import { g, Hsignature } from "./math";
+import { Hsignature } from "./math";
 
 export type t = {
   election_uuid: string;
@@ -92,7 +92,7 @@ export function verifySignature(ballot: t, election: Election.t) {
 
   const proof = Proof.parse(ballot.signature.proof);
   const public_key = Point.parse(ballot.credential);
-  const A = Point.compute_commitment(g, public_key, proof);
+  const A = Point.compute_commitment(Point.g, public_key, proof);
 
   if (Hsignature(ballot.signature.hash, A) !== proof.nChallenge) {
     throw new Error("Invalid signature");

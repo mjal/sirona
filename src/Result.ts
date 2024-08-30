@@ -1,6 +1,5 @@
 import * as Z from "./Z";
 import { range } from "./utils";
-import { g, zero, } from "./math";
 import * as Trustee from "./Trustee";
 import * as Point from "./Point";
 import * as Question from "./Question";
@@ -69,8 +68,8 @@ function verifyOne(et: any, df: any, res: any) {
   const pResult = pBeta.add(df.negate());
   const nAnswer = BigInt(res);
   return (
-    (res === 0 && Point.isEqual(pResult, zero)) ||
-    (res !== 0 && Point.isEqual(pResult, g.multiply(nAnswer)))
+    (res === 0 && Point.isEqual(pResult, Point.zero)) ||
+    (res !== 0 && Point.isEqual(pResult, Point.g.multiply(nAnswer)))
   );
 }
 

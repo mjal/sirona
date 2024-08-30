@@ -5,7 +5,6 @@ import * as Question from "./Question";
 import * as Election from "./Election";
 import * as Ciphertext from "./Ciphertext";
 import sjcl from "sjcl";
-import { g } from "./math";
 
 export type shuffle_commitment_rand = [
   Point.t,
@@ -167,12 +166,12 @@ function CheckShuffleProof(
     input.map((ei, i) => ei.pBeta.multiply(uu[i])),
   );
 
-  const t1_prime = c_bar.multiply(c).negate().add(g.multiply(s1));
-  const t2_prime = c_hat.multiply(c).negate().add(g.multiply(s2));
+  const t1_prime = c_bar.multiply(c).negate().add(Point.g.multiply(s1));
+  const t2_prime = c_hat.multiply(c).negate().add(Point.g.multiply(s2));
   const t3_prime = c_tilde
     .multiply(c)
     .negate()
-    .add(g.multiply(s3))
+    .add(Point.g.multiply(s3))
     .add(Point.combine(hh.map((hi, i) => hi.multiply(s_prime[i]))));
 
   const t41_prime = beta_prime
@@ -184,14 +183,14 @@ function CheckShuffleProof(
   const t42_prime = alpha_prime
     .multiply(c)
     .negate()
-    .add(g.multiply(s4).negate())
+    .add(Point.g.multiply(s4).negate())
     .add(Point.combine(output.map((ei, i) => ei.pAlpha.multiply(s_prime[i]))));
 
   const tt_prime_hat = [...Array(input.length).keys()].map((i) => {
     return cc_hat[i]
       .multiply(c)
       .negate()
-      .add(g.multiply(s_hat[i]))
+      .add(Point.g.multiply(s_hat[i]))
       .add((i == 0 ? h : cc_hat[i - 1]).multiply(s_prime[i]));
   });
 

@@ -3,7 +3,6 @@ import * as Proof from "./Proof";
 import * as Election from "./Election";
 import { Hpok } from "./math";
 import * as Z from "./Z";
-import { g } from "./math";
 
 export type t = Single.t | Pedersen.t;
 
@@ -207,8 +206,8 @@ export function ownerIndexToTrusteeIndex(trustees: t[]) {
 export function generate(): [bigint, Single.Serialized.t] {
   const x = Z.randL();
   const w = Z.randL();
-  const X = g.multiply(x);
-  const A = g.multiply(w);
+  const X = Point.g.multiply(x);
+  const A = Point.g.multiply(w);
 
   const S = `Ed25519|${Point.serialize(X)}`;
 

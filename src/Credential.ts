@@ -2,7 +2,6 @@ import sjcl from "sjcl";
 import * as Z from "./Z";
 import * as Point from "./Point";
 import { range, b58chars } from "./utils"
-import { g } from "./math";
 
 export function derive(uuid: string, privcred: string) {
   const prefix = `derive_credential|${uuid}`;
@@ -16,7 +15,7 @@ export function derive(uuid: string, privcred: string) {
   );
 
   const nPrivateCredential = Z.modL(BigInt("0x" + x0 + x1));
-  const pPublicCredential = g.multiply(nPrivateCredential);
+  const pPublicCredential = Point.g.multiply(nPrivateCredential);
   const hPublicCredential = Point.serialize(pPublicCredential);
 
   // TODO: Better names

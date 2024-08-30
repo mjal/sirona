@@ -11,8 +11,6 @@ import * as Setup from "./Setup";
 import * as Z from "./Z";
 import { range } from "./utils";
 import {
-  g,
-  zero,
   Hbproof0,
   Hbproof1,
 } from "./math";
@@ -20,7 +18,7 @@ import {
 // TODO: Move to SignatureProof ?
 function signature(nPriv: bigint, sHash: string) {
   const w = Z.randL();
-  const A = g.multiply(w);
+  const A = Point.g.multiply(w);
 
   // TODO: Refactor using Hsignature ?
   // TODO: nChallenge = Hsignature(hash, pA);
@@ -129,8 +127,8 @@ function generateAnswer(
 
   for (let i = 0; i < plaintexts.length; i++) {
     const r = Z.randL();
-    const gPowerM = plaintexts[i] === 0 ? zero : g.multiply(BigInt(plaintexts[i]));
-    const pAlpha = g.multiply(r);
+    const gPowerM = plaintexts[i] === 0 ? Point.zero : Point.g.multiply(BigInt(plaintexts[i]));
+    const pAlpha = Point.g.multiply(r);
     const pBeta = y.multiply(r).add(gPowerM);
 
     const proof = IndividualProof.generate(election, hPublicCredential, { pAlpha, pBeta }, r, plaintexts[i], [0, 1]);
@@ -198,9 +196,9 @@ function blankProof(
   const y = Point.parse(election.public_key);
   const nW = Z.randL();
   const proofA = { nChallenge: Z.randL(), nResponse: Z.randL() };
-  const A0 = g.multiply(nW);
+  const A0 = Point.g.multiply(nW);
   const B0 = y.multiply(nW);
-  const AS = Point.compute_commitment(g, eg.pAlpha, proofA);
+  const AS = Point.compute_commitment(Point.g, eg.pAlpha, proofA);
   const BS = Point.compute_commitment(y, eg.pBeta, proofA);
 
   let S = `${Election.fingerprint(election)}|${hPub}|`;
@@ -259,7 +257,7 @@ function overallProofBlank(
       azProofs.push(proof);
       if (M[j] === mS) {
         //5. Compute Ai = g^w and Bi = y^w.
-        const A = g.multiply(nW);
+        const A = Point.g.multiply(nW);
         const B = y.multiply(nW);
         commitments.push(A, B);
       } else {
@@ -291,7 +289,7 @@ function overallProofBlank(
   } else {
     // anChoices[0] === 1 (Blank vote)
     console.assert(mS === 0);
-    const pA0 = g.multiply(nW);
+    const pA0 = Point.g.multiply(nW);
     const pB0 = y.multiply(nW);
     let commitments = [pA0, pB0];
 
