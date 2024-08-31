@@ -118,7 +118,7 @@ function generateAnswer(
   plaintexts: Array<number>
 ): Answer.AnswerH.Serialized.t {
   let nonces: Array<bigint> = [];
-  let choices: Array<Ciphertext.t> = []; // TODO: Rename: ciphertexts
+  let ciphertexts: Array<Ciphertext.t> = [];
   let individual_proofs: Array<Array<Proof.t>> = [];
   const y = Point.parse(election.public_key);
   const { hPublicCredential } = Credential.derive(
@@ -135,14 +135,14 @@ function generateAnswer(
 
     const proof = IndividualProof.generate(election, hPublicCredential, { pAlpha, pBeta }, r, plaintexts[i], [0, 1]);
 
-    choices.push({ pAlpha, pBeta });
+    ciphertexts.push({ pAlpha, pBeta });
     individual_proofs.push(proof);
     nonces.push(r);
   }
 
   if (question.blank) {
-    const egS = Ciphertext.combine(choices.slice(1))
-    const eg0 = choices[0];
+    const egS = Ciphertext.combine(ciphertexts.slice(1))
+    const eg0 = ciphertexts[0];
     const nRS = Z.sumL(nonces.slice(1));
     const nR0 = nonces[0];
 
@@ -151,7 +151,7 @@ function generateAnswer(
     const blank_proof = blankProof(
       election,
       hPublicCredential,
-      choices,
+      ciphertexts,
       isBlank ? eg0 : egS,
       isBlank ? nRS : nR0,
       isBlank,
@@ -161,26 +161,26 @@ function generateAnswer(
       hPublicCredential,
       question,
       plaintexts,
-      choices,
+      ciphertexts,
       nonces,
     );
     return Answer.AnswerH.serialize({
-      choices,
+      choices: ciphertexts,
       individual_proofs,
       overall_proof,
       blank_proof,
     });
   } else {
-    const egS = Ciphertext.combine(choices);
+    const egS = Ciphertext.combine(ciphertexts);
     const m = plaintexts.reduce((acc, c) => c + acc, 0);
     const M = range(question.min, question.max);
     const nR = Z.sumL(nonces);
 
-    let prefix = hPublicCredential + "|" + choices.map(Ciphertext.toString).join(",")
+    let prefix = hPublicCredential + "|" + ciphertexts.map(Ciphertext.toString).join(",")
     const overall_proof = IndividualProof.generate(election, prefix, egS, nR, m, M);
 
     return Answer.AnswerH.serialize({
-      choices,
+      choices: ciphertexts,
       individual_proofs,
       overall_proof,
     });
