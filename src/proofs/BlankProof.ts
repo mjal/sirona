@@ -74,23 +74,19 @@ export namespace OverallProof {
       let commitments = [pA0, pB0];
   
       for (let j = 0; j < M.length; j++) {
-        if (M[j] === mS) {
-          const proof = Proof.zero();
-          const A = Point.g.multiply(nW);
-          const B = y.multiply(nW);
-          commitments.push(A, B);
-          azProofs.push(proof);
-        } else {
-          const proof = Proof.rand();
-          const [A, B] = Point.compute_commitment_pair(
+        const proof = (M[j] !== mS)
+          ? Proof.rand()
+          : Proof.zero()
+        const [A, B] = (M[j] !== mS)
+          ? Point.compute_commitment_pair(
             y,
             egS,
             proof,
             M[j]
-          );
-          commitments.push(A, B);
-          azProofs.push(proof);
-        }
+          )
+          : [ Point.g.multiply(nW), y.multiply(nW) ];
+        commitments.push(A, B);
+        azProofs.push(proof);
       }
   
       const nChallengeS = Z.sumL(azProofs.map(({ nChallenge }) => nChallenge));
@@ -101,9 +97,8 @@ export namespace OverallProof {
   
       for (let j = 0; j < M.length; j++) {
         if (M[j] === mS) {
-          const nChallenge = Z.modL(nH - nChallengeS);
-          const nResponse = Z.modL(nW - nRS * nChallenge);
-          azProofs[j + 1] = { nChallenge, nResponse };
+          azProofs[j + 1].nChallenge = Z.modL(nH - nChallengeS);
+          azProofs[j + 1].nResponse = Z.modL(nW - nRS * azProofs[j + 1].nChallenge);
         }
       }
   
