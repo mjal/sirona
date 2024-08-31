@@ -158,10 +158,10 @@ function generateAnswer(
     );
     let overall_proof = BlankProof.OverallProof.generate(
       election,
+      hPublicCredential,
       question,
       plaintexts,
       choices,
-      hPublicCredential,
       nonces,
     );
     return Answer.AnswerH.serialize({

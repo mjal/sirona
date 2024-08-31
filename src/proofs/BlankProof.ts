@@ -42,30 +42,28 @@ export namespace OverallProof {
   }
 
   export function generate(
-    // TODO Rename params:
-    // election, question, plaintexts, ciphertexts, credential, nonces
     election: Election.t,
+    prefix: string,
     question: Question.QuestionH.t, // NOTE: Could be replace by max and min
-    anChoices: Array<number>,
-    aeCiphertexts: Array<Ciphertext.t>,
-    hPub: string,
-    anR: Array<bigint>,
+    plaintexts: Array<number>,
+    ciphertexts: Array<Ciphertext.t>,
+    nonces: Array<bigint>,
   ): Array<Proof.t> {
-    const egS = Ciphertext.combine(aeCiphertexts.slice(1));
+    const egS = Ciphertext.combine(ciphertexts.slice(1));
     const y = Point.parse(election.public_key);
-    const mS = anChoices.slice(1).reduce((acc, c) => c + acc, 0);
+    const mS = plaintexts.slice(1).reduce((acc, c) => c + acc, 0);
     const M = range(question.min, question.max);
-    const nRS = Z.sumL(anR.slice(1));
+    const nRS = Z.sumL(nonces.slice(1));
     const nW = Z.randL();
   
-    if (anChoices[0] === 0) {
+    if (plaintexts[0] === 0) {
       const proof0 = {
         nChallenge: Z.randL(),
         nResponse: Z.randL()
       };
       const [pA0, pB0] = Point.compute_commitment_pair(
         y,
-        aeCiphertexts[0],
+        ciphertexts[0],
         proof0,
         1,
       );
@@ -91,8 +89,8 @@ export namespace OverallProof {
   
       const nChallengeS = Z.sumL(azProofs.map(({ nChallenge }) => nChallenge));
   
-      let S = `${Election.fingerprint(election)}|${hPub}|`;
-      S += aeCiphertexts.map(Ciphertext.toString).join(",");
+      let S = `${Election.fingerprint(election)}|${prefix}|`;
+      S += ciphertexts.map(Ciphertext.toString).join(",");
       const nH = Hbproof1(S, ...commitments);
   
       for (let j = 0; j < M.length; j++) {
@@ -104,7 +102,7 @@ export namespace OverallProof {
   
       return azProofs;
     } else {
-      // anChoices[0] === 1 (Blank vote)
+      // plaintexts[0] === 1 (Blank vote)
       console.assert(mS === 0);
       const pA0 = Point.g.multiply(nW);
       const pB0 = y.multiply(nW);
@@ -127,12 +125,12 @@ export namespace OverallProof {
         commitments.push(pA, pB);
       }
   
-      let S = `${Election.fingerprint(election)}|${hPub}|`;
-      S += aeCiphertexts.map(Ciphertext.toString).join(",");
+      let S = `${Election.fingerprint(election)}|${prefix}|`;
+      S += ciphertexts.map(Ciphertext.toString).join(",");
       const nH = Hbproof1(S, ...commitments);
   
       const nChallenge = Z.modL(nH - nChallengeS);
-      const nResponse = Z.modL(nW - anR[0] * nChallenge);
+      const nResponse = Z.modL(nW - nonces[0] * nChallenge);
       azProofs[0] = { nChallenge, nResponse };
   
       return azProofs;
