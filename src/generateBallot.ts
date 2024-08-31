@@ -233,10 +233,7 @@ function overallProofBlank(
   const nW = Z.randL();
 
   if (anChoices[0] === 0) {
-    const proof0 = {
-      nChallenge: Z.randL(),
-      nResponse: Z.randL()
-    };
+    const proof0 = Proof.rand();
     const [pA0, pB0] = Point.compute_commitment_pair(
       y,
       aeCiphertexts[0],
@@ -249,7 +246,7 @@ function overallProofBlank(
 
     for (let j = 0; j < M.length; j++) {
       if (M[j] === mS) {
-        const proof = Proof.zero;
+        const proof = Proof.zero();
         const A = Point.g.multiply(nW);
         const B = y.multiply(nW);
         commitments.push(A, B);
@@ -289,7 +286,7 @@ function overallProofBlank(
     const pB0 = y.multiply(nW);
     let commitments = [pA0, pB0];
 
-    let azProofs: Array<Proof.t> = [ Proof.zero ];
+    let azProofs: Array<Proof.t> = [ Proof.zero() ];
 
     let nChallengeS = BigInt(0);
     for (let j = 0; j < M.length; j++) {
@@ -310,9 +307,8 @@ function overallProofBlank(
     S += aeCiphertexts.map(Ciphertext.toString).join(",");
     const nH = Hbproof1(S, ...commitments);
 
-    const nChallenge = Z.modL(nH - nChallengeS);
-    const nResponse = Z.modL(nW - anR[0] * nChallenge);
-    azProofs[0] = { nChallenge, nResponse };
+    azProofs[0].nChallenge = Z.modL(nH - nChallengeS);
+    azProofs[0].nResponse = Z.modL(nW - anR[0] * azProofs[0].nChallenge);
 
     return azProofs;
   }

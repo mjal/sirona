@@ -41,30 +41,25 @@ export function generate(
 ) {
   const y = Point.parse(election.public_key);
   const w = Z.randL();
+
   let commitments: Array<Point.t> = [];
   let proof: Array<Proof.t> = [];
-
   for (let i = 0; i < M.length; i++) {
-    if (m !== M[i]) {
-      const z = Proof.rand();
-      const [A, B] = Point.compute_commitment_pair(y, eg, z, M[i]);
-      proof.push(z);
-      commitments.push(A, B);
-    } else {
-      const z = { nChallenge: 0n, nResponse: 0n };
-      const [A, B] = [ Point.g.multiply(w), y.multiply(w) ];
-      proof.push(z);
-      commitments.push(A, B);
-    }
+    const z = (m === M[i]) ? Proof.zero() : Proof.rand();
+    const [A, B] = (m === M[i])
+      ? [ Point.g.multiply(w), y.multiply(w) ]
+      : Point.compute_commitment_pair(y, eg, z, M[i]);
+    proof.push(z);
+    commitments.push(A, B);
   }
 
   const S = `${Election.fingerprint(election)}|${prefix}`;
-  const nH = Hiprove(S, eg.pAlpha, eg.pBeta, ...commitments);
+  const h = Hiprove(S, eg.pAlpha, eg.pBeta, ...commitments);
   const challengeS = Z.sumL(proof.map(({ nChallenge }) => nChallenge));
 
   for (let i = 0; i < M.length; i++) {
     if (m === M[i]) {
-      proof[i].nChallenge = Z.modL(nH - challengeS);
+      proof[i].nChallenge = Z.modL(h - challengeS);
       proof[i].nResponse = Z.modL(w - r * proof[i].nChallenge);
     }
   }

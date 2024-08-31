@@ -30,12 +30,14 @@ export function parse(proof: Serialized.t): t {
   };
 }
 
-export const zero = {
-  nChallenge: 0n,
-  nResponse: 0n,
+export function zero() {
+  return {
+    nChallenge: 0n,
+    nResponse: 0n,
+  };
 };
 
- export function rand() : Proof.t {
+ export function rand() {
   return {
     nChallenge: Z.randL(),
     nResponse: Z.randL()
