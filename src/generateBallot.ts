@@ -3,6 +3,7 @@ import * as Point from "./Point";
 import * as Ciphertext from "./Ciphertext";
 import * as Proof from "./Proof";
 import * as IndividualProof from "./proofs/IndividualProof";
+import * as BlankProof from "./proofs/BlankProof";
 import * as Answer from "./Answer";
 import * as Ballot from "./Ballot";
 import * as Credential from "./Credential";
@@ -117,7 +118,7 @@ function generateAnswer(
   plaintexts: Array<number>
 ): Answer.AnswerH.Serialized.t {
   let nonces: Array<bigint> = [];
-  let choices: Array<Ciphertext.t> = [];
+  let choices: Array<Ciphertext.t> = []; // TODO: Rename: ciphertexts
   let individual_proofs: Array<Array<Proof.t>> = [];
   const y = Point.parse(election.public_key);
   const { hPublicCredential } = Credential.derive(
@@ -127,6 +128,7 @@ function generateAnswer(
 
   for (let i = 0; i < plaintexts.length; i++) {
     const r = Z.randL();
+    // TODO: Ciphertext.encrypt(y, nonce, plaintext)
     const gPowerM = plaintexts[i] === 0 ? Point.zero : Point.g.multiply(BigInt(plaintexts[i]));
     const pAlpha = Point.g.multiply(r);
     const pBeta = y.multiply(r).add(gPowerM);
@@ -154,7 +156,7 @@ function generateAnswer(
       isBlank ? nRS : nR0,
       isBlank,
     );
-    let overall_proof = overallProofBlank(
+    let overall_proof = BlankProof.OverallProof.generate(
       election,
       question,
       plaintexts,
