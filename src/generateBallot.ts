@@ -11,10 +11,6 @@ import * as Election from "./Election";
 import * as Setup from "./Setup";
 import * as Z from "./Z";
 import { range } from "./utils";
-import {
-  Hbproof0,
-  Hbproof1,
-} from "./math";
 
 // TODO: Move to SignatureProof ?
 function signature(nPriv: bigint, sHash: string) {
@@ -148,14 +144,6 @@ function generateAnswer(
 
     const isBlank = (plaintexts[0] === 1);
 
-    const blank_proof = blankProof(
-      election,
-      hPublicCredential,
-      ciphertexts,
-      isBlank ? eg0 : egS,
-      isBlank ? nRS : nR0,
-      isBlank,
-    );
     let overall_proof = BlankProof.OverallProof.generate(
       election,
       hPublicCredential,
@@ -163,6 +151,14 @@ function generateAnswer(
       plaintexts,
       ciphertexts,
       nonces,
+    );
+    const blank_proof = BlankProof.BlankProof.generate(
+      election,
+      hPublicCredential,
+      ciphertexts,
+      isBlank ? eg0 : egS,
+      isBlank ? nRS : nR0,
+      isBlank,
     );
     return Answer.AnswerH.serialize({
       choices: ciphertexts,
@@ -184,37 +180,5 @@ function generateAnswer(
       individual_proofs,
       overall_proof,
     });
-  }
-}
-
-function blankProof(
-  election: Election.t,
-  hPub: string,
-  choices: Array<Ciphertext.t>,
-  eg: Ciphertext.t,
-  nR: bigint,
-  isBlank: boolean,
-): Array<Proof.t> {
-  const y = Point.parse(election.public_key);
-  const nW = Z.randL();
-  const proofA = { nChallenge: Z.randL(), nResponse: Z.randL() };
-  const A0 = Point.g.multiply(nW);
-  const B0 = y.multiply(nW);
-  const AS = Point.compute_commitment(Point.g, eg.pAlpha, proofA);
-  const BS = Point.compute_commitment(y, eg.pBeta, proofA);
-
-  let S = `${Election.fingerprint(election)}|${hPub}|`;
-  S += choices.map(Ciphertext.toString).join(",");
-  const nH = isBlank
-    ? Hbproof0(S, AS, BS, A0, B0)
-    : Hbproof0(S, A0, B0, AS, BS);
-  const nChallenge = Z.modL(nH - proofA.nChallenge);
-  const nResponse = Z.modL(nW - nChallenge * nR);
-  const proofB = { nChallenge, nResponse };
-
-  if (isBlank) {
-    return [ proofA, proofB, ];
-  } else {
-    return [ proofB, proofA, ];
   }
 }

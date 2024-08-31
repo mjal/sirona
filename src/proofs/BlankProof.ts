@@ -164,4 +164,36 @@ export namespace BlankProof {
     S += answer.choices.map(Ciphertext.toString).join(",");
     return Hbproof0(S, ...[pA0, pB0, pAS, pBS]) === challengeS;
   }
+
+  export function generate(
+    election: Election.t,
+    hPub: string,
+    ciphertexts: Array<Ciphertext.t>, // TODO: Pass as prefix ? (only used in prefix)
+    eg: Ciphertext.t,
+    nonce: bigint,
+    isBlank: boolean,
+  ): Array<Proof.t> {
+    const y = Point.parse(election.public_key);
+    const nW = Z.randL();
+    const proofA = Proof.rand();
+    const A0 = Point.g.multiply(nW);
+    const B0 = y.multiply(nW);
+    const AS = Point.compute_commitment(Point.g, eg.pAlpha, proofA);
+    const BS = Point.compute_commitment(y, eg.pBeta, proofA);
+
+    let S = `${Election.fingerprint(election)}|${hPub}|`;
+    S += ciphertexts.map(Ciphertext.toString).join(",");
+    const nH = isBlank
+      ? Hbproof0(S, AS, BS, A0, B0)
+      : Hbproof0(S, A0, B0, AS, BS);
+    const nChallenge = Z.modL(nH - proofA.nChallenge);
+    const nResponse = Z.modL(nW - nChallenge * nonce);
+    const proofB = { nChallenge, nResponse };
+
+    if (isBlank) {
+      return [ proofA, proofB, ];
+    } else {
+      return [ proofB, proofA, ];
+    }
+  }
 }
