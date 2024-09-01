@@ -15,11 +15,11 @@ import { range } from "./utils";
 export default function (
   setup: Setup.t,
   sPriv: string,
-  choices: Array<Array<number>>, // TODO: Rename plaintexts
+  plaintexts: number[][]
 ) {
   const { election } = setup
 
-  const { hPublicCredential } = Credential.derive(
+  const { hPublicCredential, nPrivateCredential } = Credential.derive(
     setup.election.uuid,
     sPriv,
   );
@@ -35,13 +35,13 @@ export default function (
   }
 
   let answers: Array<Answer.AnswerH.Serialized.t> = [];
-  for (let i = 0; i < choices.length; i++) {
+  for (let i = 0; i < plaintexts.length; i++) {
     const question = election.questions[i];
-    const answer = generateAnswer(election, question, sPriv, choices[i]);
+    const answer = generateAnswer(election, question, sPriv, plaintexts[i]);
     answers.push(answer);
   }
 
-  const ballotWithoutSignature = {
+  let ballot = {
     answers,
     credential: hPublicCredential,
     election_hash: Election.fingerprint(election),
@@ -55,18 +55,11 @@ export default function (
     },
   };
 
-  const hash = Ballot.b64hashWithoutSignature(
-    ballotWithoutSignature,
-    election,
-  );
-
+  const hash = Ballot.b64hashWithoutSignature(ballot, election);
   const proof = SchnorrProof.generate(hash, nPrivateCredential);
-  const ballot: Ballot.t = {
-    ...ballotWithoutSignature,
-    signature: {
-      hash: hash,
-      proof: Proof.serialize(proof)
-    }
+  ballot.signature = {
+    hash: hash,
+    proof: Proof.serialize(proof)
   };
 
   Ballot.verify(setup, ballot);
