@@ -8,7 +8,7 @@ import * as Election from "./Election";
 import * as Question from "./Question";
 import * as Ballot from "./Ballot";
 import * as Point from "./Point";
-import { Hiprove, Hlproof, Hnonzero } from "./math";
+import { Hlproof, Hnonzero } from "./math";
 
 export type t = {
   choices: Array<Array<Ciphertext.t>>;
