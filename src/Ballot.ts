@@ -1,4 +1,5 @@
 import sjcl from "sjcl";
+import * as Credential from "./Credential";
 import * as Proof from "./Proof";
 import * as Point from "./Point";
 import * as Answer from "./Answer";
@@ -51,7 +52,11 @@ export function toJSON(ballot: t, election: Election.t): t {
 
 export function verify(setup: Setup.t, ballot: t) {
   verifyMisc(ballot, setup.election);
-  verifyCredential(ballot, setup.credentials);
+
+  if (!Credential.find(setup.credentials, ballot.credential)) {
+    throw new Error("Credential not found");
+  }
+
   verifySignature(ballot, setup.election);
 
   for (let i = 0; i < setup.election.questions.length; i++) {
@@ -72,15 +77,6 @@ function verifyMisc(ballot: t, election: Election.t) {
     )
   ) {
     throw new Error("election_uuid or election_hash is incorrect");
-  }
-}
-
-function verifyCredential(ballot: t, credentials: string[]) {
-  if (
-    credentials.map((line) => line.split(",")[0]).indexOf(ballot.credential) ===
-    -1
-  ) {
-    throw new Error("Credential is not valid");
   }
 }
 

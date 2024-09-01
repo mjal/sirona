@@ -34,3 +34,7 @@ export function generatePriv() {
     return b58chars[randomIndex];
   }).join("");
 }
+
+export function find(credentials: string[], credential: string) {
+  return credentials.map((line: string) => line.split(",")[0]).indexOf(credential) !== -1;
+}
