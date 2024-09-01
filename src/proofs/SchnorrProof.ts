@@ -22,4 +22,3 @@ export function generate(hash: string, private_key: bigint) {
 function H_signature(S: string, A: Point.t) {
   return H(`sig|${S}`, A);
 }
-
