@@ -37,7 +37,7 @@ export function generate(
   eg: Ciphertext.t,
   r: bigint,
   m: number,
-  M: Array<number>,
+  M: Array<number>, // NOTE: Could be replaced by max and min
 ) {
   const y = Point.parse(election.public_key);
   const w = Z.randL();

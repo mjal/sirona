@@ -12,7 +12,7 @@ export namespace OverallProof {
   export function verify(
     election: Election.t,
     credential: string,
-    question: Question.QuestionH.t, // NOTE: Could be replace by max and min
+    question: Question.QuestionH.t, // NOTE: Could be replaced by max and min
     answer: AnswerH.t,
   ): boolean {
     let commitments = [];
@@ -44,7 +44,7 @@ export namespace OverallProof {
   export function generate(
     election: Election.t,
     prefix: string,
-    question: Question.QuestionH.t, // NOTE: Could be replace by max and min
+    question: Question.QuestionH.t, // NOTE: Could be replaced by max and min
     plaintexts: Array<number>,
     ciphertexts: Array<Ciphertext.t>,
     nonces: Array<bigint>,
