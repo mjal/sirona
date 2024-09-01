@@ -64,7 +64,7 @@ export function generate(
 }
 
 function H_iprove(S: string, eg: Ciphertext.t, ...commitments: Array<Point.t>) {
-  const prefix = `prove|${S}|${Ciphertext.serialize(eg)}}`;
+  const prefix = `prove|${S}|${Ciphertext.toString(eg)}`;
   return H(prefix, ...commitments);
 }
 
