@@ -3,6 +3,7 @@ import * as Proof from "../Proof";
 import * as Point from "../Point";
 import * as Ciphertext from "../Ciphertext";
 import * as Z from "../Z";
+import { H } from "../math"
 
 export function verify(
   election: Election.t,
