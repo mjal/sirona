@@ -1,5 +1,6 @@
 import * as Z from "./Z";
 import { range } from "./utils";
+import { modInverse } from "./math";
 import * as Trustee from "./Trustee";
 import * as Point from "./Point";
 import * as Question from "./Question";
@@ -186,7 +187,7 @@ function lagrange(n, indexes) {
     if (n !== indexes[i]) {
       let denominator = Z.modL(BigInt(indexes[i] - n));
       result = Z.modL(
-        result * BigInt(indexes[i]) * Z.modInverse(denominator, Z.L),
+        result * BigInt(indexes[i]) * modInverse(denominator, Z.L),
       );
     }
   }

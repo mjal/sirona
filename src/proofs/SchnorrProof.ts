@@ -14,7 +14,7 @@ export function generate(hash: string, private_key: bigint) {
   const A = Point.g.multiply(w);
 
   const nChallenge = H_signature(hash, A);
-  const nResponse = Z.mod(w - private_key * nChallenge, Z.L);
+  const nResponse = Z.modL(w - private_key * nChallenge);
 
   return { nChallenge, nResponse };
 }
