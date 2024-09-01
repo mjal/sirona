@@ -6,7 +6,7 @@ import * as Point from "./Point";
 import * as Answer from "./Answer";
 import * as Election from "./Election";
 import * as Setup from "./Setup";
-import { Hsignature } from "./math";
+import * as Question from "./Question";
 
 export type t = {
   election_uuid: string;
@@ -80,6 +80,61 @@ export function verify(setup: Setup.t, ballot: t) {
       ballot.answers[i],
     );
   }
+}
+
+export function generate(
+  setup: Setup.t,
+  sPriv: string,
+  plaintexts: number[][]
+) {
+  const { election } = setup
+
+  const { hPublicCredential, nPrivateCredential } = Credential.derive(
+    setup.election.uuid,
+    sPriv,
+  );
+
+  if (!Credential.checkSeedFormat(sPriv)) {
+    throw new Error(
+      "Credential format should be be XXXXX-XXXXXX-XXXXX-XXXXXX.",
+    );
+  }
+
+  if (!Credential.find(setup.credentials, hPublicCredential)) {
+    throw "Invalid credential.";
+  }
+
+  const answers = election.questions.map((question, i) => {
+    if (Question.IsQuestionH(question)) {
+      return Answer.AnswerH.generate(election, question, sPriv, plaintexts[i]);
+    } else if (Question.IsQuestionL(question)) {
+      throw new Error("Unsupported question type");
+    } else if (Question.IsQuestionNH(question)) {
+      throw new Error("Unsupported question type");
+    } else {
+      throw new Error("Unknown question type");
+    }
+  });
+
+  let ballot : t = {
+    answers,
+    credential: hPublicCredential,
+    election_hash: Election.fingerprint(election),
+    election_uuid: setup.election.uuid,
+    signature: null,
+  };
+
+  const hash = b64hashWithoutSignature(ballot, election);
+  const proof = SchnorrProof.generate(hash, nPrivateCredential);
+  ballot.signature = {
+    hash: hash,
+    proof: Proof.serialize(proof)
+  };
+
+  // TODO: Remove ?
+  verify(setup, ballot);
+
+  return ballot;
 }
 
 export function hash(ballot: t) {

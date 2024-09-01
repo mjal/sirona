@@ -1,5 +1,4 @@
 <script setup>
-import generateBallot from "../generateBallot";
 import { ref, computed } from "vue";
 import * as Ballot from "../Ballot";
 
@@ -55,7 +54,7 @@ const submitForm = (event) => {
   }
 
   try {
-    const oBallot = generateBallot(
+    const oBallot = Ballot.generate(
       props.state.setup,
       credential.value.trim(),
       answers,

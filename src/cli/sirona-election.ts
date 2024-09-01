@@ -78,7 +78,7 @@ program
     const privcredFile = await fs.readFile(options.privcred);
     const privcred = privcredFile.toString().trim();
 
-    const ballot = generateBallot(state.setup, privcred, choice);
+    const ballot = Ballot.generate(state.setup, privcred, choice);
     const sBallot = JSON.stringify(
       Ballot.toJSON(ballot, state.setup.election),
       null,
