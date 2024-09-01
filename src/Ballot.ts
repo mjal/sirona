@@ -20,9 +20,8 @@ export type t = {
 };
 
 export function toJSON(ballot: t, election: Election.t): t {
-  // The order of the JSON.stringify serialization
-  // correspond to the order of insertion.
-  let obj = {
+  // JSON.stringify key order will be the order of insertion
+  return {
     election_uuid: ballot.election_uuid,
     election_hash: ballot.election_hash,
     credential: ballot.credential,
@@ -38,17 +37,13 @@ export function toJSON(ballot: t, election: Election.t): t {
         throw new Error("Unknown answer type");
       }
     }),
-    signature: { hash: "", proof: { challenge: "", response: "" } },
+    signature: (ballot.signature)
+      ? {
+        hash: ballot.signature.hash,
+        proof: Proof.serialize(Proof.parse(ballot.signature.proof)),
+      }
+      : null
   };
-
-  if (ballot.signature) {
-    obj["signature"] = {
-      hash: ballot.signature.hash,
-      proof: Proof.serialize(Proof.parse(ballot.signature.proof)),
-    };
-  }
-
-  return obj;
 }
 
 export function verify(setup: Setup.t, ballot: t) {
