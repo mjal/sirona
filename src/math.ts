@@ -4,7 +4,7 @@ export const q = 2n ** 255n - 19n;
 
 export const mod = (a: bigint, b: bigint) => {
   let r = a % b;
-  return (r >= 0) ? r : r + b;
+  return r >= 0 ? r : r + b;
 };
 
 export function rand(max: bigint): bigint {
