@@ -1,7 +1,7 @@
-import sjcl from "sjcl";
 import * as Point from "./Point";
 import * as Ciphertext from "./Ciphertext";
 import * as Proof from "./Proof";
+import * as SchnorrProof from "./proofs/SchnorrProof";
 import * as IndividualProof from "./proofs/IndividualProof";
 import * as BlankProof from "./proofs/BlankProof";
 import * as Answer from "./Answer";
@@ -11,25 +11,6 @@ import * as Election from "./Election";
 import * as Setup from "./Setup";
 import * as Z from "./Z";
 import { range } from "./utils";
-
-// TODO: Move to SignatureProof ?
-function signature(nPriv: bigint, sHash: string) {
-  const w = Z.randL();
-  const A = Point.g.multiply(w);
-
-  // TODO: Refactor using Hsignature ?
-  // TODO: nChallenge = Hsignature(hash, pA);
-  const hashSignature = sjcl.codec.hex.fromBits(
-    sjcl.hash.sha256.hash(`sig|${sHash}|${Point.serialize(A)}`),
-  );
-  const nChallenge = Z.modL(BigInt("0x" + hashSignature));
-  const nResponse = Z.mod(w - nPriv * nChallenge, Z.L);
-
-  return {
-    hash: sHash,
-    proof: Proof.serialize({ nChallenge, nResponse }),
-  };
-}
 
 export default function (
   setup: Setup.t,
@@ -67,14 +48,18 @@ export default function (
     },
   };
 
-  const hH = Ballot.b64hashWithoutSignature(
+  const hash = Ballot.b64hashWithoutSignature(
     ballotWithoutSignature,
     election,
   );
 
+  const proof = SchnorrProof.generate(hash, nPrivateCredential);
   const ballot: Ballot.t = {
     ...ballotWithoutSignature,
-    signature: signature(nPrivateCredential, hH),
+    signature: {
+      hash: hash,
+      proof: Proof.serialize(proof)
+    }
   };
 
   Ballot.verify(setup, ballot);
