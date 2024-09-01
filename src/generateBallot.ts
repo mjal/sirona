@@ -124,10 +124,7 @@ function generateAnswer(
 
   for (let i = 0; i < plaintexts.length; i++) {
     const r = Z.randL();
-    // TODO: Ciphertext.encrypt(y, nonce, plaintext)
-    const gPowerM = plaintexts[i] === 0 ? Point.zero : Point.g.multiply(BigInt(plaintexts[i]));
-    const pAlpha = Point.g.multiply(r);
-    const pBeta = y.multiply(r).add(gPowerM);
+    const { pAlpha, pBeta } = Ciphertext.encrypt(y, r, plaintexts[i]);
 
     const proof = IndividualProof.generate(election, hPublicCredential, { pAlpha, pBeta }, r, plaintexts[i], [0, 1]);
 

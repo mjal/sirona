@@ -50,3 +50,10 @@ export function toString(ct: t) {
 export function isValid(ct: t) {
   return Point.isValid(ct.pAlpha) && Point.isValid(ct.pBeta);
 }
+
+export function encrypt(y: Point.t, nonce: bigint, plaintext: number) {
+  const gPowerM = plaintext === 0 ? Point.zero : Point.g.multiply(BigInt(plaintext));
+  const pAlpha = Point.g.multiply(nonce);
+  const pBeta = y.multiply(nonce).add(gPowerM);
+  return { pAlpha, pBeta };
+}
