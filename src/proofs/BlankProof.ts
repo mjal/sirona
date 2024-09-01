@@ -40,7 +40,7 @@ export namespace OverallProof {
     let S = `${Election.fingerprint(election)}|${credential}|`;
     S += answer.choices.map(Ciphertext.toString).join(",");
 
-    return Hbproof1(S, ...commitments) === challengeS;
+    return Hbproof_1(S, ...commitments) === challengeS;
   }
 
   export function generate(
@@ -87,7 +87,7 @@ export namespace OverallProof {
 
       let S = `${Election.fingerprint(election)}|${prefix}|`;
       S += ciphertexts.map(Ciphertext.toString).join(",");
-      const nH = Hbproof1(S, ...commitments);
+      const nH = Hbproof_1(S, ...commitments);
 
       for (let j = 0; j < M.length; j++) {
         if (M[j] === mS) {
@@ -125,7 +125,7 @@ export namespace OverallProof {
 
       let S = `${Election.fingerprint(election)}|${prefix}|`;
       S += ciphertexts.map(Ciphertext.toString).join(",");
-      const nH = Hbproof1(S, ...commitments);
+      const nH = Hbproof_1(S, ...commitments);
 
       const nChallenge = Z.modL(nH - nChallengeS);
       const nResponse = Z.modL(nW - nonces[0] * nChallenge);
@@ -162,7 +162,7 @@ export namespace BlankProof {
 
     let S = `${Election.fingerprint(election)}|${credential}|`;
     S += answer.choices.map(Ciphertext.toString).join(",");
-    return Hbproof0(S, ...[pA0, pB0, pAS, pBS]) === challengeS;
+    return Hbproof_0(S, ...[pA0, pB0, pAS, pBS]) === challengeS;
   }
 
   export function generate(
@@ -184,8 +184,8 @@ export namespace BlankProof {
     let S = `${Election.fingerprint(election)}|${hPub}|`;
     S += ciphertexts.map(Ciphertext.toString).join(",");
     const nH = isBlank
-      ? Hbproof0(S, AS, BS, A0, B0)
-      : Hbproof0(S, A0, B0, AS, BS);
+      ? Hbproof_0(S, AS, BS, A0, B0)
+      : Hbproof_0(S, A0, B0, AS, BS);
     const nChallenge = Z.modL(nH - proofA.nChallenge);
     const nResponse = Z.modL(nW - nChallenge * nonce);
     const proofB = { nChallenge, nResponse };
@@ -198,10 +198,10 @@ export namespace BlankProof {
   }
 }
 
-function Hbproof0(S: string, ...commitments: Array<Point.t>) {
+function Hbproof_0(S: string, ...commitments: Array<Point.t>) {
   return H(`bproof0|${S}`, ...commitments);
 }
 
-function Hbproof1(S: string, ...commitments: Array<Point.t>) {
+function Hbproof_1(S: string, ...commitments: Array<Point.t>) {
   return H(`bproof1|${S}`, ...commitments);
 }
