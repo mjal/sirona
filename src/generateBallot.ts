@@ -15,17 +15,24 @@ import { range } from "./utils";
 export default function (
   setup: Setup.t,
   sPriv: string,
-  choices: Array<Array<number>>,
+  choices: Array<Array<number>>, // TODO: Rename plaintexts
 ) {
   const { election } = setup
-  if (!checkVotingCode(setup, sPriv)) {
-    return null;
-  }
 
-  const { hPublicCredential, nPrivateCredential } = Credential.derive(
-    election.uuid,
+  const { hPublicCredential } = Credential.derive(
+    setup.election.uuid,
     sPriv,
   );
+
+  if (!Credential.checkSeedFormat(sPriv)) {
+    throw new Error(
+      "Credential format should be be XXXXX-XXXXXX-XXXXX-XXXXXX.",
+    );
+  }
+
+  if (!Credential.find(setup.credentials, hPublicCredential)) {
+    throw "Invalid credential.";
+  }
 
   let answers: Array<Answer.AnswerH.Serialized.t> = [];
   for (let i = 0; i < choices.length; i++) {
@@ -68,11 +75,9 @@ export default function (
 }
 
 function checkVotingCode(setup: Setup.t, sPriv: string) {
-  if (
-    !/[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}/.test(sPriv)
-  ) {
+  if (!Credential.checkFormat(sPriv)) {
     throw new Error(
-      "Invalid credential format. Should be XXXXX-XXXXXX-XXXXX-XXXXXX.",
+      "Credential format should be be XXXXX-XXXXXX-XXXXX-XXXXXX.",
     );
   }
 
@@ -81,11 +86,7 @@ function checkVotingCode(setup: Setup.t, sPriv: string) {
     sPriv,
   );
 
-  const electionPublicCredentials = setup.credentials.map(
-    (line: string) => line.split(",")[0],
-  );
-
-  if (!electionPublicCredentials.includes(hPublicCredential)) {
+  if (!Credential.find(setup.credentials, hPublicCredential)) {
     throw "Invalid credential.";
   }
 

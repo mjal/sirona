@@ -38,3 +38,7 @@ export function generatePriv() {
 export function find(credentials: string[], credential: string) {
   return credentials.map((line: string) => line.split(",")[0]).indexOf(credential) !== -1;
 }
+
+export function checkSeedFormat(credential: string) {
+  return (/[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{6}/.test(credential));
+}
