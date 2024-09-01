@@ -3,7 +3,6 @@ import * as Proof from "../Proof";
 import * as Point from "../Point";
 import * as Ciphertext from "../Ciphertext";
 import * as Z from "../Z";
-import { Hiprove } from "../math";
 
 export function verify(
   election: Election.t,
@@ -23,7 +22,7 @@ export function verify(
     commitments.push(A, B);
   }
 
-  return Hiprove(S, eg.pAlpha, eg.pBeta, ...commitments) === challengeS;
+  return H_iprove(S, eg.pAlpha, eg.pBeta, ...commitments) === challengeS;
 }
 
 export function generate(
@@ -50,7 +49,7 @@ export function generate(
   }
 
   const S = `${Election.fingerprint(election)}|${prefix}`;
-  const h = Hiprove(S, eg.pAlpha, eg.pBeta, ...commitments);
+  const h = H_iprove(S, eg.pAlpha, eg.pBeta, ...commitments);
   const challengeS = Z.sumL(proof.map(({ nChallenge }) => nChallenge));
 
   for (let i = 0; i < M.length; i++) {
@@ -62,3 +61,14 @@ export function generate(
 
   return proof;
 }
+
+function H_iprove(
+  S: string,
+  alpha: Point.t,
+  beta: Point.t,
+  ...commitments: Array<Point.t>
+) {
+  const prefix = `prove|${S}|${Point.serialize(alpha)},${Point.serialize(beta)}`;
+  return H(prefix, ...commitments);
+}
+

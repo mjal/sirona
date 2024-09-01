@@ -8,16 +8,6 @@ export function H(prefix: string, ...commitments: Array<Point.t>) {
   return Z.modL(BigInt("0x" + h));
 }
 
-export function Hiprove(
-  S: string,
-  alpha: Point.t,
-  beta: Point.t,
-  ...commitments: Array<Point.t>
-) {
-  const prefix = `prove|${S}|${Point.serialize(alpha)},${Point.serialize(beta)}`;
-  return H(prefix, ...commitments);
-}
-
 export function Hbproof0(S: string, ...commitments: Array<Point.t>) {
   return H(`bproof0|${S}`, ...commitments);
 }
