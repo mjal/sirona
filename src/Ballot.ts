@@ -82,21 +82,6 @@ export function verify(setup: Setup.t, ballot: t) {
   }
 }
 
-export function verifySignature(ballot: t, election: Election.t) {
-  const recomputedHash = b64hashWithoutSignature(ballot, election);
-  if (ballot.signature.hash !== recomputedHash) {
-    throw new Error("Ballot recomputed hash is incorrect");
-  }
-
-  const proof = Proof.parse(ballot.signature.proof);
-  const public_key = Point.parse(ballot.credential);
-  const A = Point.compute_commitment(Point.g, public_key, proof);
-
-  if (Hsignature(ballot.signature.hash, A) !== proof.nChallenge) {
-    throw new Error("Invalid signature");
-  }
-}
-
 export function hash(ballot: t) {
   return sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(JSON.stringify(ballot)));
 }
