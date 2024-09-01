@@ -81,7 +81,20 @@ export function verify(
     }
   }
 
-  if (!verifyOverallProofLists(election, ballot, question, answer)) {
+  const eg = Ciphertext.combine(answer.choices.map((c) => c[0]));
+  let S = `${ballot.credential}|`;
+  S += answer.choices
+    .map((cs: any) => cs.map(Ciphertext.toString).join(","))
+    .join(",");
+
+  if (!IndividualProof.verify(
+      election,
+      S,
+      [ answer.overall_proof ],
+      eg,
+      1,
+      1,
+    )) {
     throw new Error("Invalid overall proof (lists)");
   }
 
@@ -94,33 +107,6 @@ export function verify(
   }
 
   return true;
-}
-
-function verifyOverallProofLists(
-  election: Election.t,
-  ballot: Ballot.t,
-  _question: Question.QuestionL.t,
-  answer: t,
-): boolean {
-  const pY = Point.parse(election.public_key);
-  const sumc = Ciphertext.combine(answer.choices.map((c) => c[0]));
-
-  const [pA, pB] = Point.compute_commitment_pair(
-    pY,
-    sumc,
-    answer.overall_proof,
-    1,
-  );
-
-  let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
-  S += answer.choices
-    .map((cs: any) => cs.map(Ciphertext.toString).join(","))
-    .join(",");
-
-  return (
-    Hiprove(S, sumc.pAlpha, sumc.pBeta, pA, pB) ===
-    answer.overall_proof.nChallenge
-  );
 }
 
 function verifyNonZeroProof(
