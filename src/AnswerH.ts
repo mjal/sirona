@@ -106,7 +106,7 @@ export function verify(
         question.max,
       )
     ) {
-      throw new Error("Invalid overall proof (without blank vote)");
+      throw new Error("Invalid overall proof");
     }
   }
 

@@ -95,11 +95,11 @@ export function verify(
       1,
       1,
     )) {
-    throw new Error("Invalid overall proof (lists)");
+    throw new Error("Invalid overall proof");
   }
 
   if (!verifyNonZeroProof(election, ballot, question, answer)) {
-    throw new Error("Invalid non zero proof (lists)");
+    throw new Error("Invalid non zero proof");
   }
 
   if (!verifyListProofs(election, ballot, question, answer)) {
