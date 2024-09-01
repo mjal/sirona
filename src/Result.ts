@@ -93,7 +93,7 @@ function getDecryptionFactors(
     } else if (Question.IsQuestionL(question)) {
       row = range(question.value.answers.length).map((i) => {
         return range(question.value.answers[i].length).map(() => {
-          return Point.zero
+          return Point.zero;
         });
       });
     } else if (Question.IsQuestionNH(question)) {
@@ -185,7 +185,9 @@ function lagrange(n, indexes) {
   for (let i = 0; i < indexes.length; i++) {
     if (n !== indexes[i]) {
       let denominator = Z.modL(BigInt(indexes[i] - n));
-      result = Z.modL(result * BigInt(indexes[i]) * Z.modInverse(denominator, Z.L));
+      result = Z.modL(
+        result * BigInt(indexes[i]) * Z.modInverse(denominator, Z.L),
+      );
     }
   }
   return result;

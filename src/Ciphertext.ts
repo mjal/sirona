@@ -52,7 +52,8 @@ export function isValid(ct: t) {
 }
 
 export function encrypt(y: Point.t, nonce: bigint, plaintext: number) {
-  const gPowerM = plaintext === 0 ? Point.zero : Point.g.multiply(BigInt(plaintext));
+  const gPowerM =
+    plaintext === 0 ? Point.zero : Point.g.multiply(BigInt(plaintext));
   const pAlpha = Point.g.multiply(nonce);
   const pBeta = y.multiply(nonce).add(gPowerM);
   return { pAlpha, pBeta };

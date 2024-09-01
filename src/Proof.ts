@@ -35,12 +35,12 @@ export function zero() {
     nChallenge: 0n,
     nResponse: 0n,
   };
-};
+}
 
- export function rand() {
+export function rand() {
   return {
     nChallenge: Z.randL(),
-    nResponse: Z.randL()
+    nResponse: Z.randL(),
   };
 }
 

@@ -37,12 +37,12 @@ export function toJSON(ballot: t, election: Election.t): t {
         throw new Error("Unknown answer type");
       }
     }),
-    signature: (ballot.signature)
+    signature: ballot.signature
       ? {
-        hash: ballot.signature.hash,
-        proof: Proof.serialize(Proof.parse(ballot.signature.proof)),
-      }
-      : null
+          hash: ballot.signature.hash,
+          proof: Proof.serialize(Proof.parse(ballot.signature.proof)),
+        }
+      : null,
   };
 }
 
@@ -73,21 +73,16 @@ export function verify(setup: Setup.t, ballot: t) {
   }
 
   for (let i = 0; i < election.questions.length; i++) {
-    Answer.verify(
-      election,
-      ballot,
-      election.questions[i],
-      ballot.answers[i],
-    );
+    Answer.verify(election, ballot, election.questions[i], ballot.answers[i]);
   }
 }
 
 export function generate(
   setup: Setup.t,
   sPriv: string,
-  plaintexts: number[][]
+  plaintexts: number[][],
 ) {
-  const { election } = setup
+  const { election } = setup;
 
   const { hPublicCredential, nPrivateCredential } = Credential.derive(
     setup.election.uuid,
@@ -116,7 +111,7 @@ export function generate(
     }
   });
 
-  let ballot : t = {
+  let ballot: t = {
     answers,
     credential: hPublicCredential,
     election_hash: Election.fingerprint(election),
@@ -128,7 +123,7 @@ export function generate(
   const proof = SchnorrProof.generate(hash, nPrivateCredential);
   ballot.signature = {
     hash: hash,
-    proof: Proof.serialize(proof)
+    proof: Proof.serialize(proof),
   };
 
   // TODO: Remove ?

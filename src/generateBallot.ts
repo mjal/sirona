@@ -17,9 +17,9 @@ import { range } from "./utils";
 export default function (
   setup: Setup.t,
   sPriv: string,
-  plaintexts: number[][]
+  plaintexts: number[][],
 ) {
-  const { election } = setup
+  const { election } = setup;
 
   const { hPublicCredential, nPrivateCredential } = Credential.derive(
     setup.election.uuid,
@@ -48,7 +48,7 @@ export default function (
     }
   });
 
-  let ballot : Ballot.t = {
+  let ballot: Ballot.t = {
     answers,
     credential: hPublicCredential,
     election_hash: Election.fingerprint(election),
@@ -60,7 +60,7 @@ export default function (
   const proof = SchnorrProof.generate(hash, nPrivateCredential);
   ballot.signature = {
     hash: hash,
-    proof: Proof.serialize(proof)
+    proof: Proof.serialize(proof),
   };
 
   Ballot.verify(setup, ballot);

@@ -117,7 +117,7 @@ export function compute_commitment_pair(
   const gPowerM = m === 0 ? zero : g.multiply(BigInt(m));
   const pBDivGPowerM = eg.pBeta.add(gPowerM.negate());
 
-  const A = compute_commitment(g,  eg.pAlpha, proof);
+  const A = compute_commitment(g, eg.pAlpha, proof);
   const B = compute_commitment(y, pBDivGPowerM, proof);
 
   return [A, B];
@@ -129,4 +129,3 @@ function reverseByteOrder(hexStr: string) {
   }
   return hexStr.match(/../g).reverse().join("");
 }
-

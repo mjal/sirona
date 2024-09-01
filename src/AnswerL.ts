@@ -72,7 +72,8 @@ export function verify(
           ballot.credential,
           answer.individual_proofs[j][k],
           answer.choices[j][k],
-          0, 1
+          0,
+          1,
         )
       ) {
         throw new Error("Invalid individual proofs");
@@ -113,7 +114,8 @@ function verifyOverallProofLists(
 
   let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
   S += answer.choices
-    .map((cs: any) => cs.map(Ciphertext.toString).join(",")).join(",");
+    .map((cs: any) => cs.map(Ciphertext.toString).join(","))
+    .join(",");
 
   return (
     Hiprove(S, sumc.pAlpha, sumc.pBeta, pA, pB) ===
@@ -148,7 +150,8 @@ function verifyNonZeroProof(
 
   let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
   S += answer.choices
-    .map((cs: any) => cs.map(Ciphertext.toString).join(",")).join(",");
+    .map((cs: any) => cs.map(Ciphertext.toString).join(","))
+    .join(",");
 
   return Hnonzero(S, A0, A1, A2) === c;
 }
@@ -166,12 +169,7 @@ function verifyListProofs(
     const ct0 = answer.choices[i][0];
     const ct = Ciphertext.combine(answer.choices[i].slice(1));
 
-    const [A0, B0] = Point.compute_commitment_pair(
-      pY,
-      ct0,
-      proofs[0],
-      1,
-    );
+    const [A0, B0] = Point.compute_commitment_pair(pY, ct0, proofs[0], 1);
 
     const A1 = Point.compute_commitment(Point.g, ct.pAlpha, proofs[1]);
     const B1 = Point.compute_commitment(pY, ct.pBeta, proofs[1]);

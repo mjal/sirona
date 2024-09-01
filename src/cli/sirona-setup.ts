@@ -2,7 +2,7 @@
 
 import fs from "fs";
 import { Command } from "commander";
-import { range, b58chars } from "../utils"
+import { range, b58chars } from "../utils";
 import * as Credential from "../Credential";
 import * as Trustee from "../Trustee";
 import * as Point from "../Point";
@@ -11,10 +11,12 @@ import * as Election from "../Election";
 const program = new Command();
 
 program.command("generate-token").action(() => {
-  let uuid = range(14).map(() => {
-    const randomIndex = Math.floor(Math.random() * b58chars.length);
-    return b58chars[randomIndex];
-  }).join("");
+  let uuid = range(14)
+    .map(() => {
+      const randomIndex = Math.floor(Math.random() * b58chars.length);
+      return b58chars[randomIndex];
+    })
+    .join("");
 
   console.log(uuid);
 });

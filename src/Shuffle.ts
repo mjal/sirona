@@ -246,7 +246,7 @@ function GetNIZKPChallenge(S: string) {
 
 function GetNIZKPChallenges(N: number, S: string) {
   const H = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(S));
-  return range(0, N-1).map((i) => {
+  return range(0, N - 1).map((i) => {
     const Hi = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(`${i}`));
     const r = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(H + Hi));
     return Z.modL(BigInt("0x" + r));

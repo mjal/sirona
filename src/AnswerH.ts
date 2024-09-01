@@ -71,7 +71,8 @@ export function verify(
         ballot.credential,
         answer.individual_proofs[j],
         answer.choices[j],
-        0, 1
+        0,
+        1,
       )
     ) {
       throw new Error("Invalid individual proofs");
@@ -79,12 +80,7 @@ export function verify(
   }
 
   if (question.blank) {
-    if (
-      !BlankProof.BlankProof.verify(
-        election,
-        ballot.credential,
-        answer)
-      ) {
+    if (!BlankProof.BlankProof.verify(election, ballot.credential, answer)) {
       throw new Error("Invalid blank proof");
     }
     if (
@@ -92,8 +88,9 @@ export function verify(
         election,
         ballot.credential,
         question,
-        answer)
-      ) {
+        answer,
+      )
+    ) {
       throw new Error("Invalid overall proof");
     }
   } else {
@@ -105,7 +102,8 @@ export function verify(
         ballot.credential + "|" + suffix,
         answer.overall_proof,
         eg,
-        question.min, question.max
+        question.min,
+        question.max,
       )
     ) {
       throw new Error("Invalid overall proof (without blank vote)");
@@ -119,13 +117,10 @@ export function generate(
   election: Election.t,
   question: Question.QuestionH.t,
   seed: string,
-  plaintexts: number[]
-) : Serialized.t {
+  plaintexts: number[],
+): Serialized.t {
   const y = Point.parse(election.public_key);
-  const { hPublicCredential } = Credential.derive(
-    election.uuid,
-    seed,
-  );
+  const { hPublicCredential } = Credential.derive(election.uuid, seed);
 
   let nonces: Array<bigint> = [];
   let ciphertexts: Array<Ciphertext.t> = [];
@@ -133,15 +128,22 @@ export function generate(
   for (let i = 0; i < plaintexts.length; i++) {
     const r = Z.randL();
     const { pAlpha, pBeta } = Ciphertext.encrypt(y, r, plaintexts[i]);
-    const proof = IndividualProof.generate(election, hPublicCredential, { pAlpha, pBeta }, r, plaintexts[i], [0, 1]);
+    const proof = IndividualProof.generate(
+      election,
+      hPublicCredential,
+      { pAlpha, pBeta },
+      r,
+      plaintexts[i],
+      [0, 1],
+    );
     ciphertexts.push({ pAlpha, pBeta });
     individual_proofs.push(proof);
     nonces.push(r);
   }
 
   if (question.blank) {
-    const isBlank = (plaintexts[0] === 1);
-    const egS = Ciphertext.combine(ciphertexts.slice(1))
+    const isBlank = plaintexts[0] === 1;
+    const egS = Ciphertext.combine(ciphertexts.slice(1));
     const eg0 = ciphertexts[0];
     const nRS = Z.sumL(nonces.slice(1));
     const nR0 = nonces[0];
@@ -164,15 +166,23 @@ export function generate(
         isBlank ? eg0 : egS,
         isBlank ? nRS : nR0,
         isBlank,
-      )
+      ),
     });
   } else {
     const egS = Ciphertext.combine(ciphertexts);
     const m = plaintexts.reduce((acc, c) => c + acc, 0);
     const M = range(question.min, question.max);
     const nR = Z.sumL(nonces);
-    let prefix = hPublicCredential + "|" + ciphertexts.map(Ciphertext.toString).join(",")
-    const overall_proof = IndividualProof.generate(election, prefix, egS, nR, m, M);
+    let prefix =
+      hPublicCredential + "|" + ciphertexts.map(Ciphertext.toString).join(",");
+    const overall_proof = IndividualProof.generate(
+      election,
+      prefix,
+      egS,
+      nR,
+      m,
+      M,
+    );
 
     return serialize({
       choices: ciphertexts,

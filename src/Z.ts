@@ -12,8 +12,12 @@ export const mod = (a: bigint, b: bigint) => {
   }
   return remainder;
 };
-export const modQ = (a: bigint) => { return mod(a, q); }
-export const modL = (a: bigint) => { return mod(a, L); }
+export const modQ = (a: bigint) => {
+  return mod(a, q);
+};
+export const modL = (a: bigint) => {
+  return mod(a, L);
+};
 
 function egcd(a: bigint, b: bigint): [bigint, bigint, bigint] {
   if (b === 0n) {
@@ -42,4 +46,4 @@ export const sumL = (numbers: bigint[]) => {
   return numbers.reduce((acc: bigint, n: bigint) => {
     return modL(acc + n);
   }, 0n);
-}
+};
