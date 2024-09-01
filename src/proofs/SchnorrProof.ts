@@ -1,7 +1,7 @@
 import * as Proof from "../Proof";
 import * as Point from "../Point";
 import * as Z from "../Z";
-import { H } from "../math";
+import H from "../H";
 
 export function verify(hash: string, public_key: Point.t, proof: Proof.t) {
   const A = Point.compute_commitment(Point.g, public_key, proof);

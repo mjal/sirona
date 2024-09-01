@@ -1,12 +1,5 @@
 import * as Point from "./Point";
-import * as Z from "./Z";
-import sjcl from "sjcl";
-
-export function H(prefix: string, ...commitments: Array<Point.t>) {
-  const str = `${prefix}|${commitments.map(Point.serialize).join(",")}`;
-  const h = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(str));
-  return Z.modL(BigInt("0x" + h));
-}
+import H from "./H";
 
 export function Hbproof0(S: string, ...commitments: Array<Point.t>) {
   return H(`bproof0|${S}`, ...commitments);
