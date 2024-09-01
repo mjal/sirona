@@ -67,25 +67,6 @@ export default function (
   return ballot;
 }
 
-function checkVotingCode(setup: Setup.t, sPriv: string) {
-  if (!Credential.checkFormat(sPriv)) {
-    throw new Error(
-      "Credential format should be be XXXXX-XXXXXX-XXXXX-XXXXXX.",
-    );
-  }
-
-  const { hPublicCredential } = Credential.derive(
-    setup.election.uuid,
-    sPriv,
-  );
-
-  if (!Credential.find(setup.credentials, hPublicCredential)) {
-    throw "Invalid credential.";
-  }
-
-  return true;
-}
-
 function generateAnswer(
   election: Election.t,
   question: any,
