@@ -87,14 +87,7 @@ export function verify(
     .map((cs: any) => cs.map(Ciphertext.toString).join(","))
     .join(",");
 
-  if (!IndividualProof.verify(
-      election,
-      S,
-      [ answer.overall_proof ],
-      eg,
-      1,
-      1,
-    )) {
+  if (!IndividualProof.verify(election, S, [answer.overall_proof], eg, 1, 1)) {
     throw new Error("Invalid overall proof");
   }
 
