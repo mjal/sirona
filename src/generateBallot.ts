@@ -10,6 +10,8 @@ import * as Credential from "./Credential";
 import * as Election from "./Election";
 import * as Setup from "./Setup";
 import * as Z from "./Z";
+import * as Question from "./Question";
+import * as AnswerH from "./AnswerH";
 import { range } from "./utils";
 
 export default function (
@@ -34,12 +36,17 @@ export default function (
     throw "Invalid credential.";
   }
 
-  let answers: Array<Answer.AnswerH.Serialized.t> = [];
-  for (let i = 0; i < plaintexts.length; i++) {
-    const question = election.questions[i];
-    const answer = generateAnswer(election, question, sPriv, plaintexts[i]);
-    answers.push(answer);
-  }
+  const answers = election.questions.map((question, i) => {
+    if (Question.IsQuestionH(question)) {
+      return AnswerH.generate(election, question, sPriv, plaintexts[i]);
+    } else if (Question.IsQuestionL(question)) {
+      throw new Error("Unsupported question type");
+    } else if (Question.IsQuestionNH(question)) {
+      throw new Error("Unsupported question type");
+    } else {
+      throw new Error("Unknown question type");
+    }
+  });
 
   let ballot : Ballot.t = {
     answers,
@@ -59,77 +66,4 @@ export default function (
   Ballot.verify(setup, ballot);
 
   return ballot;
-}
-
-function generateAnswer(
-  election: Election.t,
-  question: any,
-  sPriv: string,
-  plaintexts: Array<number>
-): Answer.AnswerH.Serialized.t {
-  let nonces: Array<bigint> = [];
-  let ciphertexts: Array<Ciphertext.t> = [];
-  let individual_proofs: Array<Array<Proof.t>> = [];
-  const y = Point.parse(election.public_key);
-  const { hPublicCredential } = Credential.derive(
-    election.uuid,
-    sPriv,
-  );
-
-  for (let i = 0; i < plaintexts.length; i++) {
-    const r = Z.randL();
-    const { pAlpha, pBeta } = Ciphertext.encrypt(y, r, plaintexts[i]);
-
-    const proof = IndividualProof.generate(election, hPublicCredential, { pAlpha, pBeta }, r, plaintexts[i], [0, 1]);
-
-    ciphertexts.push({ pAlpha, pBeta });
-    individual_proofs.push(proof);
-    nonces.push(r);
-  }
-
-  if (question.blank) {
-    const egS = Ciphertext.combine(ciphertexts.slice(1))
-    const eg0 = ciphertexts[0];
-    const nRS = Z.sumL(nonces.slice(1));
-    const nR0 = nonces[0];
-
-    const isBlank = (plaintexts[0] === 1);
-
-    let overall_proof = BlankProof.OverallProof.generate(
-      election,
-      hPublicCredential,
-      question,
-      plaintexts,
-      ciphertexts,
-      nonces,
-    );
-    const blank_proof = BlankProof.BlankProof.generate(
-      election,
-      hPublicCredential,
-      ciphertexts,
-      isBlank ? eg0 : egS,
-      isBlank ? nRS : nR0,
-      isBlank,
-    );
-    return Answer.AnswerH.serialize({
-      choices: ciphertexts,
-      individual_proofs,
-      overall_proof,
-      blank_proof,
-    });
-  } else {
-    const egS = Ciphertext.combine(ciphertexts);
-    const m = plaintexts.reduce((acc, c) => c + acc, 0);
-    const M = range(question.min, question.max);
-    const nR = Z.sumL(nonces);
-
-    let prefix = hPublicCredential + "|" + ciphertexts.map(Ciphertext.toString).join(",")
-    const overall_proof = IndividualProof.generate(election, prefix, egS, nR, m, M);
-
-    return Answer.AnswerH.serialize({
-      choices: ciphertexts,
-      individual_proofs,
-      overall_proof,
-    });
-  }
 }

@@ -1,4 +1,4 @@
-import { map2 } from "./utils";
+import { map2, range } from "./utils";
 import * as Proof from "./Proof";
 import * as IndividualProof from "./proofs/IndividualProof";
 import * as BlankProof from "./proofs/BlankProof";
@@ -6,6 +6,9 @@ import * as Ciphertext from "./Ciphertext";
 import * as Election from "./Election";
 import * as Question from "./Question";
 import * as Ballot from "./Ballot";
+import * as Point from "./Point";
+import * as Credential from "./Credential";
+import * as Z from "./Z";
 
 export type t = {
   choices: Array<Ciphertext.t>;
@@ -110,4 +113,71 @@ export function verify(
   }
 
   return true;
+}
+
+export function generate(
+  election: Election.t,
+  question: Question.QuestionH.t,
+  seed: string,
+  plaintexts: number[]
+) : Serialized.t {
+  const y = Point.parse(election.public_key);
+  const { hPublicCredential } = Credential.derive(
+    election.uuid,
+    seed,
+  );
+
+  let nonces: Array<bigint> = [];
+  let ciphertexts: Array<Ciphertext.t> = [];
+  let individual_proofs: Array<Array<Proof.t>> = [];
+  for (let i = 0; i < plaintexts.length; i++) {
+    const r = Z.randL();
+    const { pAlpha, pBeta } = Ciphertext.encrypt(y, r, plaintexts[i]);
+    const proof = IndividualProof.generate(election, hPublicCredential, { pAlpha, pBeta }, r, plaintexts[i], [0, 1]);
+    ciphertexts.push({ pAlpha, pBeta });
+    individual_proofs.push(proof);
+    nonces.push(r);
+  }
+
+  if (question.blank) {
+    const isBlank = (plaintexts[0] === 1);
+    const egS = Ciphertext.combine(ciphertexts.slice(1))
+    const eg0 = ciphertexts[0];
+    const nRS = Z.sumL(nonces.slice(1));
+    const nR0 = nonces[0];
+
+    return serialize({
+      choices: ciphertexts,
+      individual_proofs,
+      overall_proof: BlankProof.OverallProof.generate(
+        election,
+        hPublicCredential,
+        question,
+        plaintexts,
+        ciphertexts,
+        nonces,
+      ),
+      blank_proof: BlankProof.BlankProof.generate(
+        election,
+        hPublicCredential,
+        ciphertexts,
+        isBlank ? eg0 : egS,
+        isBlank ? nRS : nR0,
+        isBlank,
+      )
+    });
+  } else {
+    const egS = Ciphertext.combine(ciphertexts);
+    const m = plaintexts.reduce((acc, c) => c + acc, 0);
+    const M = range(question.min, question.max);
+    const nR = Z.sumL(nonces);
+    let prefix = hPublicCredential + "|" + ciphertexts.map(Ciphertext.toString).join(",")
+    const overall_proof = IndividualProof.generate(election, prefix, egS, nR, m, M);
+
+    return serialize({
+      choices: ciphertexts,
+      individual_proofs,
+      overall_proof,
+    });
+  }
 }
