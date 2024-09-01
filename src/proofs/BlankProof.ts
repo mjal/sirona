@@ -5,7 +5,7 @@ import * as Election from "../Election";
 import * as Point from "../Point";
 import * as Ciphertext from "../Ciphertext";
 import * as Z from "../Z";
-import { Hbproof0, Hbproof1 } from "../math";
+import H from "../H";
 import { range } from "../utils";
 
 export namespace OverallProof {
@@ -196,4 +196,12 @@ export namespace BlankProof {
       return [proofB, proofA];
     }
   }
+}
+
+function Hbproof0(S: string, ...commitments: Array<Point.t>) {
+  return H(`bproof0|${S}`, ...commitments);
+}
+
+function Hbproof1(S: string, ...commitments: Array<Point.t>) {
+  return H(`bproof1|${S}`, ...commitments);
 }
