@@ -41,7 +41,7 @@ export function toJSON(ballot: t, election: Election.t): t {
     signature: { hash: "", proof: { challenge: "", response: "" } },
   };
 
-  if (ballot.signature.hash) {
+  if (ballot.signature) {
     obj["signature"] = {
       hash: ballot.signature.hash,
       proof: Proof.serialize(Proof.parse(ballot.signature.proof)),

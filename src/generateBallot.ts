@@ -41,18 +41,12 @@ export default function (
     answers.push(answer);
   }
 
-  let ballot = {
+  let ballot : Ballot.t = {
     answers,
     credential: hPublicCredential,
     election_hash: Election.fingerprint(election),
     election_uuid: setup.election.uuid,
-    signature: {
-      hash: null,
-      proof: {
-        challenge: null,
-        response: null,
-      },
-    },
+    signature: null,
   };
 
   const hash = Ballot.b64hashWithoutSignature(ballot, election);
