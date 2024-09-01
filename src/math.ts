@@ -2,7 +2,7 @@ import * as Point from "./Point";
 import * as Z from "./Z";
 import sjcl from "sjcl";
 
-function H(prefix: string, ...commitments: Array<Point.t>) {
+export function H(prefix: string, ...commitments: Array<Point.t>) {
   const str = `${prefix}|${commitments.map(Point.serialize).join(",")}`;
   const h = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(str));
   return Z.modL(BigInt("0x" + h));
@@ -24,10 +24,6 @@ export function Hbproof0(S: string, ...commitments: Array<Point.t>) {
 
 export function Hbproof1(S: string, ...commitments: Array<Point.t>) {
   return H(`bproof1|${S}`, ...commitments);
-}
-
-export function Hsignature(S: string, A: Point.t) {
-  return H(`sig|${S}`, A);
 }
 
 export function Hpok(S: string, A: Point.t) {
