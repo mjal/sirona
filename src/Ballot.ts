@@ -1,6 +1,7 @@
 import sjcl from "sjcl";
 import * as Credential from "./Credential";
 import * as Proof from "./Proof";
+import * as SchnorrProof from "./proofs/SchnorrProof";
 import * as Point from "./Point";
 import * as Answer from "./Answer";
 import * as Election from "./Election";
@@ -51,25 +52,36 @@ export function toJSON(ballot: t, election: Election.t): t {
 }
 
 export function verify(setup: Setup.t, ballot: t) {
-  if (setup.election.uuid !== ballot.election_uuid) {
+  const { election, credentials } = setup;
+
+  if (election.uuid !== ballot.election_uuid) {
     throw new Error("election_uuid is incorrect");
   }
 
-  if (Election.fingerprint(setup.election) !== ballot.election_hash) {
+  if (Election.fingerprint(election) !== ballot.election_hash) {
     throw new Error("election_hash is incorrect");
   }
 
-  if (!Credential.find(setup.credentials, ballot.credential)) {
+  if (!Credential.find(credentials, ballot.credential)) {
     throw new Error("Credential not found");
   }
 
-  verifySignature(ballot, setup.election);
+  const recomputedHash = b64hashWithoutSignature(ballot, election);
+  if (ballot.signature.hash !== recomputedHash) {
+    throw new Error("Ballot recomputed hash is incorrect");
+  }
 
-  for (let i = 0; i < setup.election.questions.length; i++) {
+  const public_key = Point.parse(ballot.credential);
+  const proof = Proof.parse(ballot.signature.proof);
+  if (!SchnorrProof.verify(ballot.signature.hash, public_key, proof)) {
+    throw new Error("Invalid signature");
+  }
+
+  for (let i = 0; i < election.questions.length; i++) {
     Answer.verify(
-      setup.election,
+      election,
       ballot,
-      setup.election.questions[i],
+      election.questions[i],
       ballot.answers[i],
     );
   }
