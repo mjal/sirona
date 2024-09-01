@@ -6,7 +6,6 @@ import { Command } from "commander";
 import * as Archive from "../Archive";
 import * as Ballot from "../Ballot";
 import * as Election from "../Election";
-import generateBallot from "../generateBallot";
 import check from "../check";
 
 const program = new Command();
