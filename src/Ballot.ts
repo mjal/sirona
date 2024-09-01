@@ -51,7 +51,13 @@ export function toJSON(ballot: t, election: Election.t): t {
 }
 
 export function verify(setup: Setup.t, ballot: t) {
-  verifyMisc(ballot, setup.election);
+  if (setup.election.uuid !== ballot.election_uuid) {
+    throw new Error("election_uuid is incorrect");
+  }
+
+  if (Election.fingerprint(setup.election) !== ballot.election_hash) {
+    throw new Error("election_hash is incorrect");
+  }
 
   if (!Credential.find(setup.credentials, ballot.credential)) {
     throw new Error("Credential not found");
@@ -66,17 +72,6 @@ export function verify(setup: Setup.t, ballot: t) {
       setup.election.questions[i],
       ballot.answers[i],
     );
-  }
-}
-
-function verifyMisc(ballot: t, election: Election.t) {
-  if (
-    !(
-      election.uuid === ballot.election_uuid &&
-      Election.fingerprint(election) === ballot.election_hash
-    )
-  ) {
-    throw new Error("election_uuid or election_hash is incorrect");
   }
 }
 
