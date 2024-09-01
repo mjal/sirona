@@ -1,6 +1,6 @@
 import * as Proof from "../Proof";
 import * as Point from "../Point";
-import * as Z from "../Z";
+import * as Zq from "../Zq";
 import H from "../H";
 
 export function verify(hash: string, public_key: Point.t, proof: Proof.t) {
@@ -10,11 +10,11 @@ export function verify(hash: string, public_key: Point.t, proof: Proof.t) {
 }
 
 export function generate(hash: string, private_key: bigint) {
-  const w = Z.randL();
+  const w = Zq.rand();
   const A = Point.g.multiply(w);
 
   const nChallenge = H_signature(hash, A);
-  const nResponse = Z.modL(w - private_key * nChallenge);
+  const nResponse = Zq.mod(w - private_key * nChallenge);
 
   return { nChallenge, nResponse };
 }

@@ -4,7 +4,7 @@ import * as AnswerH from "../AnswerH";
 import * as Election from "../Election";
 import * as Point from "../Point";
 import * as Ciphertext from "../Ciphertext";
-import * as Z from "../Z";
+import * as Zq from "../Zq";
 import H from "../H";
 import { range } from "../utils";
 
@@ -34,7 +34,7 @@ export namespace OverallProof {
       );
       commitments.push(A, B);
     }
-    const challengeS = Z.sumL(
+    const challengeS = Zq.sum(
       answer.overall_proof.map(({ nChallenge }) => nChallenge),
     );
     let S = `${Election.fingerprint(election)}|${credential}|`;
@@ -55,13 +55,13 @@ export namespace OverallProof {
     const y = Point.parse(election.public_key);
     const mS = plaintexts.slice(1).reduce((acc, c) => c + acc, 0);
     const M = range(question.min, question.max);
-    const nRS = Z.sumL(nonces.slice(1));
-    const nW = Z.randL();
+    const nRS = Zq.sum(nonces.slice(1));
+    const nW = Zq.rand();
 
     if (plaintexts[0] === 0) {
       const proof0 = {
-        nChallenge: Z.randL(),
-        nResponse: Z.randL(),
+        nChallenge: Zq.rand(),
+        nResponse: Zq.rand(),
       };
       const [pA0, pB0] = Point.compute_commitment_pair(
         y,
@@ -83,7 +83,7 @@ export namespace OverallProof {
         azProofs.push(proof);
       }
 
-      const nChallengeS = Z.sumL(azProofs.map(({ nChallenge }) => nChallenge));
+      const nChallengeS = Zq.sum(azProofs.map(({ nChallenge }) => nChallenge));
 
       let S = `${Election.fingerprint(election)}|${prefix}|`;
       S += ciphertexts.map(Ciphertext.toString).join(",");
@@ -91,8 +91,8 @@ export namespace OverallProof {
 
       for (let j = 0; j < M.length; j++) {
         if (M[j] === mS) {
-          azProofs[j + 1].nChallenge = Z.modL(nH - nChallengeS);
-          azProofs[j + 1].nResponse = Z.modL(
+          azProofs[j + 1].nChallenge = Zq.mod(nH - nChallengeS);
+          azProofs[j + 1].nResponse = Zq.mod(
             nW - nRS * azProofs[j + 1].nChallenge,
           );
         }
@@ -110,8 +110,8 @@ export namespace OverallProof {
 
       let nChallengeS = BigInt(0);
       for (let j = 0; j < M.length; j++) {
-        const nChallenge = Z.randL();
-        const nResponse = Z.randL();
+        const nChallenge = Zq.rand();
+        const nResponse = Zq.rand();
         azProofs.push({ nChallenge, nResponse });
         const [pA, pB] = Point.compute_commitment_pair(
           y,
@@ -119,7 +119,7 @@ export namespace OverallProof {
           { nChallenge, nResponse },
           M[j],
         );
-        nChallengeS = Z.modL(nChallengeS + nChallenge);
+        nChallengeS = Zq.mod(nChallengeS + nChallenge);
         commitments.push(pA, pB);
       }
 
@@ -127,8 +127,8 @@ export namespace OverallProof {
       S += ciphertexts.map(Ciphertext.toString).join(",");
       const nH = Hbproof_1(S, ...commitments);
 
-      const nChallenge = Z.modL(nH - nChallengeS);
-      const nResponse = Z.modL(nW - nonces[0] * nChallenge);
+      const nChallenge = Zq.mod(nH - nChallengeS);
+      const nResponse = Zq.mod(nW - nonces[0] * nChallenge);
       azProofs[0] = { nChallenge, nResponse };
 
       return azProofs;
@@ -144,7 +144,7 @@ export namespace BlankProof {
   ): boolean {
     const y = Point.parse(election.public_key);
     const sumc = Ciphertext.combine(answer.choices.slice(1));
-    const challengeS = Z.sumL(
+    const challengeS = Zq.sum(
       answer.blank_proof.map(({ nChallenge }) => nChallenge),
     );
     const [pA0, pB0] = Point.compute_commitment_pair(
@@ -174,7 +174,7 @@ export namespace BlankProof {
     isBlank: boolean,
   ): Array<Proof.t> {
     const y = Point.parse(election.public_key);
-    const nW = Z.randL();
+    const nW = Zq.rand();
     const proofA = Proof.rand();
     const A0 = Point.g.multiply(nW);
     const B0 = y.multiply(nW);
@@ -186,8 +186,8 @@ export namespace BlankProof {
     const nH = isBlank
       ? Hbproof_0(S, AS, BS, A0, B0)
       : Hbproof_0(S, A0, B0, AS, BS);
-    const nChallenge = Z.modL(nH - proofA.nChallenge);
-    const nResponse = Z.modL(nW - nChallenge * nonce);
+    const nChallenge = Zq.mod(nH - proofA.nChallenge);
+    const nResponse = Zq.mod(nW - nChallenge * nonce);
     const proofB = { nChallenge, nResponse };
 
     if (isBlank) {

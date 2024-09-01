@@ -1,6 +1,6 @@
 import * as Ciphertext from "./Ciphertext";
 import * as Proof from "./Proof";
-import * as Z from "./Z";
+import * as Zq from "./Zq";
 import { ed25519 } from "@noble/curves/ed25519";
 import { mod, modInverse, q } from "./math";
 import type { ExtPointType as CurvePoint } from "@noble/curves/abstract/edwards.js";
@@ -59,7 +59,7 @@ export function check(p: t): boolean {
     // WARN: Compared to Belenios, we cannot compute p ** L due to
     // limitations of the library. We will use the following workaround:
     // (p ** ( L - 1 )) * p
-    isEqual(p.multiply(Z.L - 1n).add(p), zero)
+    isEqual(p.multiply(Zq.L - 1n).add(p), zero)
   );
 }
 

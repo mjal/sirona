@@ -9,7 +9,7 @@ import * as Ballot from "./Ballot";
 import * as Credential from "./Credential";
 import * as Election from "./Election";
 import * as Setup from "./Setup";
-import * as Z from "./Z";
+import * as Zq from "./Zq";
 import * as Question from "./Question";
 import * as AnswerH from "./AnswerH";
 import { range } from "./utils";

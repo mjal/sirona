@@ -1,5 +1,5 @@
 import { map2, map3 } from "./utils";
-import * as Z from "./Z";
+import * as Zq from "./Zq";
 import * as Proof from "./Proof";
 import * as IndividualProof from "./proofs/IndividualProof";
 import * as NonZeroProof from "./ProofNonZero";
@@ -158,7 +158,7 @@ function verifyListProofs(
       .map((cs: any) => cs.map(Ciphertext.toString).join(","))
       .join(",");
 
-    const challengeS = Z.modL(proofs[0].nChallenge + proofs[1].nChallenge);
+    const challengeS = Zq.mod(proofs[0].nChallenge + proofs[1].nChallenge);
 
     return (
       answer.choices[i].length === question.value.answers[i].length &&

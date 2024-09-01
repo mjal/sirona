@@ -1,5 +1,5 @@
 import sjcl from "sjcl";
-import * as Z from "./Z";
+import * as Zq from "./Zq";
 import * as Point from "./Point";
 import { range, b58chars } from "./utils";
 
@@ -14,7 +14,7 @@ export function derive(uuid: string, privcred: string) {
     sjcl.hash.sha256.hash(`${prefix}|1|${privcred}`),
   );
 
-  const nPrivateCredential = Z.modL(BigInt("0x" + x0 + x1));
+  const nPrivateCredential = Zq.mod(BigInt("0x" + x0 + x1));
   const pPublicCredential = Point.g.multiply(nPrivateCredential);
   const hPublicCredential = Point.serialize(pPublicCredential);
 

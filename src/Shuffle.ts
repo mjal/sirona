@@ -1,5 +1,5 @@
 import { range } from "./utils";
-import * as Z from "./Z";
+import * as Zq from "./Zq";
 import * as Point from "./Point";
 import * as Question from "./Question";
 import * as Election from "./Election";
@@ -155,7 +155,7 @@ function CheckShuffleProof(
   );
 
   const c_bar = Point.combine(cc).add(Point.combine(hh).negate());
-  const u = uu.reduce((acc, ui) => Z.modL(acc * ui), 1n);
+  const u = uu.reduce((acc, ui) => Zq.mod(acc * ui), 1n);
   const c_hat = cc_hat[cc_hat.length - 1].add(h.multiply(u).negate());
   const c_tilde = Point.combine(cc.map((ci, i) => ci.multiply(uu[i])));
 
@@ -241,7 +241,7 @@ function GetGenerators(N: number): Array<Point.t> {
 
 function GetNIZKPChallenge(S: string) {
   const r = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(S));
-  return Z.modL(BigInt("0x" + r));
+  return Zq.mod(BigInt("0x" + r));
 }
 
 function GetNIZKPChallenges(N: number, S: string) {
@@ -249,6 +249,6 @@ function GetNIZKPChallenges(N: number, S: string) {
   return range(0, N - 1).map((i) => {
     const Hi = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(`${i}`));
     const r = sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(H + Hi));
-    return Z.modL(BigInt("0x" + r));
+    return Zq.mod(BigInt("0x" + r));
   });
 }

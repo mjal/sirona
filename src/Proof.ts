@@ -1,7 +1,7 @@
 import * as Proof from "./Proof";
 import * as Ciphertext from "./Ciphertext";
 import * as Point from "./Point";
-import * as Z from "./Z";
+import * as Zq from "./Zq";
 import { Hdecrypt } from "./math";
 
 export type t = {
@@ -39,8 +39,8 @@ export function zero() {
 
 export function rand() {
   return {
-    nChallenge: Z.randL(),
-    nResponse: Z.randL(),
+    nChallenge: Zq.rand(),
+    nResponse: Zq.rand(),
   };
 }
 
