@@ -1,6 +1,5 @@
 <script setup>
 import { ref, reactive, computed } from "vue";
-import untar from "js-untar";
 import check from "../check";
 import LogSection from "./LogSection.vue";
 import ElectionInfo from "./ElectionInfo.vue";
