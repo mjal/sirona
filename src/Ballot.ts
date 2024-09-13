@@ -27,15 +27,7 @@ export function toJSON(ballot: t, election: Election.t): t {
     credential: ballot.credential,
     answers: election.questions.map((question, i) => {
       const answer = ballot.answers[i];
-      if (Answer.Serialized.IsAnswerH(answer, question)) {
-        return Answer.AnswerH.serialize(Answer.AnswerH.parse(answer));
-      } else if (Answer.Serialized.IsAnswerNH(answer, question)) {
-        return Answer.AnswerNH.serialize(Answer.AnswerNH.parse(answer));
-      } else if (Answer.Serialized.IsAnswerL(answer, question)) {
-        return Answer.AnswerL.serialize(Answer.AnswerL.parse(answer));
-      } else {
-        throw new Error("Unknown answer type");
-      }
+      return Answer.serialize(Answer.parse(answer, question), question);
     }),
     signature: ballot.signature
       ? {

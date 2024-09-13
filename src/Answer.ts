@@ -13,71 +13,62 @@ export type serialized_t =
   | AnswerL.serialized_t
   | AnswerNH.serialized_t;
 
+export function serialize(answer: t, question: Question.t): serialized_t {
+  if (Question.IsQuestionH(question)) {
+    return AnswerH.serialize(answer as AnswerH.t);
+  } else if (Question.IsQuestionNH(question)) {
+    return AnswerNH.serialize(answer as AnswerNH.t);
+  } else if (Question.IsQuestionL(question)) {
+    return AnswerL.serialize(answer as AnswerL.t);
+  } else {
+    throw new Error("Unknown answer type");
+  }
+}
+
+export function parse(answer: serialized_t, question: Question.t): t {
+  if (Question.IsQuestionH(question)) {
+    return AnswerH.parse(answer as AnswerH.serialized_t);
+  } else if (Question.IsQuestionNH(question)) {
+    return AnswerNH.parse(answer as AnswerNH.serialized_t);
+  } else if (Question.IsQuestionL(question)) {
+    return AnswerL.parse(answer as AnswerL.serialized_t);
+  } else {
+    throw new Error("Unknown answer type");
+  }
+}
+
 export function verify(
   election: Election.t,
   ballot: Ballot.t,
   question: Question.t,
   answer: serialized_t,
-) {
-  let verify = null;
-  if (
-    Serialized.IsAnswerH(answer, question) &&
-    Question.IsQuestionH(question)
-  ) {
-    verify = AnswerH.verify;
-  } else if (
-    Serialized.IsAnswerNH(answer, question) &&
-    Question.IsQuestionNH(question)
-  ) {
-    verify = AnswerNH.verify;
-  } else if (
-    Serialized.IsAnswerL(answer, question) &&
-    Question.IsQuestionL(question)
-  ) {
-    verify = AnswerL.verify;
+) : boolean {
+  if (IsH(answer, question) && Question.IsQuestionH(question)) {
+    return AnswerH.verify(election, ballot, question, answer);
+  } else if (IsNH(answer, question) && Question.IsQuestionNH(question)) {
+    return AnswerNH.verify(election, ballot, question, answer);
+  } else if (IsL(answer, question) && Question.IsQuestionL(question)) {
+    return AnswerL.verify(election, ballot, question, answer);
   } else {
     throw new Error("Unknown question type");
   }
-
-  verify(election, ballot, question, answer);
 }
 
-export function IsAnswerH(
-  answer: t,
+export function IsH(
+  answer: serialized_t,
   question: Question.t,
-): answer is AnswerH.t {
+): answer is AnswerH.serialized_t {
   return Question.IsQuestionH(question);
 }
-export function IsAnswerNH(
-  answer: t,
+export function IsNH(
+  answer: serialized_t,
   question: Question.t,
-): answer is AnswerNH.t {
+): answer is AnswerNH.serialized_t {
   return Question.IsQuestionNH(question);
 }
-export function IsAnswerL(
-  answer: t,
+export function IsL(
+  answer: serialized_t,
   question: Question.t,
-): answer is AnswerL.t {
+): answer is AnswerL.serialized_t {
   return Question.IsQuestionL(question);
-}
-
-export namespace Serialized {
-  export function IsAnswerH(
-    answer: serialized_t,
-    question: Question.t,
-  ): answer is AnswerH.serialized_t {
-    return Question.IsQuestionH(question);
-  }
-  export function IsAnswerNH(
-    answer: serialized_t,
-    question: Question.t,
-  ): answer is AnswerNH.serialized_t {
-    return Question.IsQuestionNH(question);
-  }
-  export function IsAnswerL(
-    answer: serialized_t,
-    question: Question.t,
-  ): answer is AnswerL.serialized_t {
-    return Question.IsQuestionL(question);
-  }
 }
