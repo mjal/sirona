@@ -42,7 +42,7 @@ export function verify(
   ballot: Ballot.t,
   question: Question.t,
   answer: serialized_t,
-) : boolean {
+): boolean {
   if (IsH(answer, question) && Question.IsQuestionH(question)) {
     return AnswerH.verify(election, ballot, question, answer);
   } else if (IsNH(answer, question) && Question.IsQuestionNH(question)) {

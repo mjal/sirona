@@ -20,17 +20,16 @@ export type serialized_t = Omit<t, "public_key"> & { public_key: string };
 export function parse(election: serialized_t): t {
   return {
     ...election,
-    public_key: Point.parse(election.public_key)
+    public_key: Point.parse(election.public_key),
   };
 }
 
 export function serialize(election: t): serialized_t {
   return {
     ...election,
-    public_key: Point.serialize(election.public_key)
+    public_key: Point.serialize(election.public_key),
   };
 }
-
 
 export function verify(election: t, trustees: Array<Trustee.t>) {
   if (!Point.isValid(election.public_key)) {
