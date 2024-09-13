@@ -2,12 +2,12 @@ import fs from "fs";
 import sjcl from "sjcl";
 import * as Event from "./Event";
 
-export async function readFile(filePath) {
+export async function readAsFile(filePath) {
   const data = await fs.promises.readFile(filePath);
   return read(data);
 }
 
-export async function readArrayBuffer(arrayBuffer) {
+export async function readAsArrayBuffer(arrayBuffer) {
   const data = new Uint8Array(arrayBuffer);
   return read(data);
 }

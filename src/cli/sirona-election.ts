@@ -16,7 +16,7 @@ program
   .option("-q, --quiet", "only show the final result")
   .action(async function (options) {
     const checkFile = async (filePath) => {
-      const files = await Archive.readFile(filePath);
+      const files = await Archive.readAsFile(filePath);
       const state = await check(files);
       const election = state.setup.election;
 
@@ -69,7 +69,7 @@ program
     if (!belFile) {
       throw new Error("No .bel files found");
     }
-    const files = await Archive.readFile(belFile);
+    const files = await Archive.readAsFile(belFile);
     const state = await check(files);
     const choiceFile = await fs.readFile(options.choice);
     const choice = JSON.parse(choiceFile.toString());

@@ -17,7 +17,7 @@ const onUploadedFile = (event) => {
   const reader = new window.FileReader();
   reader.onload = async () => {
     loading.value = true;
-    const files = await Archive.readArrayBuffer(reader.result);
+    const files = await Archive.readAsArrayBuffer(reader.result);
     check(files)
       .then((value) => {
         state.value = value;

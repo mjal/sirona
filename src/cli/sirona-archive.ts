@@ -84,7 +84,7 @@ program
     if (!belFile) {
       throw new Error("No .bel files found");
     }
-    const files = await Archive.readFile(belFile);
+    const files = await Archive.readAsFile(belFile);
     const lastEvent = files
       .reverse()
       .find((file: any) => file.name.split(".")[1] === "event");
