@@ -9,21 +9,19 @@ export type t = {
   nResponse: bigint;
 };
 
-export namespace Serialized {
-  export type t = {
-    challenge: string;
-    response: string;
-  };
-}
+export type serialized_t = {
+  challenge: string;
+  response: string;
+};
 
-export function serialize(proof: t): Serialized.t {
+export function serialize(proof: t): serialized_t {
   return {
     challenge: proof.nChallenge.toString(),
     response: proof.nResponse.toString(),
   };
 }
 
-export function parse(proof: Serialized.t): t {
+export function parse(proof: serialized_t): t {
   return {
     nChallenge: BigInt(proof.challenge),
     nResponse: BigInt(proof.response),

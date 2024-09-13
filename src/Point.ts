@@ -10,15 +10,13 @@ export const zero = ed25519.ExtendedPoint.ZERO;
 
 export type t = CurvePoint;
 
-export namespace Serialized {
-  export type t = string;
-}
+export type serialized_t = string;
 
-export function serialize(p: t): Serialized.t {
+export function serialize(p: t): serialized_t {
   return reverseByteOrder(p.toHex());
 }
 
-export function parse(str: Serialized.t): t {
+export function parse(str: serialized_t): t {
   return ed25519.ExtendedPoint.fromHex(reverseByteOrder(str));
 }
 

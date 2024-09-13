@@ -24,13 +24,11 @@ export function fromJSON(trustee: any) {
 
 namespace Single {
   export type t = ["Single", PublicKey.t];
-  export namespace Serialized {
-    export type t = ["Single", PublicKey.Serialized.t];
-  }
-  export function toJSON(trustee: Single.t): Single.Serialized.t {
+  export type serialized_t = ["Single", PublicKey.serialized_t];
+  export function toJSON(trustee: Single.t): Single.serialized_t {
     return ["Single", PublicKey.toJSON(trustee[1])];
   }
-  export function fromJSON(trustee: Single.Serialized.t): Single.t {
+  export function fromJSON(trustee: Single.serialized_t): Single.t {
     return ["Single", PublicKey.fromJSON(trustee[1])];
   }
 }
@@ -45,18 +43,16 @@ namespace Pedersen {
       verification_keys: Array<PublicKey.t>;
     },
   ];
-  export namespace Serialized {
-    export type t = [
-      "Pedersen",
-      {
-        threshold: number;
-        certs: Array<Message.Serialized.t>;
-        coefexps: Array<Message.Serialized.t>;
-        verification_keys: Array<PublicKey.Serialized.t>;
-      },
-    ];
-  }
-  export function toJSON(trustee: Pedersen.t): Pedersen.Serialized.t {
+  export type serialized_t = [
+    "Pedersen",
+    {
+      threshold: number;
+      certs: Array<Message.serialized_t>;
+      coefexps: Array<Message.serialized_t>;
+      verification_keys: Array<PublicKey.serialized_t>;
+    },
+  ];
+  export function toJSON(trustee: Pedersen.t): Pedersen.serialized_t {
     return [
       "Pedersen",
       {
@@ -67,7 +63,7 @@ namespace Pedersen {
       },
     ];
   }
-  export function fromJSON(trustee: Pedersen.Serialized.t): Pedersen.t {
+  export function fromJSON(trustee: Pedersen.serialized_t): Pedersen.t {
     return [
       "Pedersen",
       {
@@ -85,19 +81,17 @@ export namespace PublicKey {
     pok: Proof.t;
     public_key: Point.t;
   };
-  export namespace Serialized {
-    export type t = {
-      pok: Proof.Serialized.t;
-      public_key: Point.Serialized.t;
-    };
-  }
-  export function toJSON(o: t): Serialized.t {
+  export type serialized_t = {
+    pok: Proof.serialized_t;
+    public_key: Point.serialized_t;
+  };
+  export function toJSON(o: t): serialized_t {
     return {
       pok: Proof.serialize(o.pok),
       public_key: Point.serialize(o.public_key),
     };
   }
-  export function fromJSON(o: Serialized.t): t {
+  export function fromJSON(o: serialized_t): t {
     return {
       pok: Proof.parse(o.pok),
       public_key: Point.parse(o.public_key),
@@ -110,19 +104,17 @@ export namespace Message {
     message: string;
     signature: Proof.t;
   };
-  export namespace Serialized {
-    export type t = {
-      message: string;
-      signature: Proof.Serialized.t;
-    };
-  }
-  export function toJSON(o: t): Serialized.t {
+  export type serialized_t = {
+    message: string;
+    signature: Proof.serialized_t;
+  };
+  export function toJSON(o: t): serialized_t {
     return {
       message: o.message,
       signature: Proof.serialize(o.signature),
     };
   }
-  export function fromJSON(o: Serialized.t): t {
+  export function fromJSON(o: serialized_t): t {
     return {
       message: o.message,
       signature: Proof.parse(o.signature),
@@ -203,7 +195,7 @@ export function ownerIndexToTrusteeIndex(trustees: t[]) {
   return ret;
 }
 
-export function generate(): [bigint, Single.Serialized.t] {
+export function generate(): [bigint, Single.serialized_t] {
   const x = Zq.rand();
   const w = Zq.rand();
   const X = Point.g.multiply(x);

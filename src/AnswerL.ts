@@ -18,17 +18,15 @@ export type t = {
   nonzero_proof: NonZeroProof.t;
 };
 
-export namespace Serialized {
-  export type t = {
-    choices: Array<Array<Ciphertext.Serialized.t>>;
-    individual_proofs: Array<Array<Array<Proof.Serialized.t>>>;
-    overall_proof: Proof.Serialized.t;
-    list_proofs: Array<Array<Proof.Serialized.t>>;
-    nonzero_proof: NonZeroProof.Serialized.t;
-  };
-}
+export type serialized_t = {
+  choices: Array<Array<Ciphertext.serialized_t>>;
+  individual_proofs: Array<Array<Array<Proof.serialized_t>>>;
+  overall_proof: Proof.serialized_t;
+  list_proofs: Array<Array<Proof.serialized_t>>;
+  nonzero_proof: NonZeroProof.serialized_t;
+};
 
-export function parse(answer: Serialized.t): t {
+export function parse(answer: serialized_t): t {
   return {
     choices: map2(answer.choices, Ciphertext.parse),
     individual_proofs: map3(answer.individual_proofs, Proof.parse),
@@ -38,7 +36,7 @@ export function parse(answer: Serialized.t): t {
   };
 }
 
-export function serialize(answer: t): Serialized.t {
+export function serialize(answer: t): serialized_t {
   return {
     choices: map2(answer.choices, Ciphertext.serialize),
     individual_proofs: map3(answer.individual_proofs, Proof.serialize),
@@ -52,7 +50,7 @@ export function verify(
   election: Election.t,
   ballot: Ballot.t,
   question: Question.QuestionL.t,
-  serializedAnswer: Serialized.t,
+  serializedAnswer: serialized_t,
 ): boolean {
   const answer = parse(serializedAnswer);
 

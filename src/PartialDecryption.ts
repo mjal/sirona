@@ -10,8 +10,8 @@ import * as Question from "./Question";
 export type t = {
   owner: number;
   payload: {
-    decryption_factors: Array<Array<Point.Serialized.t>>;
-    decryption_proofs: Array<Array<Proof.Serialized.t>>;
+    decryption_factors: Point.serialized_t[][];
+    decryption_proofs: Proof.serialized_t[][];
   };
 };
 

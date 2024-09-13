@@ -17,16 +17,14 @@ export type t = {
   blank_proof?: Array<Proof.t>;
 };
 
-export namespace Serialized {
-  export type t = {
-    choices: Array<Ciphertext.Serialized.t>;
-    individual_proofs: Array<Array<Proof.Serialized.t>>;
-    overall_proof: Array<Proof.Serialized.t>;
-    blank_proof?: Array<Proof.Serialized.t>;
-  };
-}
+export type serialized_t = {
+  choices: Array<Ciphertext.serialized_t>;
+  individual_proofs: Array<Array<Proof.serialized_t>>;
+  overall_proof: Array<Proof.serialized_t>;
+  blank_proof?: Array<Proof.serialized_t>;
+};
 
-export function parse(answer: Serialized.t): t {
+export function parse(answer: serialized_t): t {
   let obj: t = {
     choices: answer.choices.map(Ciphertext.parse),
     individual_proofs: map2(answer.individual_proofs, Proof.parse),
@@ -38,8 +36,8 @@ export function parse(answer: Serialized.t): t {
   return obj;
 }
 
-export function serialize(answer: t): Serialized.t {
-  let obj: Serialized.t = {
+export function serialize(answer: t): serialized_t {
+  let obj: serialized_t = {
     choices: answer.choices.map(Ciphertext.serialize),
     individual_proofs: map2(answer.individual_proofs, Proof.serialize),
     overall_proof: answer.overall_proof.map(Proof.serialize),
@@ -54,7 +52,7 @@ export function verify(
   election: Election.t,
   ballot: Ballot.t,
   question: Question.QuestionH.t,
-  serializedAnswer: Serialized.t,
+  serializedAnswer: serialized_t,
 ): boolean {
   const answer = parse(serializedAnswer);
 
@@ -118,7 +116,7 @@ export function generate(
   question: Question.QuestionH.t,
   seed: string,
   plaintexts: number[],
-): Serialized.t {
+): serialized_t {
   const y = Point.parse(election.public_key);
   const { hPublicCredential } = Credential.derive(election.uuid, seed);
 

@@ -12,10 +12,10 @@ export type t = {
   election_uuid: string;
   election_hash: string;
   credential: string;
-  answers: Array<Answer.Serialized.t>;
+  answers: Array<Answer.serialized_t>;
   signature: {
     hash: string;
-    proof: Proof.Serialized.t;
+    proof: Proof.serialized_t;
   };
 };
 

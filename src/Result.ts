@@ -12,7 +12,7 @@ import * as PartialDecryption from "./PartialDecryption";
 import * as Shuffle from "./Shuffle";
 
 export type t = {
-  result: Array<Array<number>>;
+  result: number[][];
 };
 
 export function verify(

@@ -11,21 +11,19 @@ export type t = {
   proof: Proof.t;
 };
 
-export namespace Serialized {
-  export type t = {
-    choices: Ciphertext.Serialized.t;
-    proof: Proof.Serialized.t;
-  };
-}
+export type serialized_t = {
+  choices: Ciphertext.serialized_t;
+  proof: Proof.serialized_t;
+};
 
-export function parse(answer: Serialized.t): t {
+export function parse(answer: serialized_t): t {
   return {
     choices: Ciphertext.parse(answer.choices),
     proof: Proof.parse(answer.proof),
   };
 }
 
-export function serialize(answer: t): Serialized.t {
+export function serialize(answer: t): serialized_t {
   return {
     choices: Ciphertext.serialize(answer.choices),
     proof: Proof.serialize(answer.proof),
@@ -36,7 +34,7 @@ export function verify(
   election: Election.t,
   ballot: Ballot.t,
   question: Question.QuestionNH.t,
-  serializedAnswer: Serialized.t,
+  serializedAnswer: serialized_t,
 ) {
   const answer = parse(serializedAnswer);
 

@@ -1,18 +1,11 @@
-import * as Point from "./Point";
-import * as Ciphertext from "./Ciphertext";
 import * as Proof from "./Proof";
 import * as SchnorrProof from "./proofs/SchnorrProof";
-import * as IndividualProof from "./proofs/IndividualProof";
-import * as BlankProof from "./proofs/BlankProof";
-import * as Answer from "./Answer";
 import * as Ballot from "./Ballot";
 import * as Credential from "./Credential";
 import * as Election from "./Election";
 import * as Setup from "./Setup";
-import * as Zq from "./Zq";
 import * as Question from "./Question";
 import * as AnswerH from "./AnswerH";
-import { range } from "./utils";
 
 export default function (
   setup: Setup.t,

@@ -8,7 +8,7 @@ export type t = {
   description: string;
   name: string;
   group: string;
-  public_key: Point.Serialized.t;
+  public_key: Point.serialized_t;
   questions: Array<Question.t>;
   uuid: string;
   administrator?: string;

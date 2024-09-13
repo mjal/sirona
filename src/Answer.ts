@@ -8,18 +8,16 @@ export { AnswerH, AnswerL, AnswerNH };
 
 export type t = AnswerH.t | AnswerNH.t | AnswerL.t;
 
-export namespace Serialized {
-  export type t =
-    | AnswerH.Serialized.t
-    | AnswerL.Serialized.t
-    | AnswerNH.Serialized.t;
-}
+export type serialized_t =
+  | AnswerH.serialized_t
+  | AnswerL.serialized_t
+  | AnswerNH.serialized_t;
 
 export function verify(
   election: Election.t,
   ballot: Ballot.t,
   question: Question.t,
-  answer: Serialized.t,
+  answer: serialized_t,
 ) {
   let verify = null;
   if (
@@ -65,21 +63,21 @@ export function IsAnswerL(
 
 export namespace Serialized {
   export function IsAnswerH(
-    answer: t,
+    answer: serialized_t,
     question: Question.t,
-  ): answer is AnswerH.Serialized.t {
+  ): answer is AnswerH.serialized_t {
     return Question.IsQuestionH(question);
   }
   export function IsAnswerNH(
-    answer: t,
+    answer: serialized_t,
     question: Question.t,
-  ): answer is AnswerNH.Serialized.t {
+  ): answer is AnswerNH.serialized_t {
     return Question.IsQuestionNH(question);
   }
   export function IsAnswerL(
-    answer: t,
+    answer: serialized_t,
     question: Question.t,
-  ): answer is AnswerL.Serialized.t {
+  ): answer is AnswerL.serialized_t {
     return Question.IsQuestionL(question);
   }
 }

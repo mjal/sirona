@@ -5,7 +5,7 @@ import * as Election from "./Election";
 export type t = {
   trustees: Trustee.t[];
   election: Election.t;
-  credentials: Array<string>;
+  credentials: string[];
 };
 
 export function verify(setup: t) {

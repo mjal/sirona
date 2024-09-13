@@ -6,15 +6,13 @@ export type t = {
   nResponse: [bigint, bigint];
 };
 
-export namespace Serialized {
-  export type t = {
-    commitment: string;
-    challenge: string;
-    response: [string, string];
-  };
-}
+export type serialized_t = {
+  commitment: string;
+  challenge: string;
+  response: [string, string];
+};
 
-export function serialize(proof: t): Serialized.t {
+export function serialize(proof: t): serialized_t {
   return {
     commitment: Point.serialize(proof.pCommitment),
     challenge: proof.nChallenge.toString(),
@@ -22,7 +20,7 @@ export function serialize(proof: t): Serialized.t {
   };
 }
 
-export function parse(proof: Serialized.t): t {
+export function parse(proof: serialized_t): t {
   return {
     pCommitment: Point.parse(proof.commitment),
     nChallenge: BigInt(proof.challenge),

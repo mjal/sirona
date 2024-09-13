@@ -43,7 +43,7 @@ export function parse(o: any): t {
   res.owner = o.owner;
   res.payload = {};
   res.payload.ciphertexts = o.payload.ciphertexts.map(
-    (c: Array<Ciphertext.Serialized.t>) => c.map(Ciphertext.parse),
+    (c: Array<Ciphertext.serialized_t>) => c.map(Ciphertext.parse),
   );
   let proofs = o.payload.proofs.map((p: any) => {
     let [t, s, c, c_hat] = o.payload.proofs[0];
