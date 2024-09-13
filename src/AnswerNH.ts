@@ -55,7 +55,7 @@ function verifyProof(
   _question: Question.QuestionNH.t,
   answer: t,
 ) {
-  const y = Point.parse(election.public_key);
+  const y = election.public_key;
   const { choices, proof } = answer;
   const A = Point.compute_commitment(Point.g, choices.pAlpha, proof);
   const S = `${Election.fingerprint(election)}|${ballot.credential}`;

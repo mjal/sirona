@@ -5,7 +5,6 @@ import { Command } from "commander";
 import { range, b58chars } from "../utils";
 import * as Credential from "../Credential";
 import * as Trustee from "../Trustee";
-import * as Point from "../Point";
 import * as Election from "../Election";
 
 const program = new Command();
@@ -105,14 +104,14 @@ program
       description,
       name,
       group: "Ed25519",
-      public_key: Point.serialize(public_key),
+      public_key,
       questions,
       uuid: options.uuid,
     };
 
     await fs.promises.writeFile(
       `election.json`,
-      JSON.stringify(election, null, 0),
+      JSON.stringify(Election.serialize(election), null, 0),
     );
   });
 

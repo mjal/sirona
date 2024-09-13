@@ -16,7 +16,7 @@ export namespace OverallProof {
     answer: AnswerH.t,
   ): boolean {
     let commitments = [];
-    const y = Point.parse(election.public_key);
+    const y = election.public_key;
     const sumc = Ciphertext.combine(answer.choices.slice(1));
     const [A, B] = Point.compute_commitment_pair(
       y,
@@ -52,7 +52,7 @@ export namespace OverallProof {
     nonces: Array<bigint>,
   ): Array<Proof.t> {
     const egS = Ciphertext.combine(ciphertexts.slice(1));
-    const y = Point.parse(election.public_key);
+    const y = election.public_key;
     const mS = plaintexts.slice(1).reduce((acc, c) => c + acc, 0);
     const M = range(question.min, question.max);
     const nRS = Zq.sum(nonces.slice(1));
@@ -142,7 +142,7 @@ export namespace BlankProof {
     credential: string,
     answer: AnswerH.t,
   ): boolean {
-    const y = Point.parse(election.public_key);
+    const y = election.public_key;
     const sumc = Ciphertext.combine(answer.choices.slice(1));
     const challengeS = Zq.sum(
       answer.blank_proof.map(({ nChallenge }) => nChallenge),
@@ -173,7 +173,7 @@ export namespace BlankProof {
     nonce: bigint,
     isBlank: boolean,
   ): Array<Proof.t> {
-    const y = Point.parse(election.public_key);
+    const y = election.public_key;
     const nW = Zq.rand();
     const proofA = Proof.rand();
     const A0 = Point.g.multiply(nW);

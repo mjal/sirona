@@ -13,13 +13,13 @@ export function verify(
   min: number,
   max: number,
 ) {
-  const pY = Point.parse(election.public_key);
+  const y = election.public_key;
   const S = `${Election.fingerprint(election)}|${prefix}`;
   const challengeS = Zq.sum(proof.map(({ nChallenge }) => nChallenge));
 
   let commitments = [];
   for (let j = 0; j <= max - min; j++) {
-    const [A, B] = Point.compute_commitment_pair(pY, eg, proof[j], min + j);
+    const [A, B] = Point.compute_commitment_pair(y, eg, proof[j], min + j);
     commitments.push(A, B);
   }
 
@@ -34,7 +34,7 @@ export function generate(
   m: number,
   M: Array<number>, // NOTE: Could be replaced by max and min
 ) {
-  const y = Point.parse(election.public_key);
+  const y = election.public_key;
   const w = Zq.rand();
 
   let commitments: Array<Point.t> = [];

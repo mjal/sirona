@@ -6,6 +6,7 @@ import * as Trustee from "./Trustee";
 import * as EncryptedTally from "./EncryptedTally";
 import * as PartialDecryption from "./PartialDecryption";
 import * as Result from "./Result";
+import * as Election from "./Election";
 
 export type t = {
   setup: Setup.t;
@@ -49,7 +50,7 @@ export default function (rawFiles: Array<any>) {
   state.setup = {
     ...setup,
     credentials: findData(files, setup.credentials),
-    election: findData(files, setup.election),
+    election: Election.parse(findData(files, setup.election)),
     trustees: findData(files, setup.trustees).map(Trustee.fromJSON),
   };
 

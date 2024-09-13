@@ -117,7 +117,7 @@ export function generate(
   seed: string,
   plaintexts: number[],
 ): serialized_t {
-  const y = Point.parse(election.public_key);
+  const y = election.public_key;
   const { hPublicCredential } = Credential.derive(election.uuid, seed);
 
   let nonces: Array<bigint> = [];

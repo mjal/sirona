@@ -105,7 +105,7 @@ function CheckShuffleProof(
   output: Array<Ciphertext.t>,
   proof: shuffle_proof,
 ) {
-  const y = Point.parse(election.public_key);
+  const y = election.public_key;
   const [t, s, cc, cc_hat] = proof;
   const [t1, t2, t3, [t41, t42], t_hat] = t;
   const [s1, s2, s3, s4, s_hat, s_prime] = s;

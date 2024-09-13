@@ -106,7 +106,7 @@ function verifyNonZeroProof(
   _question: Question.QuestionL.t,
   answer: t,
 ): boolean {
-  const pY = Point.parse(election.public_key);
+  const y = election.public_key;
 
   const ct = Ciphertext.combine(
     answer.choices.map((choices) => {
@@ -123,7 +123,7 @@ function verifyNonZeroProof(
   }
 
   const A1 = ct.pAlpha.multiply(t1).add(Point.g.multiply(t2));
-  const A2 = ct.pBeta.multiply(t1).add(pY.multiply(t2)).add(A0.multiply(c));
+  const A2 = ct.pBeta.multiply(t1).add(y.multiply(t2)).add(A0.multiply(c));
 
   let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
   S += answer.choices
@@ -139,17 +139,17 @@ function verifyListProofs(
   question: Question.QuestionL.t,
   answer: t,
 ): boolean {
-  const pY = Point.parse(election.public_key);
+  const y = election.public_key;
 
   for (let i = 0; i < question.value.answers.length; i++) {
     const proofs = answer.list_proofs[i];
     const ct0 = answer.choices[i][0];
     const ct = Ciphertext.combine(answer.choices[i].slice(1));
 
-    const [A0, B0] = Point.compute_commitment_pair(pY, ct0, proofs[0], 1);
+    const [A0, B0] = Point.compute_commitment_pair(y, ct0, proofs[0], 1);
 
     const A1 = Point.compute_commitment(Point.g, ct.pAlpha, proofs[1]);
-    const B1 = Point.compute_commitment(pY, ct.pBeta, proofs[1]);
+    const B1 = Point.compute_commitment(y, ct.pBeta, proofs[1]);
 
     let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
     S += answer.choices
