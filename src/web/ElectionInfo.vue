@@ -64,7 +64,7 @@ const hasResult = props.state.result ? true : false;
         v-for="(question, index) in election.questions"
         v-bind:key="index"
       >
-        <Question :question="question" />
+        <Question :index="index" :question="question" />
       </template>
     </ul>
   </template>

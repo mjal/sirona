@@ -2,7 +2,8 @@
 import { ref, reactive, computed } from "vue";
 import check from "../check";
 import LogSection from "./LogSection.vue";
-import ElectionInfo from "./ElectionInfo.vue";
+import Election from "./Election.vue";
+import Trustees from "./Trustees.vue";
 import ElectionResult from "./ElectionResult.vue";
 import ElectionBallotList from "./ElectionBallotList.vue";
 import GenerateBallotModal from "./GenerateBallotModal.vue";
@@ -92,7 +93,8 @@ const onUploadedFile = (event) => {
     <ul class="uk-switcher uk-margin">
       <li>
         <div v-if="!loaded">Not loaded yet.</div>
-        <ElectionInfo :state="state" v-if="loaded" />
+        <Election :election="state.setup.election" v-if="loaded" />
+        <Trustees :trustees="state.setup.trustees" v-if="loaded" />
         <ElectionResult :state="state" v-if="loaded && state.result" />
       </li>
       <li>
