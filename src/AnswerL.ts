@@ -11,18 +11,18 @@ import * as Point from "./Point";
 import { Hlproof, Hnonzero } from "./math";
 
 export type t = {
-  choices: Array<Array<ElGamal.t>>;
-  individual_proofs: Array<Array<Array<Proof.t>>>;
+  choices: ElGamal.t[][];
+  individual_proofs: Proof.t[][][];
   overall_proof: Proof.t;
-  list_proofs: Array<Proof.t>;
+  list_proofs: Proof.t[];
   nonzero_proof: NonZeroProof.t;
 };
 
 export type serialized_t = {
-  choices: Array<Array<ElGamal.serialized_t>>;
-  individual_proofs: Array<Array<Array<Proof.serialized_t>>>;
+  choices: ElGamal.serialized_t[][];
+  individual_proofs: Proof.serialized_t[][][];
   overall_proof: Proof.serialized_t;
-  list_proofs: Array<Array<Proof.serialized_t>>;
+  list_proofs: Proof.serialized_t[][];
   nonzero_proof: NonZeroProof.serialized_t;
 };
 
