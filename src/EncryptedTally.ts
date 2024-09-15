@@ -1,5 +1,5 @@
 // @ts-nocheck
-import * as Ciphertext from "./Ciphertext";
+import * as ElGamal from "./ElGamal";
 import * as Question from "./Question";
 import * as Election from "./Election";
 import * as Ballot from "./Ballot";
@@ -10,7 +10,7 @@ export type t = {
   num_tallied: number;
   total_weight: number;
   encrypted_tally: Array<
-    Ciphertext.Serialized.t[] | Ciphertext.Serialized.t[][]
+    ElGamal.Serialized.t[] | ElGamal.Serialized.t[][]
   >;
 };
 
@@ -28,10 +28,10 @@ export function verify(setup: Setup.t, encryptedTally: t, ballots: Ballot.t[]) {
     if (Question.IsQuestionH(question)) {
       for (let j = 0; j < encryptedTally.encrypted_tally[i].length; j++) {
         if (
-          Ciphertext.Serialized.toString(
+          ElGamal.Serialized.toString(
             encryptedTally.encrypted_tally[i][j],
           ) !==
-          Ciphertext.toString(recomputedEncryptedTally.encrypted_tally[i][j])
+          ElGamal.toString(recomputedEncryptedTally.encrypted_tally[i][j])
         ) {
           throw new Error("Encrypted tally is incorrect");
         }
@@ -40,10 +40,10 @@ export function verify(setup: Setup.t, encryptedTally: t, ballots: Ballot.t[]) {
       for (let j = 0; j < encryptedTally.encrypted_tally[i].length; j++) {
         for (let k = 0; k < encryptedTally.encrypted_tally[i][j].length; k++) {
           if (
-            Ciphertext.Serialized.toString(
+            ElGamal.Serialized.toString(
               encryptedTally.encrypted_tally[i][j][k],
             ) !==
-            Ciphertext.toString(
+            ElGamal.toString(
               recomputedEncryptedTally.encrypted_tally[i][j][k],
             )
           ) {
@@ -122,11 +122,11 @@ export function compute(
     let row = null;
     if (Question.IsQuestionH(question)) {
       const size = question.answers.length + (question.blank ? 1 : 0);
-      row = [...Array(size).keys()].map(() => Ciphertext.zero);
+      row = [...Array(size).keys()].map(() => ElGamal.zero);
     } else if (Question.IsQuestionL(question)) {
       row = [...Array(question.value.answers.length).keys()].map((_, i) => {
         return [...Array(question.value.answers[i].length).keys()].map(
-          () => Ciphertext.zero,
+          () => ElGamal.zero,
         );
       });
     } else if (Question.IsQuestionNH(question)) {
@@ -149,7 +149,7 @@ export function compute(
       const answer = ballots[n].answers[j];
       if (Question.IsQuestionH(question)) {
         for (let k = 0; k < encryptedTally.encrypted_tally[j].length; k++) {
-          const ct = Ciphertext.parse(answer.choices[k]);
+          const ct = ElGamal.parse(answer.choices[k]);
           encryptedTally.encrypted_tally[j][k] = {
             pAlpha: encryptedTally.encrypted_tally[j][k].pAlpha.add(
               ct.pAlpha.multiply(BigInt(weight)),
@@ -166,7 +166,7 @@ export function compute(
             l < encryptedTally.encrypted_tally[j][k].length;
             l++
           ) {
-            const ct = Ciphertext.parse(answer.choices[k][l]);
+            const ct = ElGamal.parse(answer.choices[k][l]);
             encryptedTally.encrypted_tally[j][k][l] = {
               pAlpha: encryptedTally.encrypted_tally[j][k][l].pAlpha.add(
                 ct.pAlpha.multiply(BigInt(weight)),

@@ -1,5 +1,5 @@
 import * as Proof from "./Proof";
-import * as Ciphertext from "./Ciphertext";
+import * as ElGamal from "./ElGamal";
 import * as Point from "./Point";
 import * as Zq from "./Zq";
 import { Hdecrypt } from "./math";
@@ -46,7 +46,7 @@ export function rand() {
 export function verifyDecryptionProof(
   S: string,
   y: Point.t,
-  e: Ciphertext.t,
+  e: ElGamal.t,
   factor: Point.t,
   proof: Proof.t,
 ) {

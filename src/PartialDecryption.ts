@@ -1,6 +1,6 @@
 import * as Setup from "./Setup";
 import * as Election from "./Election";
-import * as Ciphertext from "./Ciphertext";
+import * as ElGamal from "./ElGamal";
 import * as EncryptedTally from "./EncryptedTally";
 import * as Proof from "./Proof";
 import * as Point from "./Point";
@@ -36,7 +36,7 @@ export function verify(
           !Proof.verifyDecryptionProof(
             `${Election.fingerprint(election)}|${Point.serialize(pPublicKey)}`,
             pPublicKey, // @ts-ignore
-            Ciphertext.parse(encrypted_tally[i][j]),
+            ElGamal.parse(encrypted_tally[i][j]),
             Point.parse(decryption_factors[i][j]),
             Proof.parse(decryption_proofs[i][j]),
           )
@@ -55,7 +55,7 @@ export function verify(
             !Proof.verifyDecryptionProof(
               `${Election.fingerprint(election)}|${Point.serialize(pPublicKey)}`,
               pPublicKey,
-              Ciphertext.parse(encrypted_tally[i][j][k]),
+              ElGamal.parse(encrypted_tally[i][j][k]),
               Point.parse(decryption_factors[i][j][k]),
               Proof.parse(decryption_proofs[i][j][k]),
             )

@@ -1,31 +1,31 @@
 import * as Point from "./Point";
 import * as Proof from "./Proof";
-import * as Ciphertext from "./Ciphertext";
+import * as ElGamal from "./ElGamal";
 import * as Election from "./Election";
 import * as Question from "./Question";
 import * as Ballot from "./Ballot";
 import { Hraweg } from "./math";
 
 export type t = {
-  choices: Ciphertext.t;
+  choices: ElGamal.t;
   proof: Proof.t;
 };
 
 export type serialized_t = {
-  choices: Ciphertext.serialized_t;
+  choices: ElGamal.serialized_t;
   proof: Proof.serialized_t;
 };
 
 export function parse(answer: serialized_t): t {
   return {
-    choices: Ciphertext.parse(answer.choices),
+    choices: ElGamal.parse(answer.choices),
     proof: Proof.parse(answer.proof),
   };
 }
 
 export function serialize(answer: t): serialized_t {
   return {
-    choices: Ciphertext.serialize(answer.choices),
+    choices: ElGamal.serialize(answer.choices),
     proof: Proof.serialize(answer.proof),
   };
 }
@@ -38,7 +38,7 @@ export function verify(
 ) {
   const answer = parse(serializedAnswer);
 
-  if (Ciphertext.isValid(answer.choices) === false) {
+  if (ElGamal.isValid(answer.choices) === false) {
     throw new Error("Invalid curve points");
   }
 

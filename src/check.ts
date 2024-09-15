@@ -6,7 +6,7 @@ import * as Ballot from "./Ballot";
 import * as Shuffle from "./Shuffle";
 import * as PartialDecryption from "./PartialDecryption";
 import * as Result from "./Result";
-import * as Ciphertext from "./Ciphertext";
+import * as ElGamal from "./ElGamal";
 
 export default async function (fileEntries) {
   let state: any = load(fileEntries);
@@ -37,9 +37,9 @@ export default async function (fileEntries) {
   let tally = encryptedTally.encrypted_tally.map((xs) => {
     return xs.map((x) => {
       if (x.length) {
-        return x.map(Ciphertext.parse);
+        return x.map(ElGamal.parse);
       } else {
-        return Ciphertext.parse(x);
+        return ElGamal.parse(x);
       }
     });
   });

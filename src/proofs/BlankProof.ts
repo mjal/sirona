@@ -3,7 +3,7 @@ import * as Question from "../Question";
 import * as AnswerH from "../AnswerH";
 import * as Election from "../Election";
 import * as Point from "../Point";
-import * as Ciphertext from "../Ciphertext";
+import * as ElGamal from "../ElGamal";
 import * as Zq from "../Zq";
 import H from "../H";
 import { range } from "../utils";
@@ -17,7 +17,7 @@ export namespace OverallProof {
   ): boolean {
     let commitments = [];
     const y = election.public_key;
-    const sumc = Ciphertext.combine(answer.choices.slice(1));
+    const sumc = ElGamal.combine(answer.choices.slice(1));
     const [A, B] = Point.compute_commitment_pair(
       y,
       answer.choices[0],
@@ -38,7 +38,7 @@ export namespace OverallProof {
       answer.overall_proof.map(({ nChallenge }) => nChallenge),
     );
     let S = `${Election.fingerprint(election)}|${credential}|`;
-    S += answer.choices.map(Ciphertext.toString).join(",");
+    S += answer.choices.map(ElGamal.toString).join(",");
 
     return Hbproof_1(S, ...commitments) === challengeS;
   }
@@ -48,10 +48,10 @@ export namespace OverallProof {
     prefix: string,
     question: Question.QuestionH.t, // NOTE: Could be replaced by max and min
     plaintexts: Array<number>,
-    ciphertexts: Array<Ciphertext.t>,
+    ciphertexts: Array<ElGamal.t>,
     nonces: Array<bigint>,
   ): Array<Proof.t> {
-    const egS = Ciphertext.combine(ciphertexts.slice(1));
+    const egS = ElGamal.combine(ciphertexts.slice(1));
     const y = election.public_key;
     const mS = plaintexts.slice(1).reduce((acc, c) => c + acc, 0);
     const M = range(question.min, question.max);
@@ -86,7 +86,7 @@ export namespace OverallProof {
       const nChallengeS = Zq.sum(azProofs.map(({ nChallenge }) => nChallenge));
 
       let S = `${Election.fingerprint(election)}|${prefix}|`;
-      S += ciphertexts.map(Ciphertext.toString).join(",");
+      S += ciphertexts.map(ElGamal.toString).join(",");
       const nH = Hbproof_1(S, ...commitments);
 
       for (let j = 0; j < M.length; j++) {
@@ -124,7 +124,7 @@ export namespace OverallProof {
       }
 
       let S = `${Election.fingerprint(election)}|${prefix}|`;
-      S += ciphertexts.map(Ciphertext.toString).join(",");
+      S += ciphertexts.map(ElGamal.toString).join(",");
       const nH = Hbproof_1(S, ...commitments);
 
       const nChallenge = Zq.mod(nH - nChallengeS);
@@ -143,7 +143,7 @@ export namespace BlankProof {
     answer: AnswerH.t,
   ): boolean {
     const y = election.public_key;
-    const sumc = Ciphertext.combine(answer.choices.slice(1));
+    const sumc = ElGamal.combine(answer.choices.slice(1));
     const challengeS = Zq.sum(
       answer.blank_proof.map(({ nChallenge }) => nChallenge),
     );
@@ -161,15 +161,15 @@ export namespace BlankProof {
     );
 
     let S = `${Election.fingerprint(election)}|${credential}|`;
-    S += answer.choices.map(Ciphertext.toString).join(",");
+    S += answer.choices.map(ElGamal.toString).join(",");
     return Hbproof_0(S, ...[pA0, pB0, pAS, pBS]) === challengeS;
   }
 
   export function generate(
     election: Election.t,
     hPub: string,
-    ciphertexts: Array<Ciphertext.t>, // TODO: Pass as prefix ? (only used in prefix)
-    eg: Ciphertext.t,
+    ciphertexts: Array<ElGamal.t>, // TODO: Pass as prefix ? (only used in prefix)
+    eg: ElGamal.t,
     nonce: bigint,
     isBlank: boolean,
   ): Array<Proof.t> {
@@ -182,7 +182,7 @@ export namespace BlankProof {
     const BS = Point.compute_commitment(y, eg.pBeta, proofA);
 
     let S = `${Election.fingerprint(election)}|${hPub}|`;
-    S += ciphertexts.map(Ciphertext.toString).join(",");
+    S += ciphertexts.map(ElGamal.toString).join(",");
     const nH = isBlank
       ? Hbproof_0(S, AS, BS, A0, B0)
       : Hbproof_0(S, A0, B0, AS, BS);

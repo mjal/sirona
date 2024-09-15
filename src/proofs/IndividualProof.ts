@@ -1,7 +1,7 @@
 import * as Election from "../Election";
 import * as Proof from "../Proof";
 import * as Point from "../Point";
-import * as Ciphertext from "../Ciphertext";
+import * as ElGamal from "../ElGamal";
 import * as Zq from "../Zq";
 import H from "../H";
 
@@ -9,7 +9,7 @@ export function verify(
   election: Election.t,
   prefix: string,
   proof: Array<Proof.t>,
-  eg: Ciphertext.t,
+  eg: ElGamal.t,
   min: number,
   max: number,
 ) {
@@ -29,7 +29,7 @@ export function verify(
 export function generate(
   election: Election.t,
   prefix: string,
-  eg: Ciphertext.t,
+  eg: ElGamal.t,
   r: bigint,
   m: number,
   M: Array<number>, // NOTE: Could be replaced by max and min
@@ -63,7 +63,7 @@ export function generate(
   return proof;
 }
 
-function H_iprove(S: string, eg: Ciphertext.t, ...commitments: Array<Point.t>) {
-  const prefix = `prove|${S}|${Ciphertext.toString(eg)}`;
+function H_iprove(S: string, eg: ElGamal.t, ...commitments: Array<Point.t>) {
+  const prefix = `prove|${S}|${ElGamal.toString(eg)}`;
   return H(prefix, ...commitments);
 }

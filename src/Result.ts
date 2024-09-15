@@ -4,7 +4,7 @@ import { modInverse } from "./math";
 import * as Trustee from "./Trustee";
 import * as Point from "./Point";
 import * as Question from "./Question";
-import * as Ciphertext from "./Ciphertext";
+import * as ElGamal from "./ElGamal";
 import * as EncryptedTally from "./EncryptedTally";
 import * as Setup from "./Setup";
 import * as Election from "./Election";
@@ -74,7 +74,7 @@ function verifyOne(et: any, df: any, res: any) {
   );
 }
 
-function verifyNH(et: Ciphertext.t, df: Point.t, encodedRes: any) {
+function verifyNH(et: ElGamal.t, df: Point.t, encodedRes: any) {
   let pResult = et.pBeta.add(df.negate());
   return Point.isEqual(pResult, encodedRes);
 }

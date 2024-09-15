@@ -3,7 +3,7 @@ import * as Zq from "./Zq";
 import * as Proof from "./Proof";
 import * as IndividualProof from "./proofs/IndividualProof";
 import * as NonZeroProof from "./ProofNonZero";
-import * as Ciphertext from "./Ciphertext";
+import * as ElGamal from "./ElGamal";
 import * as Election from "./Election";
 import * as Question from "./Question";
 import * as Ballot from "./Ballot";
@@ -11,7 +11,7 @@ import * as Point from "./Point";
 import { Hlproof, Hnonzero } from "./math";
 
 export type t = {
-  choices: Array<Array<Ciphertext.t>>;
+  choices: Array<Array<ElGamal.t>>;
   individual_proofs: Array<Array<Array<Proof.t>>>;
   overall_proof: Proof.t;
   list_proofs: Array<Proof.t>;
@@ -19,7 +19,7 @@ export type t = {
 };
 
 export type serialized_t = {
-  choices: Array<Array<Ciphertext.serialized_t>>;
+  choices: Array<Array<ElGamal.serialized_t>>;
   individual_proofs: Array<Array<Array<Proof.serialized_t>>>;
   overall_proof: Proof.serialized_t;
   list_proofs: Array<Array<Proof.serialized_t>>;
@@ -28,7 +28,7 @@ export type serialized_t = {
 
 export function parse(answer: serialized_t): t {
   return {
-    choices: map2(answer.choices, Ciphertext.parse),
+    choices: map2(answer.choices, ElGamal.parse),
     individual_proofs: map3(answer.individual_proofs, Proof.parse),
     overall_proof: Proof.parse(answer.overall_proof),
     list_proofs: map2(answer.list_proofs, Proof.parse),
@@ -38,7 +38,7 @@ export function parse(answer: serialized_t): t {
 
 export function serialize(answer: t): serialized_t {
   return {
-    choices: map2(answer.choices, Ciphertext.serialize),
+    choices: map2(answer.choices, ElGamal.serialize),
     individual_proofs: map3(answer.individual_proofs, Proof.serialize),
     overall_proof: Proof.serialize(answer.overall_proof),
     list_proofs: map2(answer.list_proofs, Proof.serialize),
@@ -56,7 +56,7 @@ export function verify(
 
   for (let i = 0; i < question.value.answers.length; i++) {
     for (let j = 0; j < question.value.answers[i].length; j++) {
-      if (Ciphertext.isValid(answer.choices[i][j]) === false) {
+      if (ElGamal.isValid(answer.choices[i][j]) === false) {
         throw new Error("Invalid curve point");
       }
     }
@@ -79,10 +79,10 @@ export function verify(
     }
   }
 
-  const eg = Ciphertext.combine(answer.choices.map((c) => c[0]));
+  const eg = ElGamal.combine(answer.choices.map((c) => c[0]));
   let S = `${ballot.credential}|`;
   S += answer.choices
-    .map((cs: any) => cs.map(Ciphertext.toString).join(","))
+    .map((cs: any) => cs.map(ElGamal.toString).join(","))
     .join(",");
 
   if (!IndividualProof.verify(election, S, [answer.overall_proof], eg, 1, 1)) {
@@ -108,9 +108,9 @@ function verifyNonZeroProof(
 ): boolean {
   const y = election.public_key;
 
-  const ct = Ciphertext.combine(
+  const ct = ElGamal.combine(
     answer.choices.map((choices) => {
-      return Ciphertext.combine(choices.slice(1));
+      return ElGamal.combine(choices.slice(1));
     }),
   );
 
@@ -127,7 +127,7 @@ function verifyNonZeroProof(
 
   let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
   S += answer.choices
-    .map((cs: any) => cs.map(Ciphertext.toString).join(","))
+    .map((cs: any) => cs.map(ElGamal.toString).join(","))
     .join(",");
 
   return Hnonzero(S, A0, A1, A2) === c;
@@ -144,7 +144,7 @@ function verifyListProofs(
   for (let i = 0; i < question.value.answers.length; i++) {
     const proofs = answer.list_proofs[i];
     const ct0 = answer.choices[i][0];
-    const ct = Ciphertext.combine(answer.choices[i].slice(1));
+    const ct = ElGamal.combine(answer.choices[i].slice(1));
 
     const [A0, B0] = Point.compute_commitment_pair(y, ct0, proofs[0], 1);
 
@@ -153,7 +153,7 @@ function verifyListProofs(
 
     let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
     S += answer.choices
-      .map((cs: any) => cs.map(Ciphertext.toString).join(","))
+      .map((cs: any) => cs.map(ElGamal.toString).join(","))
       .join(",");
 
     const challengeS = Zq.mod(proofs[0].nChallenge + proofs[1].nChallenge);

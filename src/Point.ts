@@ -1,4 +1,4 @@
-import * as Ciphertext from "./Ciphertext";
+import * as ElGamal from "./ElGamal";
 import * as Proof from "./Proof";
 import * as Zq from "./Zq";
 import { ed25519 } from "@noble/curves/ed25519";
@@ -109,7 +109,7 @@ export function compute_commitment(p1: t, p2: t, proof: Proof.t) {
 //B = y**response * (beta / (g**m))**challenge
 export function compute_commitment_pair(
   y: t,
-  eg: Ciphertext.t,
+  eg: ElGamal.t,
   proof: Proof.t,
   m: number,
 ) {

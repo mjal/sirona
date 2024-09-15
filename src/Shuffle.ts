@@ -3,7 +3,7 @@ import * as Zq from "./Zq";
 import * as Point from "./Point";
 import * as Question from "./Question";
 import * as Election from "./Election";
-import * as Ciphertext from "./Ciphertext";
+import * as ElGamal from "./ElGamal";
 import sjcl from "sjcl";
 
 export type shuffle_commitment_rand = [
@@ -33,7 +33,7 @@ export type shuffle_proof = [
 export type t = {
   owner: number;
   payload: {
-    ciphertexts: Array<Array<Ciphertext.t>>;
+    ciphertexts: Array<Array<ElGamal.t>>;
     proofs: Array<shuffle_proof>;
   };
 };
@@ -43,7 +43,7 @@ export function parse(o: any): t {
   res.owner = o.owner;
   res.payload = {};
   res.payload.ciphertexts = o.payload.ciphertexts.map(
-    (c: Array<Ciphertext.serialized_t>) => c.map(Ciphertext.parse),
+    (c: Array<ElGamal.serialized_t>) => c.map(ElGamal.parse),
   );
   let proofs = o.payload.proofs.map((p: any) => {
     let [t, s, c, c_hat] = o.payload.proofs[0];
@@ -75,7 +75,7 @@ export function parse(o: any): t {
 export function verify(
   shuffle: t,
   election: Election.t,
-  tally: Array<Array<Ciphertext.t>>,
+  tally: Array<Array<ElGamal.t>>,
 ): boolean {
   for (let i = 0; i < election.questions.length; i++) {
     const question = election.questions[i];
@@ -101,8 +101,8 @@ function hasDuplicates(array: any) {
 
 function CheckShuffleProof(
   election: Election.t,
-  input: Array<Ciphertext.t>,
-  output: Array<Ciphertext.t>,
+  input: Array<ElGamal.t>,
+  output: Array<ElGamal.t>,
   proof: shuffle_proof,
 ) {
   const y = election.public_key;
@@ -128,9 +128,9 @@ function CheckShuffleProof(
 
   const str_c =
     "" +
-    input.map(Ciphertext.toString).join(",") +
+    input.map(ElGamal.toString).join(",") +
     "," +
-    output.map(Ciphertext.toString).join(",") +
+    output.map(ElGamal.toString).join(",") +
     "," +
     cc.map(Point.serialize).join(",") +
     ",";

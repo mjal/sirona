@@ -2,23 +2,22 @@ import { map2, range } from "./utils";
 import * as Proof from "./Proof";
 import * as IndividualProof from "./proofs/IndividualProof";
 import * as BlankProof from "./proofs/BlankProof";
-import * as Ciphertext from "./Ciphertext";
+import * as ElGamal from "./ElGamal";
 import * as Election from "./Election";
 import * as Question from "./Question";
 import * as Ballot from "./Ballot";
-import * as Point from "./Point";
 import * as Credential from "./Credential";
 import * as Zq from "./Zq";
 
 export type t = {
-  choices: Array<Ciphertext.t>;
+  choices: Array<ElGamal.t>;
   individual_proofs: Array<Array<Proof.t>>;
   overall_proof: Array<Proof.t>;
   blank_proof?: Array<Proof.t>;
 };
 
 export type serialized_t = {
-  choices: Array<Ciphertext.serialized_t>;
+  choices: Array<ElGamal.serialized_t>;
   individual_proofs: Array<Array<Proof.serialized_t>>;
   overall_proof: Array<Proof.serialized_t>;
   blank_proof?: Array<Proof.serialized_t>;
@@ -26,7 +25,7 @@ export type serialized_t = {
 
 export function parse(answer: serialized_t): t {
   let obj: t = {
-    choices: answer.choices.map(Ciphertext.parse),
+    choices: answer.choices.map(ElGamal.parse),
     individual_proofs: map2(answer.individual_proofs, Proof.parse),
     overall_proof: answer.overall_proof.map(Proof.parse),
   };
@@ -38,7 +37,7 @@ export function parse(answer: serialized_t): t {
 
 export function serialize(answer: t): serialized_t {
   let obj: serialized_t = {
-    choices: answer.choices.map(Ciphertext.serialize),
+    choices: answer.choices.map(ElGamal.serialize),
     individual_proofs: map2(answer.individual_proofs, Proof.serialize),
     overall_proof: answer.overall_proof.map(Proof.serialize),
   };
@@ -57,7 +56,7 @@ export function verify(
   const answer = parse(serializedAnswer);
 
   for (let j = 0; j < question.answers.length; j++) {
-    if (Ciphertext.isValid(answer.choices[j]) === false) {
+    if (ElGamal.isValid(answer.choices[j]) === false) {
       return false;
     }
   }
@@ -92,8 +91,8 @@ export function verify(
       throw new Error("Invalid overall proof");
     }
   } else {
-    const eg = Ciphertext.combine(answer.choices);
-    let suffix = answer.choices.map(Ciphertext.toString).join(",");
+    const eg = ElGamal.combine(answer.choices);
+    let suffix = answer.choices.map(ElGamal.toString).join(",");
     if (
       !IndividualProof.verify(
         election,
@@ -121,11 +120,11 @@ export function generate(
   const { hPublicCredential } = Credential.derive(election.uuid, seed);
 
   let nonces: Array<bigint> = [];
-  let ciphertexts: Array<Ciphertext.t> = [];
+  let ciphertexts: Array<ElGamal.t> = [];
   let individual_proofs: Array<Array<Proof.t>> = [];
   for (let i = 0; i < plaintexts.length; i++) {
     const r = Zq.rand();
-    const { pAlpha, pBeta } = Ciphertext.encrypt(y, r, plaintexts[i]);
+    const { pAlpha, pBeta } = ElGamal.encrypt(y, r, plaintexts[i]);
     const proof = IndividualProof.generate(
       election,
       hPublicCredential,
@@ -141,7 +140,7 @@ export function generate(
 
   if (question.blank) {
     const isBlank = plaintexts[0] === 1;
-    const egS = Ciphertext.combine(ciphertexts.slice(1));
+    const egS = ElGamal.combine(ciphertexts.slice(1));
     const eg0 = ciphertexts[0];
     const nRS = Zq.sum(nonces.slice(1));
     const nR0 = nonces[0];
@@ -167,12 +166,12 @@ export function generate(
       ),
     });
   } else {
-    const egS = Ciphertext.combine(ciphertexts);
+    const egS = ElGamal.combine(ciphertexts);
     const m = plaintexts.reduce((acc, c) => c + acc, 0);
     const M = range(question.min, question.max);
     const nR = Zq.sum(nonces);
     let prefix =
-      hPublicCredential + "|" + ciphertexts.map(Ciphertext.toString).join(",");
+      hPublicCredential + "|" + ciphertexts.map(ElGamal.toString).join(",");
     const overall_proof = IndividualProof.generate(
       election,
       prefix,
