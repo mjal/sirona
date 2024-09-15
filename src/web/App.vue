@@ -4,6 +4,7 @@ import check from "../check";
 import LogSection from "./LogSection.vue";
 import Election from "./Election.vue";
 import Trustees from "./Trustees.vue";
+import Credentials from "./Credentials.vue";
 import ElectionResult from "./ElectionResult.vue";
 import ElectionBallotList from "./ElectionBallotList.vue";
 import GenerateBallotModal from "./GenerateBallotModal.vue";
@@ -95,6 +96,7 @@ const onUploadedFile = (event) => {
         <div v-if="!loaded">Not loaded yet.</div>
         <Election :election="state.setup.election" v-if="loaded" />
         <Trustees :trustees="state.setup.trustees" v-if="loaded" />
+        <Credentials :credentials="state.setup.credentials" v-if="loaded" />
         <ElectionResult :state="state" v-if="loaded && state.result" />
       </li>
       <li>
