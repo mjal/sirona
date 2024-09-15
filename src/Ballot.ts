@@ -12,7 +12,7 @@ export type t = {
   election_uuid: string;
   election_hash: string;
   credential: string;
-  answers: Array<Answer.serialized_t>;
+  answers: Answer.serialized_t[];
   signature: {
     hash: string;
     proof: Proof.serialized_t;
