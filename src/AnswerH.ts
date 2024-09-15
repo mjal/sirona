@@ -10,17 +10,17 @@ import * as Credential from "./Credential";
 import * as Zq from "./Zq";
 
 export type t = {
-  choices: Array<ElGamal.t>;
-  individual_proofs: Array<Array<Proof.t>>;
-  overall_proof: Array<Proof.t>;
-  blank_proof?: Array<Proof.t>;
+  choices: ElGamal.t[];
+  individual_proofs: Proof.t[][];
+  overall_proof: Proof.t[];
+  blank_proof?: Proof.t[];
 };
 
 export type serialized_t = {
-  choices: Array<ElGamal.serialized_t>;
-  individual_proofs: Array<Array<Proof.serialized_t>>;
-  overall_proof: Array<Proof.serialized_t>;
-  blank_proof?: Array<Proof.serialized_t>;
+  choices: ElGamal.serialized_t[];
+  individual_proofs: Proof.serialized_t[][];
+  overall_proof: Proof.serialized_t[];
+  blank_proof?: Proof.serialized_t[];
 };
 
 export function parse(answer: serialized_t): t {
@@ -119,9 +119,9 @@ export function generate(
   const y = election.public_key;
   const { hPublicCredential } = Credential.derive(election.uuid, seed);
 
-  let nonces: Array<bigint> = [];
-  let ciphertexts: Array<ElGamal.t> = [];
-  let individual_proofs: Array<Array<Proof.t>> = [];
+  let nonces: bigint[] = [];
+  let ciphertexts: ElGamal.t[] = [];
+  let individual_proofs: Proof.t[][] = [];
   for (let i = 0; i < plaintexts.length; i++) {
     const r = Zq.rand();
     const { pAlpha, pBeta } = ElGamal.encrypt(y, r, plaintexts[i]);
