@@ -101,13 +101,13 @@ export function of_ints(xs: number[]) {
 }
 
 // p1**e1 + p2**e2
-export function compute_commitment(p1: t, p2: t, proof: Proof.t) {
+export function commit(p1: t, p2: t, proof: Proof.t) {
   return p1.multiply(proof.nResponse).add(p2.multiply(proof.nChallenge));
 }
 
 //A = g**response * alpha**challenge
 //B = y**response * (beta / (g**m))**challenge
-export function compute_commitment_pair(
+export function commit_pair(
   y: t,
   eg: ElGamal.t,
   proof: Proof.t,
@@ -116,8 +116,8 @@ export function compute_commitment_pair(
   const gPowerM = m === 0 ? zero : g.multiply(BigInt(m));
   const pBDivGPowerM = eg.pBeta.add(gPowerM.negate());
 
-  const A = compute_commitment(g, eg.pAlpha, proof);
-  const B = compute_commitment(y, pBDivGPowerM, proof);
+  const A = commit(g, eg.pAlpha, proof);
+  const B = commit(y, pBDivGPowerM, proof);
 
   return [A, B];
 }

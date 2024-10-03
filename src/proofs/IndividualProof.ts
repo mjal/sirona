@@ -19,7 +19,7 @@ export function verify(
 
   let commitments = [];
   for (let j = 0; j <= max - min; j++) {
-    const [A, B] = Point.compute_commitment_pair(y, eg, proof[j], min + j);
+    const [A, B] = Point.commit_pair(y, eg, proof[j], min + j);
     commitments.push(A, B);
   }
 
@@ -44,7 +44,7 @@ export function generate(
     const [A, B] =
       m === M[i]
         ? [Point.g.multiply(w), y.multiply(w)]
-        : Point.compute_commitment_pair(y, eg, z, M[i]);
+        : Point.commit_pair(y, eg, z, M[i]);
     proof.push(z);
     commitments.push(A, B);
   }

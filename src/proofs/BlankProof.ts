@@ -18,7 +18,7 @@ export namespace OverallProof {
     let commitments = [];
     const y = election.public_key;
     const sumc = ElGamal.combine(answer.choices.slice(1));
-    const [A, B] = Point.compute_commitment_pair(
+    const [A, B] = Point.commit_pair(
       y,
       answer.choices[0],
       answer.overall_proof[0],
@@ -26,7 +26,7 @@ export namespace OverallProof {
     );
     commitments.push(A, B);
     for (let j = 1; j < question.max - question.min + 2; j++) {
-      const [A, B] = Point.compute_commitment_pair(
+      const [A, B] = Point.commit_pair(
         y,
         sumc,
         answer.overall_proof[j],
@@ -63,7 +63,7 @@ export namespace OverallProof {
         nChallenge: Zq.rand(),
         nResponse: Zq.rand(),
       };
-      const [pA0, pB0] = Point.compute_commitment_pair(
+      const [pA0, pB0] = Point.commit_pair(
         y,
         ciphertexts[0],
         proof0,
@@ -77,7 +77,7 @@ export namespace OverallProof {
         const proof = M[j] !== mS ? Proof.rand() : Proof.zero();
         const [A, B] =
           M[j] !== mS
-            ? Point.compute_commitment_pair(y, egS, proof, M[j])
+            ? Point.commit_pair(y, egS, proof, M[j])
             : [Point.g.multiply(nW), y.multiply(nW)];
         commitments.push(A, B);
         azProofs.push(proof);
@@ -113,7 +113,7 @@ export namespace OverallProof {
         const nChallenge = Zq.rand();
         const nResponse = Zq.rand();
         azProofs.push({ nChallenge, nResponse });
-        const [pA, pB] = Point.compute_commitment_pair(
+        const [pA, pB] = Point.commit_pair(
           y,
           egS,
           { nChallenge, nResponse },
@@ -147,13 +147,13 @@ export namespace BlankProof {
     const challengeS = Zq.sum(
       answer.blank_proof.map(({ nChallenge }) => nChallenge),
     );
-    const [pA0, pB0] = Point.compute_commitment_pair(
+    const [pA0, pB0] = Point.commit_pair(
       y,
       answer.choices[0],
       answer.blank_proof[0],
       0,
     );
-    const [pAS, pBS] = Point.compute_commitment_pair(
+    const [pAS, pBS] = Point.commit_pair(
       y,
       sumc,
       answer.blank_proof[1],
@@ -178,8 +178,8 @@ export namespace BlankProof {
     const proofA = Proof.rand();
     const A0 = Point.g.multiply(nW);
     const B0 = y.multiply(nW);
-    const AS = Point.compute_commitment(Point.g, eg.pAlpha, proofA);
-    const BS = Point.compute_commitment(y, eg.pBeta, proofA);
+    const AS = Point.commit(Point.g, eg.pAlpha, proofA);
+    const BS = Point.commit(y, eg.pBeta, proofA);
 
     let S = `${Election.fingerprint(election)}|${hPub}|`;
     S += ciphertexts.map(ElGamal.toString).join(",");

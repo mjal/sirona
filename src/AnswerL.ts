@@ -146,10 +146,10 @@ function verifyListProofs(
     const ct0 = answer.choices[i][0];
     const ct = ElGamal.combine(answer.choices[i].slice(1));
 
-    const [A0, B0] = Point.compute_commitment_pair(y, ct0, proofs[0], 1);
+    const [A0, B0] = Point.commit_pair(y, ct0, proofs[0], 1);
 
-    const A1 = Point.compute_commitment(Point.g, ct.pAlpha, proofs[1]);
-    const B1 = Point.compute_commitment(y, ct.pBeta, proofs[1]);
+    const A1 = Point.commit(Point.g, ct.pAlpha, proofs[1]);
+    const B1 = Point.commit(y, ct.pBeta, proofs[1]);
 
     let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
     S += answer.choices

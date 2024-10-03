@@ -4,7 +4,7 @@ import * as Zq from "../Zq";
 import H from "../H";
 
 export function verify(hash: string, public_key: Point.t, proof: Proof.t) {
-  const A = Point.compute_commitment(Point.g, public_key, proof);
+  const A = Point.commit(Point.g, public_key, proof);
 
   return H_signature(hash, A) === proof.nChallenge;
 }

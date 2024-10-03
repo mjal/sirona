@@ -50,7 +50,7 @@ export function verifyDecryptionProof(
   factor: Point.t,
   proof: Proof.t,
 ) {
-  const A = Point.compute_commitment(Point.g, y, proof);
-  const B = Point.compute_commitment(e.pAlpha, factor, proof);
+  const A = Point.commit(Point.g, y, proof);
+  const B = Point.commit(e.pAlpha, factor, proof);
   return Hdecrypt(S, A, B) === proof.nChallenge;
 }
