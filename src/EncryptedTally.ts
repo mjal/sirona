@@ -10,7 +10,7 @@ export type t = {
   num_tallied: number;
   total_weight: number;
   encrypted_tally: Array<
-    ElGamal.Serialized.t[] | ElGamal.Serialized.t[][]
+    ElGamal.serialized_t[] | ElGamal.serialized_t[][]
   >;
 };
 
@@ -28,7 +28,7 @@ export function verify(setup: Setup.t, encryptedTally: t, ballots: Ballot.t[]) {
     if (Question.IsQuestionH(question)) {
       for (let j = 0; j < encryptedTally.encrypted_tally[i].length; j++) {
         if (
-          ElGamal.Serialized.toString(
+          ElGamal.toStringS(
             encryptedTally.encrypted_tally[i][j],
           ) !==
           ElGamal.toString(recomputedEncryptedTally.encrypted_tally[i][j])
@@ -40,7 +40,7 @@ export function verify(setup: Setup.t, encryptedTally: t, ballots: Ballot.t[]) {
       for (let j = 0; j < encryptedTally.encrypted_tally[i].length; j++) {
         for (let k = 0; k < encryptedTally.encrypted_tally[i][j].length; k++) {
           if (
-            ElGamal.Serialized.toString(
+            ElGamal.toStringS(
               encryptedTally.encrypted_tally[i][j][k],
             ) !==
             ElGamal.toString(

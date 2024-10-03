@@ -35,14 +35,12 @@ export function combine(cts: Array<t>) {
   }, zero);
 }
 
-export namespace Serialized {
-  export function toString(ct: serialized_t) {
-    return `${ct.alpha},${ct.beta}`;
-  }
+export function toStringS(ct: serialized_t) {
+  return `${ct.alpha},${ct.beta}`;
 }
 
 export function toString(ct: t) {
-  return Serialized.toString(serialize(ct));
+  return toStringS(serialize(ct));
 }
 
 export function isValid(ct: t) {
