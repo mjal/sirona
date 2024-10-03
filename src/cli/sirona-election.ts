@@ -7,6 +7,7 @@ import * as Archive from "../Archive";
 import * as Ballot from "../Ballot";
 import * as Election from "../Election";
 import check from "../check";
+import load from "../load";
 
 const program = new Command();
 
@@ -70,7 +71,7 @@ program
       throw new Error("No .bel files found");
     }
     const files = await Archive.readAsFile(belFile);
-    const state = await check(files);
+    const state = load(files);
     const choiceFile = await fs.readFile(options.choice);
     const choice = JSON.parse(choiceFile.toString());
 
