@@ -151,11 +151,11 @@ export function compute(
         for (let k = 0; k < encryptedTally.encrypted_tally[j].length; k++) {
           const ct = ElGamal.parse(answer.choices[k]);
           encryptedTally.encrypted_tally[j][k] = {
-            pAlpha: encryptedTally.encrypted_tally[j][k].pAlpha.add(
-              ct.pAlpha.multiply(BigInt(weight)),
+            alpha: encryptedTally.encrypted_tally[j][k].alpha.add(
+              ct.alpha.multiply(BigInt(weight)),
             ),
-            pBeta: encryptedTally.encrypted_tally[j][k].pBeta.add(
-              ct.pBeta.multiply(BigInt(weight)),
+            beta: encryptedTally.encrypted_tally[j][k].beta.add(
+              ct.beta.multiply(BigInt(weight)),
             ),
           };
         }
@@ -168,11 +168,11 @@ export function compute(
           ) {
             const ct = ElGamal.parse(answer.choices[k][l]);
             encryptedTally.encrypted_tally[j][k][l] = {
-              pAlpha: encryptedTally.encrypted_tally[j][k][l].pAlpha.add(
-                ct.pAlpha.multiply(BigInt(weight)),
+              alpha: encryptedTally.encrypted_tally[j][k][l].alpha.add(
+                ct.alpha.multiply(BigInt(weight)),
               ),
-              pBeta: encryptedTally.encrypted_tally[j][k][l].pBeta.add(
-                ct.pBeta.multiply(BigInt(weight)),
+              beta: encryptedTally.encrypted_tally[j][k][l].beta.add(
+                ct.beta.multiply(BigInt(weight)),
               ),
             };
           }

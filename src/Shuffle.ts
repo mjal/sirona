@@ -160,10 +160,10 @@ function CheckShuffleProof(
   const c_tilde = Point.combine(cc.map((ci, i) => ci.multiply(uu[i])));
 
   const alpha_prime = Point.combine(
-    input.map((ei, i) => ei.pAlpha.multiply(uu[i])),
+    input.map((ei, i) => ei.alpha.multiply(uu[i])),
   );
   const beta_prime = Point.combine(
-    input.map((ei, i) => ei.pBeta.multiply(uu[i])),
+    input.map((ei, i) => ei.beta.multiply(uu[i])),
   );
 
   const t1_prime = c_bar.multiply(c).negate().add(Point.g.multiply(s1));
@@ -178,13 +178,13 @@ function CheckShuffleProof(
     .multiply(c)
     .negate()
     .add(y.multiply(s4).negate())
-    .add(Point.combine(output.map((ei, i) => ei.pBeta.multiply(s_prime[i]))));
+    .add(Point.combine(output.map((ei, i) => ei.beta.multiply(s_prime[i]))));
 
   const t42_prime = alpha_prime
     .multiply(c)
     .negate()
     .add(Point.g.multiply(s4).negate())
-    .add(Point.combine(output.map((ei, i) => ei.pAlpha.multiply(s_prime[i]))));
+    .add(Point.combine(output.map((ei, i) => ei.alpha.multiply(s_prime[i]))));
 
   const tt_prime_hat = [...Array(input.length).keys()].map((i) => {
     return cc_hat[i]

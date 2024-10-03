@@ -122,8 +122,8 @@ function verifyNonZeroProof(
     return false;
   }
 
-  const A1 = ct.pAlpha.multiply(t1).add(Point.g.multiply(t2));
-  const A2 = ct.pBeta.multiply(t1).add(y.multiply(t2)).add(A0.multiply(c));
+  const A1 = ct.alpha.multiply(t1).add(Point.g.multiply(t2));
+  const A2 = ct.beta.multiply(t1).add(y.multiply(t2)).add(A0.multiply(c));
 
   let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
   S += answer.choices
@@ -148,8 +148,8 @@ function verifyListProofs(
 
     const [A0, B0] = Point.commit_pair(y, ct0, proofs[0], 1);
 
-    const A1 = Point.commit(Point.g, ct.pAlpha, proofs[1]);
-    const B1 = Point.commit(y, ct.pBeta, proofs[1]);
+    const A1 = Point.commit(Point.g, ct.alpha, proofs[1]);
+    const B1 = Point.commit(y, ct.beta, proofs[1]);
 
     let S = `${Election.fingerprint(election)}|${ballot.credential}|`;
     S += answer.choices

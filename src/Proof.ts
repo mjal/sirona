@@ -51,6 +51,6 @@ export function verifyDecryptionProof(
   proof: Proof.t,
 ) {
   const A = Point.commit(Point.g, y, proof);
-  const B = Point.commit(e.pAlpha, factor, proof);
+  const B = Point.commit(e.alpha, factor, proof);
   return Hdecrypt(S, A, B) === proof.nChallenge;
 }

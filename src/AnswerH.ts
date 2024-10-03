@@ -124,16 +124,16 @@ export function generate(
   let individual_proofs: Proof.t[][] = [];
   for (let i = 0; i < plaintexts.length; i++) {
     const r = Zq.rand();
-    const { pAlpha, pBeta } = ElGamal.encrypt(y, r, plaintexts[i]);
+    const { alpha, beta } = ElGamal.encrypt(y, r, plaintexts[i]);
     const proof = IndividualProof.generate(
       election,
       hPublicCredential,
-      { pAlpha, pBeta },
+      { alpha, beta },
       r,
       plaintexts[i],
       [0, 1],
     );
-    ciphertexts.push({ pAlpha, pBeta });
+    ciphertexts.push({ alpha, beta });
     individual_proofs.push(proof);
     nonces.push(r);
   }

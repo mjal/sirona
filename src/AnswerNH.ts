@@ -57,8 +57,8 @@ function verifyProof(
 ) {
   const y = election.public_key;
   const { choices, proof } = answer;
-  const A = Point.commit(Point.g, choices.pAlpha, proof);
+  const A = Point.commit(Point.g, choices.alpha, proof);
   const S = `${Election.fingerprint(election)}|${ballot.credential}`;
 
-  return Hraweg(S, y, choices.pAlpha, choices.pBeta, A) === proof.nChallenge;
+  return Hraweg(S, y, choices.alpha, choices.beta, A) === proof.nChallenge;
 }

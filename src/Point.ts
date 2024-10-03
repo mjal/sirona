@@ -114,9 +114,9 @@ export function commit_pair(
   m: number,
 ) {
   const gPowerM = m === 0 ? zero : g.multiply(BigInt(m));
-  const pBDivGPowerM = eg.pBeta.add(gPowerM.negate());
+  const pBDivGPowerM = eg.beta.add(gPowerM.negate());
 
-  const A = commit(g, eg.pAlpha, proof);
+  const A = commit(g, eg.alpha, proof);
   const B = commit(y, pBDivGPowerM, proof);
 
   return [A, B];

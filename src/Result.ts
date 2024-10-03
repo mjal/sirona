@@ -65,8 +65,8 @@ export function verify(
 }
 
 function verifyOne(et: any, df: any, res: any) {
-  const pBeta = Point.parse(et.beta);
-  const pResult = pBeta.add(df.negate());
+  const beta = Point.parse(et.beta);
+  const pResult = beta.add(df.negate());
   const nAnswer = BigInt(res);
   return (
     (res === 0 && Point.isEqual(pResult, Point.zero)) ||
@@ -75,7 +75,7 @@ function verifyOne(et: any, df: any, res: any) {
 }
 
 function verifyNH(et: ElGamal.t, df: Point.t, encodedRes: any) {
-  let pResult = et.pBeta.add(df.negate());
+  let pResult = et.beta.add(df.negate());
   return Point.isEqual(pResult, encodedRes);
 }
 

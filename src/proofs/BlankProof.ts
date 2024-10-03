@@ -178,8 +178,8 @@ export namespace BlankProof {
     const proofA = Proof.rand();
     const A0 = Point.g.multiply(nW);
     const B0 = y.multiply(nW);
-    const AS = Point.commit(Point.g, eg.pAlpha, proofA);
-    const BS = Point.commit(y, eg.pBeta, proofA);
+    const AS = Point.commit(Point.g, eg.alpha, proofA);
+    const BS = Point.commit(y, eg.beta, proofA);
 
     let S = `${Election.fingerprint(election)}|${hPub}|`;
     S += ciphertexts.map(ElGamal.toString).join(",");

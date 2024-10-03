@@ -1,8 +1,8 @@
 import * as Point from "./Point";
 
 export type t = {
-  pAlpha: Point.t;
-  pBeta: Point.t;
+  alpha: Point.t;
+  beta: Point.t;
 };
 
 export type serialized_t = {
@@ -12,25 +12,25 @@ export type serialized_t = {
 
 export function parse(c: serialized_t): t {
   return {
-    pAlpha: Point.parse(c.alpha),
-    pBeta: Point.parse(c.beta),
+    alpha: Point.parse(c.alpha),
+    beta: Point.parse(c.beta),
   };
 }
 
 export function serialize(c: t): serialized_t {
   return {
-    alpha: Point.serialize(c.pAlpha),
-    beta: Point.serialize(c.pBeta),
+    alpha: Point.serialize(c.alpha),
+    beta: Point.serialize(c.beta),
   };
 }
 
-export const zero = { pAlpha: Point.zero, pBeta: Point.zero };
+export const zero = { alpha: Point.zero, beta: Point.zero };
 
 export function combine(cts: Array<t>) {
-  return cts.reduce((a, b) => {
+  return cts.reduce((a : t, b : t) => {
     return {
-      pAlpha: a.pAlpha.add(b.pAlpha),
-      pBeta: a.pBeta.add(b.pBeta),
+      alpha: a.alpha.add(b.alpha),
+      beta: a.beta.add(b.beta),
     };
   }, zero);
 }
@@ -46,13 +46,13 @@ export function toString(ct: t) {
 }
 
 export function isValid(ct: t) {
-  return Point.isValid(ct.pAlpha) && Point.isValid(ct.pBeta);
+  return Point.isValid(ct.alpha) && Point.isValid(ct.beta);
 }
 
 export function encrypt(y: Point.t, nonce: bigint, plaintext: number) {
   const gPowerM =
     plaintext === 0 ? Point.zero : Point.g.multiply(BigInt(plaintext));
-  const pAlpha = Point.g.multiply(nonce);
-  const pBeta = y.multiply(nonce).add(gPowerM);
-  return { pAlpha, pBeta };
+  const alpha = Point.g.multiply(nonce);
+  const beta = y.multiply(nonce).add(gPowerM);
+  return { alpha, beta };
 }
