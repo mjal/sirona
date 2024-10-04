@@ -9,9 +9,7 @@ import * as Setup from "./Setup";
 export type t = {
   num_tallied: number;
   total_weight: number;
-  encrypted_tally: Array<
-    ElGamal.serialized_t[] | ElGamal.serialized_t[][]
-  >;
+  encrypted_tally: Array<ElGamal.serialized_t[] | ElGamal.serialized_t[][]>;
 };
 
 export function verify(setup: Setup.t, encryptedTally: t, ballots: Ballot.t[]) {
@@ -28,9 +26,7 @@ export function verify(setup: Setup.t, encryptedTally: t, ballots: Ballot.t[]) {
     if (Question.IsQuestionH(question)) {
       for (let j = 0; j < encryptedTally.encrypted_tally[i].length; j++) {
         if (
-          ElGamal.toStringS(
-            encryptedTally.encrypted_tally[i][j],
-          ) !==
+          ElGamal.toStringS(encryptedTally.encrypted_tally[i][j]) !==
           ElGamal.toString(recomputedEncryptedTally.encrypted_tally[i][j])
         ) {
           throw new Error("Encrypted tally is incorrect");
@@ -40,12 +36,8 @@ export function verify(setup: Setup.t, encryptedTally: t, ballots: Ballot.t[]) {
       for (let j = 0; j < encryptedTally.encrypted_tally[i].length; j++) {
         for (let k = 0; k < encryptedTally.encrypted_tally[i][j].length; k++) {
           if (
-            ElGamal.toStringS(
-              encryptedTally.encrypted_tally[i][j][k],
-            ) !==
-            ElGamal.toString(
-              recomputedEncryptedTally.encrypted_tally[i][j][k],
-            )
+            ElGamal.toStringS(encryptedTally.encrypted_tally[i][j][k]) !==
+            ElGamal.toString(recomputedEncryptedTally.encrypted_tally[i][j][k])
           ) {
             throw new Error("Encrypted tally is incorrect");
           }

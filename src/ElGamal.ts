@@ -27,7 +27,7 @@ export function serialize(c: t): serialized_t {
 export const zero = { alpha: Point.zero, beta: Point.zero };
 
 export function combine(cts: Array<t>) {
-  return cts.reduce((a : t, b : t) => {
+  return cts.reduce((a: t, b: t) => {
     return {
       alpha: a.alpha.add(b.alpha),
       beta: a.beta.add(b.beta),

@@ -2,7 +2,7 @@
 import { computed } from "vue";
 
 const props = defineProps<{
-  credentials: string[]
+  credentials: string[];
 }>();
 </script>
 

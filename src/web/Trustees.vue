@@ -4,9 +4,8 @@ import * as Trustee from "../Trustee";
 import * as Point from "../Point";
 
 const props = defineProps<{
-  trustees: Trustee.t[]
+  trustees: Trustee.t[];
 }>();
-
 </script>
 
 <template>

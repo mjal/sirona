@@ -107,12 +107,7 @@ export function commit(p1: t, p2: t, proof: Proof.t) {
 
 //A = g**response * alpha**challenge
 //B = y**response * (beta / (g**m))**challenge
-export function commit_pair(
-  y: t,
-  eg: ElGamal.t,
-  proof: Proof.t,
-  m: number,
-) {
+export function commit_pair(y: t, eg: ElGamal.t, proof: Proof.t, m: number) {
   const gPowerM = m === 0 ? zero : g.multiply(BigInt(m));
   const pBDivGPowerM = eg.beta.add(gPowerM.negate());
 

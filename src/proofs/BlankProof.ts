@@ -63,12 +63,7 @@ export namespace OverallProof {
         challenge: Zq.rand(),
         response: Zq.rand(),
       };
-      const [pA0, pB0] = Point.commit_pair(
-        y,
-        ciphertexts[0],
-        proof0,
-        1,
-      );
+      const [pA0, pB0] = Point.commit_pair(y, ciphertexts[0], proof0, 1);
 
       let azProofs: Array<Proof.t> = [proof0];
       let commitments = [pA0, pB0];
@@ -153,12 +148,7 @@ export namespace BlankProof {
       answer.blank_proof[0],
       0,
     );
-    const [pAS, pBS] = Point.commit_pair(
-      y,
-      sumc,
-      answer.blank_proof[1],
-      0,
-    );
+    const [pAS, pBS] = Point.commit_pair(y, sumc, answer.blank_proof[1], 0);
 
     let S = `${Election.fingerprint(election)}|${credential}|`;
     S += answer.choices.map(ElGamal.toString).join(",");

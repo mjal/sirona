@@ -5,7 +5,7 @@ import * as Point from "../Point";
 import Question from "./Question.vue";
 
 const props = defineProps<{
-  election: Election.t
+  election: Election.t;
 }>();
 
 const electionFingerprint = computed(() => {
@@ -53,9 +53,7 @@ const electionFingerprint = computed(() => {
       </tr>
     </tbody>
   </table>
-  <template
-    v-for="(question, index) in election.questions"
-    v-bind:key="index">
+  <template v-for="(question, index) in election.questions" v-bind:key="index">
     <Question :index="index" :question="question" />
   </template>
 </template>

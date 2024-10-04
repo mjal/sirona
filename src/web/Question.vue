@@ -3,8 +3,8 @@ import { computed } from "vue";
 import * as Question from "../Question";
 
 const props = defineProps<{
-  index: number,
-  question: Question.t
+  index: number;
+  question: Question.t;
 }>();
 
 const type = computed(() => {
@@ -23,25 +23,30 @@ const type = computed(() => {
 <template>
   <table class="uk-table uk-table-striped">
     <caption>
-      Question {{index}}
+      Question
+      {{
+        index
+      }}
     </caption>
     <tbody>
       <tr>
         <td>Type</td>
-        <td><span class="uk-label">{{ type }}</span></td>
+        <td>
+          <span class="uk-label">{{ type }}</span>
+        </td>
       </tr>
       <template v-if="type === 'Homomorphic'">
         <tr>
           <td>Question</td>
-          <td>{{question.question}}</td>
+          <td>{{ question.question }}</td>
         </tr>
         <tr>
           <td>Number of choices</td>
-          <td>Between {{question.min}} and {{question.max}}</td>
+          <td>Between {{ question.min }} and {{ question.max }}</td>
         </tr>
         <tr>
           <td>Blank vote possible</td>
-          <td>{{question.blank ? "Yes" : "No"}}</td>
+          <td>{{ question.blank ? "Yes" : "No" }}</td>
         </tr>
         <tr v-for="(answer, index) in question.answers" v-bind:key="index">
           <td>Answer {{ index }}</td>
@@ -49,37 +54,43 @@ const type = computed(() => {
         </tr>
         <tr v-if="question.extra">
           <td>Extra</td>
-          <td>{{question.extra}}</td>
+          <td>{{ question.extra }}</td>
         </tr>
       </template>
 
       <template v-if="type === 'NonHomomorphic'">
         <tr>
           <td>Question</td>
-          <td>{{question.value.question}}</td>
+          <td>{{ question.value.question }}</td>
         </tr>
-        <tr v-for="(answer, index) in question.value.answers" v-bind:key="index">
+        <tr
+          v-for="(answer, index) in question.value.answers"
+          v-bind:key="index"
+        >
           <td>Answer {{ index }}</td>
           <td>{{ answer }}</td>
         </tr>
         <tr v-if="question.extra">
           <td>Extra</td>
-          <td>{{question.extra}}</td>
+          <td>{{ question.extra }}</td>
         </tr>
       </template>
 
       <template v-if="type === 'Lists'">
         <tr>
           <td>Question</td>
-          <td>{{question.value.question}}</td>
+          <td>{{ question.value.question }}</td>
         </tr>
-        <tr v-for="(answer, index) in question.value.answers" v-bind:key="index">
+        <tr
+          v-for="(answer, index) in question.value.answers"
+          v-bind:key="index"
+        >
           <td>Answer {{ index }}</td>
           <td>{{ answer[0] + answer.slice(1).join(", ") }}</td>
         </tr>
         <tr v-if="question.extra">
           <td>Extra</td>
-          <td>{{question.extra}}</td>
+          <td>{{ question.extra }}</td>
         </tr>
       </template>
     </tbody>
