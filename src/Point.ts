@@ -102,7 +102,7 @@ export function of_ints(xs: number[]) {
 
 // p1**e1 + p2**e2
 export function commit(p1: t, p2: t, proof: Proof.t) {
-  return p1.multiply(proof.nResponse).add(p2.multiply(proof.nChallenge));
+  return p1.multiply(proof.response).add(p2.multiply(proof.challenge));
 }
 
 //A = g**response * alpha**challenge

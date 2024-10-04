@@ -35,7 +35,7 @@ export namespace OverallProof {
       commitments.push(A, B);
     }
     const challengeS = Zq.sum(
-      answer.overall_proof.map(({ nChallenge }) => nChallenge),
+      answer.overall_proof.map(({ challenge }) => challenge),
     );
     let S = `${Election.fingerprint(election)}|${credential}|`;
     S += answer.choices.map(ElGamal.toString).join(",");
@@ -60,8 +60,8 @@ export namespace OverallProof {
 
     if (plaintexts[0] === 0) {
       const proof0 = {
-        nChallenge: Zq.rand(),
-        nResponse: Zq.rand(),
+        challenge: Zq.rand(),
+        response: Zq.rand(),
       };
       const [pA0, pB0] = Point.commit_pair(
         y,
@@ -83,7 +83,7 @@ export namespace OverallProof {
         azProofs.push(proof);
       }
 
-      const nChallengeS = Zq.sum(azProofs.map(({ nChallenge }) => nChallenge));
+      const challengeS = Zq.sum(azProofs.map(({ challenge }) => challenge));
 
       let S = `${Election.fingerprint(election)}|${prefix}|`;
       S += ciphertexts.map(ElGamal.toString).join(",");
@@ -91,9 +91,9 @@ export namespace OverallProof {
 
       for (let j = 0; j < M.length; j++) {
         if (M[j] === mS) {
-          azProofs[j + 1].nChallenge = Zq.mod(nH - nChallengeS);
-          azProofs[j + 1].nResponse = Zq.mod(
-            nW - nRS * azProofs[j + 1].nChallenge,
+          azProofs[j + 1].challenge = Zq.mod(nH - challengeS);
+          azProofs[j + 1].response = Zq.mod(
+            nW - nRS * azProofs[j + 1].challenge,
           );
         }
       }
@@ -108,18 +108,18 @@ export namespace OverallProof {
 
       let azProofs: Array<Proof.t> = [Proof.zero()];
 
-      let nChallengeS = BigInt(0);
+      let challengeS = BigInt(0);
       for (let j = 0; j < M.length; j++) {
-        const nChallenge = Zq.rand();
-        const nResponse = Zq.rand();
-        azProofs.push({ nChallenge, nResponse });
+        const challenge = Zq.rand();
+        const response = Zq.rand();
+        azProofs.push({ challenge, response });
         const [pA, pB] = Point.commit_pair(
           y,
           egS,
-          { nChallenge, nResponse },
+          { challenge, response },
           M[j],
         );
-        nChallengeS = Zq.mod(nChallengeS + nChallenge);
+        challengeS = Zq.mod(challengeS + challenge);
         commitments.push(pA, pB);
       }
 
@@ -127,9 +127,9 @@ export namespace OverallProof {
       S += ciphertexts.map(ElGamal.toString).join(",");
       const nH = Hbproof_1(S, ...commitments);
 
-      const nChallenge = Zq.mod(nH - nChallengeS);
-      const nResponse = Zq.mod(nW - nonces[0] * nChallenge);
-      azProofs[0] = { nChallenge, nResponse };
+      const challenge = Zq.mod(nH - challengeS);
+      const response = Zq.mod(nW - nonces[0] * challenge);
+      azProofs[0] = { challenge, response };
 
       return azProofs;
     }
@@ -145,7 +145,7 @@ export namespace BlankProof {
     const y = election.public_key;
     const sumc = ElGamal.combine(answer.choices.slice(1));
     const challengeS = Zq.sum(
-      answer.blank_proof.map(({ nChallenge }) => nChallenge),
+      answer.blank_proof.map(({ challenge }) => challenge),
     );
     const [pA0, pB0] = Point.commit_pair(
       y,
@@ -186,9 +186,9 @@ export namespace BlankProof {
     const nH = isBlank
       ? Hbproof_0(S, AS, BS, A0, B0)
       : Hbproof_0(S, A0, B0, AS, BS);
-    const nChallenge = Zq.mod(nH - proofA.nChallenge);
-    const nResponse = Zq.mod(nW - nChallenge * nonce);
-    const proofB = { nChallenge, nResponse };
+    const challenge = Zq.mod(nH - proofA.challenge);
+    const response = Zq.mod(nW - challenge * nonce);
+    const proofB = { challenge, response };
 
     if (isBlank) {
       return [proofA, proofB];

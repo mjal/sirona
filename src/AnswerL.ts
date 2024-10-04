@@ -115,8 +115,8 @@ function verifyNonZeroProof(
   );
 
   const A0 = answer.nonzero_proof.pCommitment;
-  const c = answer.nonzero_proof.nChallenge;
-  const [t1, t2] = answer.nonzero_proof.nResponse;
+  const c = answer.nonzero_proof.challenge;
+  const [t1, t2] = answer.nonzero_proof.response;
 
   if (Point.isEqual(A0, Point.zero)) {
     return false;
@@ -156,7 +156,7 @@ function verifyListProofs(
       .map((cs: any) => cs.map(ElGamal.toString).join(","))
       .join(",");
 
-    const challengeS = Zq.mod(proofs[0].nChallenge + proofs[1].nChallenge);
+    const challengeS = Zq.mod(proofs[0].challenge + proofs[1].challenge);
 
     return (
       answer.choices[i].length === question.value.answers[i].length &&

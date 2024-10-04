@@ -1,9 +1,10 @@
 import * as Point from "./Point";
 
 export type t = {
+  // TODO: Rename to commitment
   pCommitment: Point.t;
-  nChallenge: bigint;
-  nResponse: [bigint, bigint];
+  challenge: bigint;
+  response: [bigint, bigint];
 };
 
 export type serialized_t = {
@@ -15,15 +16,15 @@ export type serialized_t = {
 export function serialize(proof: t): serialized_t {
   return {
     commitment: Point.serialize(proof.pCommitment),
-    challenge: proof.nChallenge.toString(),
-    response: [proof.nResponse[0].toString(), proof.nResponse[1].toString()],
+    challenge: proof.challenge.toString(),
+    response: [proof.response[0].toString(), proof.response[1].toString()],
   };
 }
 
 export function parse(proof: serialized_t): t {
   return {
     pCommitment: Point.parse(proof.commitment),
-    nChallenge: BigInt(proof.challenge),
-    nResponse: [BigInt(proof.response[0]), BigInt(proof.response[1])],
+    challenge: BigInt(proof.challenge),
+    response: [BigInt(proof.response[0]), BigInt(proof.response[1])],
   };
 }

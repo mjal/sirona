@@ -15,7 +15,7 @@ export function verify(
 ) {
   const y = election.public_key;
   const S = `${Election.fingerprint(election)}|${prefix}`;
-  const challengeS = Zq.sum(proof.map(({ nChallenge }) => nChallenge));
+  const challengeS = Zq.sum(proof.map(({ challenge }) => challenge));
 
   let commitments = [];
   for (let j = 0; j <= max - min; j++) {
@@ -51,12 +51,12 @@ export function generate(
 
   const S = `${Election.fingerprint(election)}|${prefix}`;
   const h = H_iprove(S, eg, ...commitments);
-  const challengeS = Zq.sum(proof.map(({ nChallenge }) => nChallenge));
+  const challengeS = Zq.sum(proof.map(({ challenge }) => challenge));
 
   for (let i = 0; i < M.length; i++) {
     if (m === M[i]) {
-      proof[i].nChallenge = Zq.mod(h - challengeS);
-      proof[i].nResponse = Zq.mod(w - r * proof[i].nChallenge);
+      proof[i].challenge = Zq.mod(h - challengeS);
+      proof[i].response = Zq.mod(w - r * proof[i].challenge);
     }
   }
 

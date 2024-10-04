@@ -5,8 +5,8 @@ import * as Zq from "./Zq";
 import { Hdecrypt } from "./math";
 
 export type t = {
-  nChallenge: bigint;
-  nResponse: bigint;
+  challenge: bigint;
+  response: bigint;
 };
 
 export type serialized_t = {
@@ -16,29 +16,29 @@ export type serialized_t = {
 
 export function serialize(proof: t): serialized_t {
   return {
-    challenge: proof.nChallenge.toString(),
-    response: proof.nResponse.toString(),
+    challenge: proof.challenge.toString(),
+    response: proof.response.toString(),
   };
 }
 
 export function parse(proof: serialized_t): t {
   return {
-    nChallenge: BigInt(proof.challenge),
-    nResponse: BigInt(proof.response),
+    challenge: BigInt(proof.challenge),
+    response: BigInt(proof.response),
   };
 }
 
 export function zero() {
   return {
-    nChallenge: 0n,
-    nResponse: 0n,
+    challenge: 0n,
+    response: 0n,
   };
 }
 
 export function rand() {
   return {
-    nChallenge: Zq.rand(),
-    nResponse: Zq.rand(),
+    challenge: Zq.rand(),
+    response: Zq.rand(),
   };
 }
 
@@ -52,5 +52,5 @@ export function verifyDecryptionProof(
 ) {
   const A = Point.commit(Point.g, y, proof);
   const B = Point.commit(e.alpha, factor, proof);
-  return Hdecrypt(S, A, B) === proof.nChallenge;
+  return Hdecrypt(S, A, B) === proof.challenge;
 }

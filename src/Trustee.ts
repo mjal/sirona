@@ -144,12 +144,12 @@ function verifyPublicKey(election: Election.t, trustee: PublicKey.t) {
   }
 
   const pA = Point.g
-    .multiply(trustee.pok.nResponse)
-    .add(trustee.public_key.multiply(trustee.pok.nChallenge));
+    .multiply(trustee.pok.response)
+    .add(trustee.public_key.multiply(trustee.pok.challenge));
 
   const S = `${election.group}|${Point.serialize(trustee.public_key)}`;
 
-  if (Hpok(S, pA) !== trustee.pok.nChallenge) {
+  if (Hpok(S, pA) !== trustee.pok.challenge) {
     throw new Error("Trustee POK is invalid");
   }
   return true;
@@ -203,13 +203,13 @@ export function generate(): [bigint, Single.serialized_t] {
 
   const S = `Ed25519|${Point.serialize(X)}`;
 
-  const nChallenge = Hpok(S, A);
-  const nResponse = Zq.mod(w - x * nChallenge);
+  const challenge = Hpok(S, A);
+  const response = Zq.mod(w - x * challenge);
 
   const publicKey: PublicKey.t = {
     pok: {
-      nChallenge,
-      nResponse,
+      challenge,
+      response,
     },
     public_key: X,
   };
