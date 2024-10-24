@@ -87,7 +87,6 @@ const onUploadedFile = (event) => {
     <ul uk-tab>
       <li><a href="#">Election infos</a></li>
       <li><a href="#">Ballots</a></li>
-      <li><a href="#">Verification summary</a></li>
     </ul>
 
     <!-- Tab Contents -->
