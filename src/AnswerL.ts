@@ -114,7 +114,7 @@ function verifyNonZeroProof(
     }),
   );
 
-  const A0 = answer.nonzero_proof.pCommitment;
+  const A0 = answer.nonzero_proof.commitment;
   const c = answer.nonzero_proof.challenge;
   const [t1, t2] = answer.nonzero_proof.response;
 
