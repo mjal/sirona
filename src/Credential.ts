@@ -1,7 +1,7 @@
 import sjcl from "sjcl";
 import * as Zq from "./Zq";
 import * as Point from "./Point";
-import { range, b58chars } from "./utils";
+import { genUUID } from "./utils";
 
 export function derive(uuid: string, privcred: string) {
   const prefix = `derive_credential|${uuid}`;
@@ -26,15 +26,7 @@ export function derive(uuid: string, privcred: string) {
 }
 
 export function generatePriv() {
-  return range(25)
-    .map((i) => {
-      if (i === 5 || i === 12 || i === 18) {
-        return "-";
-      }
-      const randomIndex = Math.floor(Math.random() * b58chars.length);
-      return b58chars[randomIndex];
-    })
-    .join("");
+  return [genUUID(5), genUUID(6), genUUID(5), genUUID(6)].join("-");
 }
 
 export function find(credentials: string[], credential: string) {

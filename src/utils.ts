@@ -47,3 +47,12 @@ export function readStdin(): Promise<string> {
 
 export const b58chars =
   "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+export function genUUID(n : number) : string {
+  return range(n)
+    .map(() => {
+      const randomIndex = Math.floor(Math.random() * b58chars.length);
+      return b58chars[randomIndex];
+    })
+    .join("");
+}
