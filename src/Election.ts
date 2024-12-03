@@ -2,6 +2,7 @@ import sjcl from "sjcl";
 import * as Trustee from "./Trustee";
 import * as Point from "./Point";
 import * as Question from "./Question";
+import { genUUID } from "./utils"
 
 export type t = {
   version: number;
@@ -9,7 +10,7 @@ export type t = {
   name: string;
   group: string;
   public_key: Point.t;
-  questions: Array<Question.t>;
+  questions: Question.t[];
   uuid: string;
   administrator?: string;
   credential_authority?: string;
@@ -28,6 +29,27 @@ export function serialize(election: t): serialized_t {
   return {
     ...election,
     public_key: Point.serialize(election.public_key),
+  };
+}
+
+export function create(
+  description: string,
+  name: string,
+  trustees: Trustee.t[],
+  questions: Question.t[]
+) : t {
+  const public_key = Trustee.combine_keys(trustees);
+
+  const uuid = genUUID(14);
+
+  return {
+    version: 1,
+    description,
+    name,
+    group: "Ed25519",
+    public_key,
+    questions,
+    uuid
   };
 }
 
