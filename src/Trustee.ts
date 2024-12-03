@@ -5,6 +5,7 @@ import { Hpok } from "./math";
 import * as Zq from "./Zq";
 
 export type t = Single.t | Pedersen.t;
+export type serialized_t = Single.serialized_t | Pedersen.serialized_t;
 
 export function toJSON(trustee: t) {
   if (trustee[0] === "Single") {
