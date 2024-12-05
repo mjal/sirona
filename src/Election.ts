@@ -14,6 +14,7 @@ export type t = {
   uuid: string;
   administrator?: string;
   credential_authority?: string;
+  unrestricted?: boolean;
 };
 
 export type serialized_t = Omit<t, "public_key"> & { public_key: string };
