@@ -70,3 +70,51 @@ export function verify(
     }
   }
 }
+
+export function generate(
+  setup: Setup.t,
+  encryptedTally: EncryptedTally.t,
+  owner: number,
+  x: bigint,
+) {
+  const election = setup.election;
+  const encrypted_tally = encryptedTally.encrypted_tally;
+  const X = Point.g.multiply(x);
+
+  const decryption_factors = [];
+  const decryption_proofs = [];
+
+  for (let i = 0; i < election.questions.length; i++) {
+    const question = election.questions[i];
+    if (Question.IsQuestionH(question)) {
+      const df = [], dp = [];
+      for (let j = 0; j < encrypted_tally[i].length; j++) {
+        // @ts-ignore
+        const factor = encrypted_tally[i][j].alpha;
+        const proof = DecryptionProof.generate(
+          `${Election.fingerprint(election)}|${Point.serialize(X)}`,
+          factor,
+          x);
+        df.push(factor);
+        dp.push(proof);
+      }
+      decryption_factors.push(df);
+      decryption_proofs.push(dp);
+    } else if (
+      Question.IsQuestionL(question) ||
+      Question.IsQuestionNH(question)
+    ) {
+      throw new Error("TODO");
+    } else {
+      throw new Error("Invalid question type");
+    }
+  }
+
+  return {
+    owner,
+    payload: {
+      decryption_factors,
+      decryption_proofs
+    }
+  };
+}
