@@ -6,6 +6,7 @@ import * as Proof from "./Proof";
 import * as Point from "./Point";
 import * as Trustee from "./Trustee";
 import * as Question from "./Question";
+import * as DecryptionProof from "./proofs/DecryptionProof";
 
 export type t = {
   owner: number;
@@ -33,7 +34,7 @@ export function verify(
     if (Question.IsQuestionH(question)) {
       for (let j = 0; j < encrypted_tally[i].length; j++) {
         if (
-          !Proof.verifyDecryptionProof(
+          !DecryptionProof.verify(
             `${Election.fingerprint(election)}|${Point.serialize(pPublicKey)}`,
             pPublicKey, // @ts-ignore
             ElGamal.parse(encrypted_tally[i][j]),
@@ -52,7 +53,7 @@ export function verify(
         // @ts-ignore
         for (let k = 0; k < encrypted_tally[i][j].length; k++) {
           if (
-            !Proof.verifyDecryptionProof(
+            !DecryptionProof.verify(
               `${Election.fingerprint(election)}|${Point.serialize(pPublicKey)}`,
               pPublicKey,
               ElGamal.parse(encrypted_tally[i][j][k]),
