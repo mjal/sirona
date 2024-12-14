@@ -13,13 +13,9 @@ export type t = {
 };
 
 export function verify(setup: Setup.t, encryptedTally: t, ballots: Ballot.t[]) {
-  const { election, credentials } = setup;
+  const { election } = setup;
   let talliedBallots = keepLastBallots(ballots);
-  const recomputedEncryptedTally = compute(
-    election,
-    talliedBallots,
-    credentials,
-  );
+  const recomputedEncryptedTally = generate(setup, talliedBallots);
 
   for (let i = 0; i < election.questions.length; i++) {
     const question = election.questions[i];
@@ -88,11 +84,12 @@ export function keepLastBallots(ballots: Event.t<Ballot.t>[]) {
   return ret.reverse();
 }
 
-export function compute(
-  election: Election.t,
+export function generate(
+  setup: Setup.t,
   ballots: Ballot.t[],
-  credentials: string[],
 ) {
+  let { election, credentials } = setup;
+
   let encryptedTally: t = {
     encrypted_tally: [],
     num_tallied: ballots.length,
