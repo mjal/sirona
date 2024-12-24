@@ -20,6 +20,8 @@ export function fromJSON(trustee: any) {
     return Single.fromJSON(trustee);
   } else if (trustee[0] === "Pedersen") {
     return Pedersen.fromJSON(trustee);
+  } else {
+    throw "Unknown trustee type";
   }
 }
 
