@@ -90,10 +90,11 @@ export function generate(
       const df = [], dp = [];
       for (let j = 0; j < encrypted_tally[i].length; j++) {
         // @ts-ignore
-        const factor = encrypted_tally[i][j].alpha;
+        const factor = encrypted_tally[i][j].alpha.multiply(x);
         const proof = DecryptionProof.generate(
           `${Election.fingerprint(election)}|${Point.serialize(X)}`,
-          factor,
+          // @ts-ignore
+          encrypted_tally[i][j],
           x);
         df.push(factor);
         dp.push(proof);
