@@ -5,6 +5,7 @@ import * as Credential from "./dist/Credential.js";
 import * as EncryptedTally from "./dist/EncryptedTally.js";
 import * as PartialDecryption from "./dist/PartialDecryption.js";
 import * as Setup from "./dist/Setup.js";
+import * as Result from "./dist/Result.js";
 import sjcl from "sjcl";
 
 export {
@@ -15,5 +16,6 @@ export {
   EncryptedTally,
   PartialDecryption,
   Setup,
+  Result,
   sjcl
 };
