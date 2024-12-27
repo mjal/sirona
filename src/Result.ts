@@ -82,8 +82,7 @@ function verifyNH(et: ElGamal.t, df: Point.t, encodedRes: any) {
 function getDecryptionFactors(
   setup: Setup.t,
   encryptedTally,
-  partialDecryptions,
-  shuffles
+  partialDecryptions
 ) {
   const election: Election.t = setup.election;
   let df = [];
@@ -235,7 +234,7 @@ export function generate(
 ): t {
   const election = setup.election;
   const et = encryptedTally.encrypted_tally;
-  const df = getDecryptionFactors(setup, encryptedTally, partialDecryptions, shuffles);
+  const df = getDecryptionFactors(setup, encryptedTally, partialDecryptions);
   let total = []
   for (let i = 0; i < election.questions.length; i++) {
     let question = election.questions[i];
