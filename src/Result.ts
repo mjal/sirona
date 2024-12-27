@@ -83,6 +83,7 @@ function getDecryptionFactors(
   setup: Setup.t,
   encryptedTally,
   partialDecryptions,
+  shuffles
 ) {
   const election: Election.t = setup.election;
   let df = [];
@@ -225,3 +226,39 @@ function multiplyDfPow(df, df2, exp) {
   }
   return df;
 }
+
+export function generate(
+  setup: Setup.t,
+  encryptedTally: EncryptedTally.t,
+  partialDecryptions: PartialDecryption.t[],
+  shuffles: Shuffle.t[]
+): t {
+  const election = setup.election;
+  const et = encryptedTally.encrypted_tally;
+  const df = getDecryptionFactors(setup, encryptedTally, partialDecryptions, shuffles);
+  let total = []
+  for (let i = 0; i < election.questions.length; i++) {
+    let question = election.questions[i];
+    if (Question.IsQuestionH(question)) {
+      let tmp = []
+      for (let j = 0; j < question.answers.length; j++) {
+        for (let k = 0; k < 1000; k++) { // FIX: Go above 1000
+          // @ts-ignore
+          if (verifyOne(ElGamal.serialize(et[i][j]), df[i][j], k)) {
+            tmp.push(k);
+            break;
+          }
+          if (k == 999) {
+            throw new Error("Result out-of-bound");
+          }
+        }
+      }
+      total.push(tmp)
+    } else {
+      throw new Error("Unsupported question type");
+    }
+  }
+
+  return { result: total };
+}
+

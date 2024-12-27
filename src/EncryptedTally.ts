@@ -1,7 +1,6 @@
 // @ts-nocheck
 import * as ElGamal from "./ElGamal";
 import * as Question from "./Question";
-import * as Election from "./Election";
 import * as Ballot from "./Ballot";
 import * as Event from "./Event";
 import * as Setup from "./Setup";
@@ -87,7 +86,7 @@ export function keepLastBallots(ballots: Event.t<Ballot.t>[]) {
 export function generate(
   setup: Setup.t,
   ballots: Ballot.t[],
-) {
+) : t {
   let { election, credentials } = setup;
 
   let encryptedTally: t = {

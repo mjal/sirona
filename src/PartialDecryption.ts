@@ -76,13 +76,13 @@ export function generate(
   encryptedTally: EncryptedTally.t,
   owner: number,
   x: bigint,
-) {
+) : t {
   const election = setup.election;
   const encrypted_tally = encryptedTally.encrypted_tally;
   const X = Point.g.multiply(x);
 
-  const decryption_factors = [];
-  const decryption_proofs = [];
+  const decryption_factors : Point.serialized_t[][] = [];
+  const decryption_proofs  : Proof.serialized_t[][] = [];
 
   for (let i = 0; i < election.questions.length; i++) {
     const question = election.questions[i];
@@ -90,14 +90,14 @@ export function generate(
       const df = [], dp = [];
       for (let j = 0; j < encrypted_tally[i].length; j++) {
         // @ts-ignore
-        const factor = encrypted_tally[i][j].alpha.multiply(x);
+        const factor = Point.serialize(encrypted_tally[i][j].alpha.multiply(x))
         const proof = DecryptionProof.generate(
           `${Election.fingerprint(election)}|${Point.serialize(X)}`,
           // @ts-ignore
           encrypted_tally[i][j],
           x);
         df.push(factor);
-        dp.push(proof);
+        dp.push(Proof.serialize(proof));
       }
       decryption_factors.push(df);
       decryption_proofs.push(dp);
