@@ -200,6 +200,11 @@ export function ownerIndexToTrusteeIndex(trustees: t[]) {
 
 export function generate(): [bigint, Single.serialized_t] {
   const x = Zq.rand();
+
+  return generateFromPriv(x);
+}
+
+export function generateFromPriv(x: bigint): [bigint, Single.serialized_t] {
   const w = Zq.rand();
   const X = Point.g.multiply(x);
   const A = Point.g.multiply(w);
