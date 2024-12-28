@@ -6,6 +6,7 @@ import * as EncryptedTally from "./dist/EncryptedTally.js";
 import * as PartialDecryption from "./dist/PartialDecryption.js";
 import * as Setup from "./dist/Setup.js";
 import * as Result from "./dist/Result.js";
+import * as Zq from "./dist/Zq.js";
 import sjcl from "sjcl";
 
 export {
@@ -17,5 +18,6 @@ export {
   PartialDecryption,
   Setup,
   Result,
+  Zq,
   sjcl
 };
