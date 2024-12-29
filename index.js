@@ -7,6 +7,8 @@ import * as PartialDecryption from "./dist/PartialDecryption.js";
 import * as Setup from "./dist/Setup.js";
 import * as Result from "./dist/Result.js";
 import * as Zq from "./dist/Zq.js";
+import * as Point from "./dist/Point.js";
+import * as ElGamal from "./dist/ElGamal.js";
 import sjcl from "sjcl";
 
 export {
@@ -19,5 +21,7 @@ export {
   Setup,
   Result,
   Zq,
+  Point,
+  ElGamal,
   sjcl
 };
