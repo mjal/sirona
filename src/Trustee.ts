@@ -205,7 +205,6 @@ export function generate(): [bigint, Single.serialized_t] {
 }
 
 export function generateFromPriv(x: bigint): [bigint, Single.serialized_t] {
-  x = Zq.mod(x); // clamp x if necessary
   const w = Zq.rand();
   const X = Point.g.multiply(x);
   const A = Point.g.multiply(w);
