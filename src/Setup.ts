@@ -8,6 +8,34 @@ export type t = {
   credentials: string[];
 };
 
+export type serialized_t = {
+  trustees: Trustee.serialized_t[];
+  election: Election.serialized_t;
+  credentials: string[];
+};
+
+export function serialize(setup: t): serialized_t {
+  let trustees = setup.trustees.map(Trustee.toJSON)
+  let election = Election.serialize(setup.election)
+  let credentials = setup.credentials
+  return {
+    election,
+    trustees,
+    credentials
+  };
+}
+
+export function parse(setup: serialized_t): t {
+  let trustees = setup.trustees.map(Trustee.fromJSON)
+  let election = Election.parse(setup.election)
+  let credentials = setup.credentials
+  return {
+    election,
+    trustees,
+    credentials
+  };
+}
+
 export function verify(setup: t) {
   let { trustees, election, credentials } = setup;
 
