@@ -7,6 +7,7 @@ import * as Zq from "./Zq";
 export type t = Single.t | Pedersen.t;
 export type serialized_t = Single.serialized_t | Pedersen.serialized_t;
 
+// TODO: Rename toJSON/fromJSON -> Serialize/Parse
 export function toJSON(trustee: t) {
   if (trustee[0] === "Single") {
     return Single.toJSON(trustee);
