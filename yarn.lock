@@ -617,6 +617,11 @@ sjcl-with-all-fix-for-native@^1.0.8:
   resolved "https://registry.npmjs.org/sjcl-with-all-fix-for-native/-/sjcl-with-all-fix-for-native-1.0.8.tgz"
   integrity sha512-GyVVGY9bfmiMIAt1sxrj1IboxeTS0Y6C8UY5z7FmGn2j35DryX4jb3YDzfJ9eyDti96nHCv9i7+0u2j3mtpzBA==
 
+"sjcl@npm:sjcl-with-all-fix-for-native@^1.0.8":
+  version "1.0.8"
+  resolved "https://registry.npmjs.org/sjcl-with-all-fix-for-native/-/sjcl-with-all-fix-for-native-1.0.8.tgz"
+  integrity sha512-GyVVGY9bfmiMIAt1sxrj1IboxeTS0Y6C8UY5z7FmGn2j35DryX4jb3YDzfJ9eyDti96nHCv9i7+0u2j3mtpzBA==
+
 slice-ansi@^5.0.0:
   version "5.0.0"
   resolved "https://registry.npmjs.org/slice-ansi/-/slice-ansi-5.0.0.tgz"

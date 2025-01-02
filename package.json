@@ -1,6 +1,6 @@
 {
   "name": "sirona",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -28,14 +28,9 @@
     "@noble/curves": "^1.4.0",
     "commander": "^12.1.0",
     "js-untar": "^2.0.0",
+    "sjcl": "npm:sjcl-with-all-fix-for-native@^1.0.8",
     "sjcl-with-all-fix-for-native": "^1.0.8",
     "vue": "^3.4.21"
-  },
-  "overrides": {
-    "sjcl": "sjcl-with-all-fix-for-native@^1.0.8"
-  },
-  "resolutions": {
-    "sjcl": "sjcl-with-all-fix-for-native@^1.0.8"
   },
   "lint-staged": {
     "*.{js,css,md}": "prettier --write"
