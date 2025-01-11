@@ -118,7 +118,7 @@ export function generate(
     proof: Proof.serialize(proof),
   };
 
-  //verify(setup, ballot);
+  verify(setup, ballot);
 
   return ballot;
 }

@@ -8,8 +8,32 @@ import * as Setup from "./Setup";
 export type t = {
   num_tallied: number;
   total_weight: number;
+  encrypted_tally: Array<ElGamal.t[] | ElGamal.t[][]>;
+};
+
+export type serialized_t = Omit<t, "encrypted_tally"> & {
   encrypted_tally: Array<ElGamal.serialized_t[] | ElGamal.serialized_t[][]>;
 };
+
+export function serialize(encryptedTally: t, election: Election.t): serialized_t {
+  let ret = structuredClone(encryptedTally);
+  for (let j = 0; j < election.questions.length; j++) {
+    const question = election.questions[j];
+    if (Question.IsQuestionH(question)) {
+      for (let k = 0; k < encryptedTally.encrypted_tally[j].length; k++) {
+        ret.encrypted_tally[j][k] = ElGamal.serialize(encryptedTally.encrypted_tally[j][k])
+      }
+    } else if (Question.IsQuestionL(question)) {
+      for (let k = 0; k < encryptedTally.encrypted_tally[j].length; k++) {
+        for (let l = 0; l < encryptedTally.encrypted_tally[j][k].length; l++) {
+          ret.encrypted_tally[j][k][l] = ElGamal.serialize(encryptedTally.encrypted_tally[j][k][l]);
+        }
+      }
+    }
+  }
+
+  return ret;
+}
 
 export function verify(setup: Setup.t, encryptedTally: t, ballots: Ballot.t[]) {
   const { election } = setup;
