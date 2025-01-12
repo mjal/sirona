@@ -10,17 +10,21 @@ Experimental. Implement a subset of belenios protocol 2.5.0. Only support ed2551
 
 ## Install
 
-`npm install`
+`yarn`
 
 ## Usage (web)
 
-`npm run dev`
+`yarn run dev`
+
+ou
+
+`yarn run build`
 
 TODO: Add screenshots
 
 ## Usage (cli)
 
-`npm run cli -- COMMAND [ARGS]`
+`yarn run cli -- COMMAND [ARGS]`
 
 ### Supported commands
 
