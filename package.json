@@ -13,6 +13,8 @@
   "bin": {
     "sirona": "./dist/cli/sirona.js"
   },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "devDependencies": {
     "@types/node": "^20.14.2",
     "@types/sjcl": "^1.0.34",
