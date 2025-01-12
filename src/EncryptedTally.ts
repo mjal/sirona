@@ -1,4 +1,5 @@
 // @ts-nocheck
+import * as Election from "./Election";
 import * as ElGamal from "./ElGamal";
 import * as Question from "./Question";
 import * as Ballot from "./Ballot";
