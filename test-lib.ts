@@ -33,9 +33,9 @@ let priv3 = Credential.generatePriv()
 let cred3 = Credential.derive(election.uuid, priv3)
 
 let credentials = [
-  cred1.hPublicCredential,
-  cred2.hPublicCredential,
-  cred3.hPublicCredential
+  cred1.pub,
+  cred2.pub,
+  cred3.pub
 ]
 
 let setup : Setup.t = {

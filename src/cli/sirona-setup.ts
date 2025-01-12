@@ -37,8 +37,8 @@ program
       const [email, id, weight] = line.split(",");
       const privcred = privcreds[id];
 
-      const { hPublicCredential } = Credential.derive(options.uuid, privcred);
-      return `${hPublicCredential},${weight},${id}`;
+      const { pub } = Credential.derive(options.uuid, privcred);
+      return `${pub},${weight},${id}`;
     });
 
     const timestamp = Math.floor(Date.now() / 1000);

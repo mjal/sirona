@@ -14,15 +14,10 @@ export function derive(uuid: string, privcred: string) {
     sjcl.hash.sha256.hash(`${prefix}|1|${privcred}`),
   );
 
-  const nPrivateCredential = Zq.mod(BigInt("0x" + x0 + x1));
-  const pPublicCredential = Point.g.multiply(nPrivateCredential);
-  const hPublicCredential = Point.serialize(pPublicCredential);
+  const priv = Zq.mod(BigInt("0x" + x0 + x1));
+  const pub = Point.serialize(Point.g.multiply(priv));
 
-  // TODO: Better names
-  return {
-    nPrivateCredential,
-    hPublicCredential,
-  };
+  return { pub, priv }
 }
 
 export function generatePriv() {

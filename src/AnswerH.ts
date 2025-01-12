@@ -117,7 +117,7 @@ export function generate(
   plaintexts: number[],
 ): serialized_t {
   const y = election.public_key;
-  const { hPublicCredential } = Credential.derive(election.uuid, seed);
+  const { pub } = Credential.derive(election.uuid, seed);
 
   let nonces: bigint[] = [];
   let ciphertexts: ElGamal.t[] = [];
@@ -127,7 +127,7 @@ export function generate(
     const { alpha, beta } = ElGamal.encrypt(y, r, plaintexts[i]);
     const proof = IndividualProof.generate(
       election,
-      hPublicCredential,
+      pub,
       { alpha, beta },
       r,
       plaintexts[i],
@@ -150,7 +150,7 @@ export function generate(
       individual_proofs,
       overall_proof: BlankProof.OverallProof.generate(
         election,
-        hPublicCredential,
+        pub,
         question,
         plaintexts,
         ciphertexts,
@@ -158,7 +158,7 @@ export function generate(
       ),
       blank_proof: BlankProof.BlankProof.generate(
         election,
-        hPublicCredential,
+        pub,
         ciphertexts,
         isBlank ? eg0 : egS,
         isBlank ? nRS : nR0,
@@ -171,7 +171,7 @@ export function generate(
     const M = range(question.min, question.max);
     const nR = Zq.sum(nonces);
     let prefix =
-      hPublicCredential + "|" + ciphertexts.map(ElGamal.toString).join(",");
+      pub + "|" + ciphertexts.map(ElGamal.toString).join(",");
     const overall_proof = IndividualProof.generate(
       election,
       prefix,

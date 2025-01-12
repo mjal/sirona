@@ -76,7 +76,7 @@ export function generate(
 ) {
   const { election } = setup;
 
-  const { hPublicCredential, nPrivateCredential } = Credential.derive(
+  const { pub, priv } = Credential.derive(
     setup.election.uuid,
     sPriv,
   );
@@ -87,7 +87,7 @@ export function generate(
     );
   }
 
-  if (!Credential.find(setup.credentials, hPublicCredential)) {
+  if (!Credential.find(setup.credentials, pub)) {
     throw "Invalid credential.";
   }
 
@@ -105,14 +105,14 @@ export function generate(
 
   let ballot: t = {
     answers,
-    credential: hPublicCredential,
+    credential: pub,
     election_hash: Election.fingerprint(election),
     election_uuid: setup.election.uuid,
     signature: null,
   };
 
   const hash = b64hashWithoutSignature(ballot, election);
-  const proof = SchnorrProof.generate(hash, nPrivateCredential);
+  const proof = SchnorrProof.generate(hash, priv);
   ballot.signature = {
     hash: hash,
     proof: Proof.serialize(proof),
