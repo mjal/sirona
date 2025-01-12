@@ -51,7 +51,7 @@ export default function (rawFiles: Array<any>) {
     ...setup,
     credentials: findData(files, setup.credentials),
     election: Election.parse(findData(files, setup.election)),
-    trustees: findData(files, setup.trustees).map(Trustee.fromJSON),
+    trustees: findData(files, setup.trustees).map(Trustee.parse),
   };
 
   const alreadyProcessedBallots = {};

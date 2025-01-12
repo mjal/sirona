@@ -85,8 +85,7 @@ program
     const template = JSON.parse(data.toString());
 
     data = await fs.promises.readFile("trustees.json");
-    let trustees = JSON.parse(data.toString());
-    trustees = trustees.map(Trustee.fromJSON);
+    const trustees = JSON.parse(data.toString()).map(Trustee.parse);
 
     const public_key = Trustee.combine_keys(trustees);
 

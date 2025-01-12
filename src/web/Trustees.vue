@@ -17,11 +17,11 @@ const props = defineProps<{
       <tr v-for="(trustee, index) in trustees" v-bind:key="index">
         <template v-if="trustee[0] === 'Single'">
           <td>Single</td>
-          <td>{{ Trustee.toJSON(trustee)[1] }}</td>
+          <td>{{ Trustee.serialize(trustee)[1] }}</td>
         </template>
         <template v-else>
           <td>Pedersen</td>
-          <td>{{ Trustee.toJSON(trustee)[1] }}</td>
+          <td>{{ Trustee.serialize(trustee)[1] }}</td>
         </template>
       </tr>
     </tbody>

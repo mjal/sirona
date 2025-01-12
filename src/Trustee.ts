@@ -7,20 +7,19 @@ import * as Zq from "./Zq";
 export type t = Single.t | Pedersen.t;
 export type serialized_t = Single.serialized_t | Pedersen.serialized_t;
 
-// TODO: Rename toJSON/fromJSON -> Serialize/Parse
-export function toJSON(trustee: t) {
+export function serialize(trustee: t) : serialized_t {
   if (trustee[0] === "Single") {
-    return Single.toJSON(trustee);
+    return Single.serialize(trustee);
   } else if (trustee[0] === "Pedersen") {
-    return Pedersen.toJSON(trustee);
+    return Pedersen.serialize(trustee);
   }
 }
 
-export function fromJSON(trustee: any) {
+export function parse(trustee: serialized_t) : t {
   if (trustee[0] === "Single") {
-    return Single.fromJSON(trustee);
+    return Single.parse(trustee);
   } else if (trustee[0] === "Pedersen") {
-    return Pedersen.fromJSON(trustee);
+    return Pedersen.parse(trustee);
   } else {
     throw "Unknown trustee type";
   }
@@ -29,11 +28,11 @@ export function fromJSON(trustee: any) {
 namespace Single {
   export type t = ["Single", PublicKey.t];
   export type serialized_t = ["Single", PublicKey.serialized_t];
-  export function toJSON(trustee: Single.t): Single.serialized_t {
-    return ["Single", PublicKey.toJSON(trustee[1])];
+  export function serialize(trustee: Single.t): Single.serialized_t {
+    return ["Single", PublicKey.serialize(trustee[1])];
   }
-  export function fromJSON(trustee: Single.serialized_t): Single.t {
-    return ["Single", PublicKey.fromJSON(trustee[1])];
+  export function parse(trustee: Single.serialized_t): Single.t {
+    return ["Single", PublicKey.parse(trustee[1])];
   }
 }
 
@@ -56,25 +55,25 @@ namespace Pedersen {
       verification_keys: Array<PublicKey.serialized_t>;
     },
   ];
-  export function toJSON(trustee: Pedersen.t): Pedersen.serialized_t {
+  export function serialize(trustee: Pedersen.t): Pedersen.serialized_t {
     return [
       "Pedersen",
       {
         threshold: trustee[1].threshold,
-        certs: trustee[1].certs.map(Message.toJSON),
-        coefexps: trustee[1].coefexps.map(Message.toJSON),
-        verification_keys: trustee[1].verification_keys.map(PublicKey.toJSON),
+        certs: trustee[1].certs.map(Message.serialize),
+        coefexps: trustee[1].coefexps.map(Message.serialize),
+        verification_keys: trustee[1].verification_keys.map(PublicKey.serialize),
       },
     ];
   }
-  export function fromJSON(trustee: Pedersen.serialized_t): Pedersen.t {
+  export function parse(trustee: Pedersen.serialized_t): Pedersen.t {
     return [
       "Pedersen",
       {
         threshold: trustee[1].threshold,
-        certs: trustee[1].certs.map(Message.fromJSON),
-        coefexps: trustee[1].coefexps.map(Message.fromJSON),
-        verification_keys: trustee[1].verification_keys.map(PublicKey.fromJSON),
+        certs: trustee[1].certs.map(Message.parse),
+        coefexps: trustee[1].coefexps.map(Message.parse),
+        verification_keys: trustee[1].verification_keys.map(PublicKey.parse),
       },
     ];
   }
@@ -89,13 +88,13 @@ export namespace PublicKey {
     pok: Proof.serialized_t;
     public_key: Point.serialized_t;
   };
-  export function toJSON(o: t): serialized_t {
+  export function serialize(o: t): serialized_t {
     return {
       pok: Proof.serialize(o.pok),
       public_key: Point.serialize(o.public_key),
     };
   }
-  export function fromJSON(o: serialized_t): t {
+  export function parse(o: serialized_t): t {
     return {
       pok: Proof.parse(o.pok),
       public_key: Point.parse(o.public_key),
@@ -112,13 +111,13 @@ export namespace Message {
     message: string;
     signature: Proof.serialized_t;
   };
-  export function toJSON(o: t): serialized_t {
+  export function serialize(o: t): serialized_t {
     return {
       message: o.message,
       signature: Proof.serialize(o.signature),
     };
   }
-  export function fromJSON(o: serialized_t): t {
+  export function parse(o: serialized_t): t {
     return {
       message: o.message,
       signature: Proof.parse(o.signature),
@@ -223,7 +222,7 @@ export function generateFromPriv(x: bigint): [bigint, Single.serialized_t] {
     public_key: X,
   };
 
-  return [x, Single.toJSON(["Single", publicKey])];
+  return [x, Single.serialize(["Single", publicKey])];
 }
 
 export function combine_keys(trustees: t[]) {

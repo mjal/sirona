@@ -15,7 +15,7 @@ export type serialized_t = {
 };
 
 export function serialize(setup: t): serialized_t {
-  let trustees = setup.trustees.map(Trustee.toJSON)
+  let trustees = setup.trustees.map(Trustee.serialize)
   let election = Election.serialize(setup.election)
   let credentials = setup.credentials
   return {
@@ -26,7 +26,7 @@ export function serialize(setup: t): serialized_t {
 }
 
 export function parse(setup: serialized_t): t {
-  let trustees = setup.trustees.map(Trustee.fromJSON)
+  let trustees = setup.trustees.map(Trustee.parse)
   let election = Election.parse(setup.election)
   let credentials = setup.credentials
   return {

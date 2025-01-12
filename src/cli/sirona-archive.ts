@@ -24,9 +24,9 @@ program.command("init").action(async (options) => {
   });
 
   data = await fs.readFile("trustees.json");
-  let trustees = JSON.parse(data.toString());
-  trustees = trustees.map(Trustee.fromJSON);
-  trustees = trustees.map(Trustee.toJSON);
+  const trustees = JSON.parse(data.toString())
+    .map(Trustee.parse)
+    .map(Trustee.serialize);
 
   const archiveFilename = election.uuid + ".bel";
 

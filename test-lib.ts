@@ -20,7 +20,7 @@ let question : QuestionH.t =  {
 let questions = [question]
 
 let [x, serializedTrustee] = Trustee.generate()
-let trustee = Trustee.fromJSON(serializedTrustee)
+let trustee = Trustee.parse(serializedTrustee)
 let trustees = [trustee]
 
 let election = Election.create(title, description, trustees, questions)
