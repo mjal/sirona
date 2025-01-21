@@ -124,6 +124,8 @@ export function generate(
     const credential = credentials.find(
       (line) => line.split(",")[0] === ballot.credential,
     );
+    if (!credential)
+      return 0;
     const weight = credential.includes(",")
       ? Number(credential.split(",")[1])
       : 1;
