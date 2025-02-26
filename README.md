@@ -4,11 +4,17 @@
 
 Experimental. Implement a subset of belenios protocol 2.5.0. Only support ed25519.
 
-## Without install
+## Web interface
+
+You can use Sirona to verify a Belenios election by dropping the .bel file here:
+
+[Sirona web interface](https://mjal.github.io/sirona)
+
+## Command line (without install)
 
 `npx sirona election verify --url https://vote.server.org/elections/MyElectionUuid`
 
-## Install
+## Command line (with install)
 
 `yarn`
 
