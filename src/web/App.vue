@@ -42,7 +42,7 @@ const onUploadedFile = (event) => {
       class="uk-card uk-card-body uk-width-medium uk-margin uk-margin-auto"
       v-if="!loaded && !loading"
     >
-      <h3 class="uk-card-title">Import your .bel file</h3>
+      <h3 class="uk-card-title">Import your "archive" or ".bel" file</h3>
 
       <div class="js-upload" uk-form-custom>
         <input
