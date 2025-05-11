@@ -7,7 +7,7 @@
     "preview": "vite preview",
     "lint": "prettier --write .",
     "cli": "node -r ts-node/register src/cli/sirona.ts",
-    "check": "sh tests/tool/demo.sh",
+    "check": "./tests/tool/demo.sh",
     "prepublishOnly": "tsc"
   },
   "bin": {
