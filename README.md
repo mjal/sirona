@@ -34,11 +34,11 @@ TODO: Add screenshots
 
 ### Supported commands
 
-- setup generate-token
-- setup generate-credentials
+- archive add-event
 - election verify
 - election generate-ballot
-- archive add-event
+- setup generate-token
+- setup generate-credentials
 - sha256-b64
 
 ## Features
