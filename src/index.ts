@@ -1,4 +1,5 @@
 export * as Trustee from "./Trustee";
+export * as Question from "./Question";
 export * as Election from "./Election";
 export * as Ballot from "./Ballot";
 export * as Credential from "./Credential";
