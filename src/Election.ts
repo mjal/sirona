@@ -4,6 +4,8 @@ import * as Point from "./Point";
 import * as Question from "./Question";
 import { genUUID } from "./utils"
 
+type access_t = "open" | "closed"
+type voting_method_t = "uninominal" | "majorityJudgement"
 export type t = {
   version: number;
   description: string;
@@ -15,7 +17,15 @@ export type t = {
   administrator?: string;
   credential_authority?: string;
   unrestricted?: boolean;
+
+  // Specifics to scrutin
+  access?: access_t,
+  votingMethod?: voting_method_t,
+  startDate?: Date,
+  endDate?: Date
 };
+
+
 
 export type serialized_t = Omit<t, "public_key"> & { public_key: string };
 
@@ -38,7 +48,7 @@ export function create(
   name: string,
   trustees: Trustee.t[],
   questions: Question.t[]
-) : t {
+): t {
   const public_key = Trustee.combine_keys(trustees);
 
   const uuid = genUUID(14);
